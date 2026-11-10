@@ -159,8 +159,8 @@ export async function updateLaptop(id: string, req: NextRequest) {
 export async function deleteLaptop(id: string) {
   try {
     const user = await getCurrentUser();
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json({ error: 'Only admins can delete inventory devices' }, { status: 403 });
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return NextResponse.json({ error: 'Only administrators or super administrators can delete inventory devices' }, { status: 403 });
     }
 
     await connectToDatabase();

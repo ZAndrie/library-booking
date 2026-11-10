@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
+import { UserRole } from '@/backend/models/User';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'library_booking_super_secret_jwt_key_2026';
 
@@ -8,7 +9,7 @@ export interface SessionUser {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'staff';
+  role: UserRole;
   employeeId: string;
 }
 

@@ -114,8 +114,8 @@ export async function updateRoom(id: string, req: NextRequest) {
 export async function deleteRoom(id: string) {
   try {
     const user = await getCurrentUser();
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json({ error: 'Only admins can delete rooms' }, { status: 403 });
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return NextResponse.json({ error: 'Only administrators or super administrators can delete rooms' }, { status: 403 });
     }
 
     await connectToDatabase();

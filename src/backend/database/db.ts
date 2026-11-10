@@ -26,6 +26,7 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
   if (!cached!.promise) {
     const opts = {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds instead of hanging
     };
 
     cached!.promise = mongoose.connect(MONGODB_URI, opts).then((m) => {
@@ -35,8 +36,14 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
 
   try {
     cached!.conn = await cached!.promise;
-  } catch (e) {
+  } catch (e: any) {
     cached!.promise = null;
+    const isLocalhost = MONGODB_URI.includes('localhost') || MONGODB_URI.includes('127.0.0.1');
+    if (isLocalhost && (e.message?.includes('ECONNREFUSED') || e.name === 'MongooseServerSelectionError')) {
+      throw new Error(
+        'Database connection failed: MongoDB is not running on localhost:27017. Please start your local MongoDB service, or paste your MongoDB Atlas connection string in .env.local (MONGODB_URI=mongodb+srv://...).'
+      );
+    }
     throw e;
   }
 

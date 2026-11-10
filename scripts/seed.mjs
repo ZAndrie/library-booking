@@ -18,10 +18,22 @@ async function seed() {
   await db.collection('laptops').deleteMany({});
   await db.collection('laptoploans').deleteMany({});
 
-  console.log('Seeding Staff & Admin Users...');
+  console.log('Seeding Staff, Admin & Super Admin Users...');
   const salt = await bcrypt.genSalt(10);
+  const superAdminPasswordHash = await bcrypt.hash('superadmin123', salt);
   const adminPasswordHash = await bcrypt.hash('admin123', salt);
   const staffPasswordHash = await bcrypt.hash('staff123', salt);
+
+  const superAdminResult = await db.collection('users').insertOne({
+    name: 'University Director (Super Admin)',
+    email: 'superadmin@library.edu',
+    employeeId: 'SAD-001',
+    role: 'super_admin',
+    passwordHash: superAdminPasswordHash,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
   const adminResult = await db.collection('users').insertOne({
     name: 'Chief Librarian (Admin)',

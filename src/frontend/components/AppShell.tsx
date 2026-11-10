@@ -20,7 +20,7 @@ interface UserProfile {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'staff';
+  role: 'super_admin' | 'admin' | 'staff';
   employeeId: string;
 }
 
@@ -133,8 +133,16 @@ export default function AppShell({ children }: AppShellProps) {
                 <div className="text-right">
                   <div className="text-xs font-semibold text-white flex items-center gap-1.5 justify-end">
                     {user.name}
-                    <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                      {user.role}
+                    <span
+                      className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border ${
+                        user.role === 'super_admin'
+                          ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                          : user.role === 'admin'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
+                      }`}
+                    >
+                      {user.role.replace('_', ' ')}
                     </span>
                   </div>
                   <div className="text-[11px] text-slate-400">{user.employeeId}</div>

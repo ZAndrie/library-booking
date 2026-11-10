@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, BookOpen, Laptop, Lock, Mail, AlertCircle, ArrowRight } from 'lucide-react';
+import { ShieldCheck, BookOpen, Laptop, Lock, Mail, AlertCircle, ArrowRight, UserPlus } from 'lucide-react';
 
 export default function LoginView() {
   const router = useRouter();
@@ -38,17 +39,6 @@ export default function LoginView() {
     }
   };
 
-  const setDemoCredentials = (role: 'admin' | 'staff') => {
-    if (role === 'admin') {
-      setEmail('admin@library.edu');
-      setPassword('admin123');
-    } else {
-      setEmail('staff@library.edu');
-      setPassword('staff123');
-    }
-    setError('');
-  };
-
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -82,9 +72,9 @@ export default function LoginView() {
           </div>
 
           {error && (
-            <div className="mb-5 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-rose-300 text-xs">
+            <div className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-rose-300 text-xs">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
+              <div className="leading-relaxed whitespace-pre-line">{error}</div>
             </div>
           )}
 
@@ -102,7 +92,7 @@ export default function LoginView() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="staff@library.edu"
+                  placeholder="name@library.edu"
                   className="w-full pl-9 pr-3 py-2 bg-slate-900/80 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                 />
               </div>
@@ -137,26 +127,17 @@ export default function LoginView() {
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-slate-700/60">
-            <p className="text-xs text-slate-400 font-medium mb-3 text-center">
-              Quick Fill Demo Credentials:
+          <div className="mt-6 pt-5 border-t border-slate-700/60 text-center">
+            <p className="text-xs text-slate-400">
+              Need access or setting up a new staff account?
             </p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('admin')}
-                className="py-1.5 px-2.5 bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-medium text-slate-300 text-center transition-colors"
-              >
-                Admin (admin@library.edu)
-              </button>
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('staff')}
-                className="py-1.5 px-2.5 bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-medium text-slate-300 text-center transition-colors"
-              >
-                Staff (staff@library.edu)
-              </button>
-            </div>
+            <Link
+              href="/register"
+              className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              Register New Account (Staff, Admin, Super Admin)
+            </Link>
           </div>
         </div>
       </div>
