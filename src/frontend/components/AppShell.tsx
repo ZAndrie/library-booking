@@ -10,9 +10,6 @@ import {
   LogOut,
   ShieldCheck,
   Clock,
-  User,
-  PlusCircle,
-  AlertTriangle,
 } from 'lucide-react';
 
 interface AppShellProps {
@@ -31,11 +28,9 @@ export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState<string>('');
 
   useEffect(() => {
-    // Clock updater
     const updateTime = () => {
       const now = new Date();
       setCurrentTime(
@@ -65,8 +60,6 @@ export default function AppShell({ children }: AppShellProps) {
         }
       } catch {
         router.push('/login');
-      } finally {
-        setLoading(false);
       }
     }
     loadUser();
@@ -127,7 +120,6 @@ export default function AppShell({ children }: AppShellProps) {
             </div>
           </div>
 
-          {/* Time & User Profile */}
           <div className="flex items-center gap-4">
             {currentTime && (
               <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">

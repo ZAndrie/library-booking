@@ -28,13 +28,75 @@ This platform merges two essential library systems into one single administrativ
 
 ---
 
+## 📁 Clean File Directory Separation (Frontend vs Backend)
+
+The project is structured with an explicit separation between **Frontend** and **Backend** code:
+
+```
+Library-Booking/
+├── src/
+│   ├── backend/                        <-- 💻 100% BACKEND LOGIC
+│   │   ├── auth/
+│   │   │   └── jwt.ts                  # JWT token signing, verification & password hashing
+│   │   ├── controllers/
+│   │   │   ├── authController.ts       # Staff login, session & logout handlers
+│   │   │   ├── dashboardController.ts  # Combined KPI metrics & activity feeds
+│   │   │   ├── laptopController.ts     # Laptop hardware inventory CRUD
+│   │   │   ├── laptopLoanController.ts # Checkouts, returns & overdue inspection logic
+│   │   │   ├── roomBookingController.ts# Room reservations & overlap conflict detection
+│   │   │   └── roomController.ts       # Discussion rooms & facilities configuration
+│   │   ├── database/
+│   │   │   └── db.ts                   # Cached Mongoose MongoDB connection pool
+│   │   └── models/
+│   │       ├── Laptop.ts               # Laptop inventory schema
+│   │       ├── LaptopLoan.ts           # Loan transaction & return condition schema
+│   │       ├── Room.ts                 # Discussion room schema
+│   │       ├── RoomBooking.ts          # Room reservation schema
+│   │       └── User.ts                 # Staff & Admin user schema
+│   │
+│   ├── frontend/                       <-- 🎨 100% FRONTEND UI & VIEWS
+│   │   ├── components/
+│   │   │   └── AppShell.tsx            # Global Navigation, live clock & staff status bar
+│   │   ├── styles/
+│   │   │   └── globals.css             # Tailwind base & theme CSS
+│   │   └── views/
+│   │       ├── DashboardView.tsx       # Unified Operations Hub view (KPIs & feeds)
+│   │       ├── LaptopsView.tsx         # System 2: Laptop desk, overdue radar & inventory
+│   │       ├── LoginView.tsx           # Staff & Admin sign-in screen (with 1-click demo)
+│   │       └── RoomsView.tsx           # System 1: Discussion room schedules & reservations
+│   │
+│   ├── app/                            <-- 🌐 URL ROUTING CONNECTOR LAYER
+│   │   ├── (web routes)                # Maps URL endpoints to frontend views
+│   │   │   ├── layout.tsx              # Root HTML wrapper
+│   │   │   ├── page.tsx                # '/' -> renders DashboardView
+│   │   │   ├── rooms/page.tsx          # '/rooms' -> renders RoomsView
+│   │   │   ├── laptops/page.tsx        # '/laptops' -> renders LaptopsView
+│   │   │   └── login/page.tsx          # '/login' -> renders LoginView
+│   │   └── api/                        # Maps REST endpoints to backend controllers
+│   │       ├── auth/                   # /api/auth/*
+│   │       ├── dashboard/              # /api/dashboard/*
+│   │       ├── laptop-loans/           # /api/laptop-loans/*
+│   │       ├── laptops/                # /api/laptops/*
+│   │       ├── room-bookings/          # /api/room-bookings/*
+│   │       └── rooms/                  # /api/rooms/*
+│   │
+│   └── middleware.ts                   # Route protection (redirects unauthenticated users)
+│
+├── scripts/
+│   └── seed.mjs                        # Database seeder (sample rooms, laptops, loans)
+├── .env.example                        # Template environment variables
+├── .env.local                          # Local environment variables
+└── package.json
+```
+
+---
+
 ## 🛠️ Tech Stack
 
 * **Full-Stack Framework**: Next.js 14+ (App Router) with Node.js runtime.
-* **Database & ODM**: MongoDB Atlas + Mongoose (with cached connection singleton for Vercel serverless functions).
+* **Database & ODM**: MongoDB Atlas + Mongoose (with cached connection singleton for serverless).
 * **Security & Auth**: Role-Based Access Control (`admin` & `staff`) via secure HTTP-Only JWT cookies and Next.js middleware.
 * **Styling & UI**: Tailwind CSS + Lucide Icons (dark-themed operations dashboard).
-* **Deployment Target**: Vercel (Edge network + Node.js serverless functions + Vercel Cron).
 
 ---
 
@@ -44,13 +106,7 @@ This platform merges two essential library systems into one single administrativ
 * [Node.js](https://nodejs.org/) (v18.x or v20.x+)
 * [MongoDB](https://www.mongodb.com/) (Local MongoDB Community Server or free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster)
 
-### 2. Clone and Install Dependencies
-```bash
-cd Library-Booking
-npm install
-```
-
-### 3. Configure Environment Variables
+### 2. Configure Environment Variables
 Copy `.env.example` to `.env.local`:
 ```bash
 cp .env.example .env.local
@@ -62,7 +118,7 @@ JWT_SECRET=super_secret_library_admin_jwt_key_2026
 NODE_ENV=development
 ```
 
-### 4. Seed the Database
+### 3. Seed the Database
 Populate the database with sample discussion rooms, laptops, active test loans, and default Staff/Admin accounts:
 ```bash
 npm run seed
@@ -74,70 +130,8 @@ npm run seed
 | **Admin** | `admin@library.edu` | `admin123` | Full access, delete rooms/laptops, manage system |
 | **Staff** | `staff@library.edu` | `staff123` | Room reservations, laptop checkout/check-in |
 
-### 5. Start the Development Server
+### 4. Start the Development Server
 ```bash
 npm run dev
 ```
 Open **[http://localhost:3000](http://localhost:3000)** in your browser.
-
----
-
-## 🌐 Deploying to Vercel
-
-1. **Set up MongoDB Atlas (Cloud Database)**:
-   * Create a free M0 cluster on [MongoDB Atlas](https://cloud.mongodb.com).
-   * In *Network Access*, add `0.0.0.0/0` (Allow Access from Anywhere) so Vercel serverless lambdas can connect.
-   * In *Database Access*, create a database user and copy the connection string:
-     `mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/library-booking?retryWrites=true&w=majority`
-
-2. **Deploy to Vercel**:
-   * Push your project to GitHub or GitLab.
-   * Import the repository in [Vercel](https://vercel.com/new).
-   * Under **Environment Variables**, add:
-     * `MONGODB_URI`: Your MongoDB Atlas connection string.
-     * `JWT_SECRET`: A strong random string for signing JWT tokens.
-     * `NODE_ENV`: `production`
-   * Click **Deploy**.
-
-3. **Seed Cloud Database**:
-   You can run the seed script pointing to your Atlas URI once:
-   ```bash
-   MONGODB_URI="your_atlas_connection_string" npm run seed
-   ```
-
----
-
-## 📁 Project Structure
-
-```
-├── scripts/
-│   └── seed.mjs                   # Automated database seeder
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── auth/              # Login, Logout, Session check
-│   │   │   ├── dashboard/stats/   # Dual-system KPI metrics
-│   │   │   ├── laptop-loans/      # Checkout, Return, Overdue API
-│   │   │   ├── laptops/           # Laptop fleet CRUD
-│   │   │   ├── room-bookings/     # Room reservation & conflict engine
-│   │   │   └── rooms/             # Room inventory CRUD
-│   │   ├── laptops/page.tsx       # System 2: Laptop Borrowing Desk UI
-│   │   ├── rooms/page.tsx         # System 1: Discussion Room Booking UI
-│   │   ├── login/page.tsx         # Staff Sign-in Portal with 1-click Demo
-│   │   ├── layout.tsx             # Root Layout
-│   │   └── page.tsx               # Unified Operations Dashboard
-│   ├── components/
-│   │   └── AppShell.tsx           # Global Navigation & Staff Status Bar
-│   ├── lib/
-│   │   ├── auth.ts                # JWT and Password encryption utilities
-│   │   └── mongodb.ts             # Serverless cached Mongoose connection pool
-│   ├── models/
-│   │   ├── Laptop.ts              # Laptop hardware inventory schema
-│   │   ├── LaptopLoan.ts          # Laptop loan & inspection ledger schema
-│   │   ├── Room.ts                # Discussion room schema
-│   │   ├── RoomBooking.ts         # Room reservation schema
-│   │   └── User.ts                # Staff & Admin user schema
-│   └── middleware.ts              # Route protection middleware
-├── vercel.json                    # Vercel configuration & scheduled crons
-└── package.json
-```
