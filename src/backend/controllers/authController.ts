@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/backend/database/db';
 import User, { UserRole } from '@/backend/models/User';
 import {
+  findDevUserByIdentifier,
   findDevUserByEmail,
   findDevUserByEmployeeId,
   createDevUser,
@@ -19,11 +20,13 @@ async function tryConnectDb(): Promise<boolean> {
 
 export async function handleLogin(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const body = await req.json();
+    const identifier = (body.username || body.email || body.identifier || '').trim();
+    const password = body.password;
 
-    if (!email || !password) {
+    if (!identifier || !password) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Username or email, and password are required' },
         { status: 400 }
       );
     }
@@ -38,10 +41,17 @@ export async function handleLogin(req: NextRequest) {
     } | null = null;
 
     if (hasDb) {
-      const user = await User.findOne({ email: email.toLowerCase().trim() });
+      const user = await User.findOne({
+        $or: [
+          { email: identifier.toLowerCase() },
+          { employeeId: identifier.toUpperCase() },
+          { name: { $regex: new RegExp(`^${identifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+        ],
+      });
+
       if (!user) {
         return NextResponse.json(
-          { error: 'Invalid email or password' },
+          { error: 'Invalid username/email or password' },
           { status: 401 }
         );
       }
@@ -56,7 +66,7 @@ export async function handleLogin(req: NextRequest) {
       const isMatch = await comparePassword(password, user.passwordHash);
       if (!isMatch) {
         return NextResponse.json(
-          { error: 'Invalid email or password' },
+          { error: 'Invalid username/email or password' },
           { status: 401 }
         );
       }
@@ -71,12 +81,12 @@ export async function handleLogin(req: NextRequest) {
     } else {
       // Offline / Local Development Fallback
       console.log('MongoDB is offline. Verifying login using local dev store...');
-      const devUser = findDevUserByEmail(email);
+      const devUser = findDevUserByIdentifier(identifier);
       if (!devUser) {
         return NextResponse.json(
           {
             error:
-              'No account found with this email. Please click "Register New Account" to create your Staff, Admin, or Super Admin account.',
+              'No account found with this username or email. Please click "Register here" to create your account.',
           },
           { status: 401 }
         );
@@ -85,7 +95,7 @@ export async function handleLogin(req: NextRequest) {
       const isMatch = await comparePassword(password, devUser.passwordHash);
       if (!isMatch) {
         return NextResponse.json(
-          { error: 'Invalid email or password' },
+          { error: 'Invalid username/email or password' },
           { status: 401 }
         );
       }

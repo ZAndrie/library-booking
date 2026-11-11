@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, BookOpen, Laptop, Lock, Mail, AlertCircle, ArrowRight, UserPlus } from 'lucide-react';
+import { BookOpen, User, Lock, LogIn, AlertCircle } from 'lucide-react';
 
 export default function LoginView() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ export default function LoginView() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
@@ -40,105 +40,104 @@ export default function LoginView() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-            <ShieldCheck className="w-7 h-7" />
+    <div
+      className="min-h-screen flex items-center justify-center p-4 sm:p-6"
+      style={{
+        backgroundColor: '#b91c1c',
+        backgroundImage: `
+          radial-gradient(circle at center, rgba(185, 28, 28, 0.95), rgba(127, 29, 29, 1)),
+          radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 0)
+        `,
+        backgroundSize: '100% 100%, 22px 22px',
+      }}
+    >
+      <div className="w-full max-w-[420px] bg-white rounded-3xl p-8 sm:p-10 shadow-2xl">
+        {/* Card Header */}
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 mx-auto mb-3 bg-[#b91c1c] rounded-2xl flex items-center justify-center shadow-lg shadow-red-950/20">
+            <BookOpen className="w-8 h-8 text-white fill-white" />
           </div>
+          <h1 className="font-serif text-2xl font-bold text-[#b91c1c] tracking-tight">
+            Library Booking
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 font-medium">
+            Staff & Librarian Portal
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-600 text-xs">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="leading-relaxed">{error}</div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4 text-left">
+          {/* USERNAME */}
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Library Operations Hub</h1>
-            <p className="text-xs text-slate-400 font-medium">Discussion Rooms & Laptop Loans Platform</p>
-          </div>
-        </div>
-
-        <div className="mt-4 flex justify-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
-            <BookOpen className="w-3.5 h-3.5" /> Room Booking
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <Laptop className="w-3.5 h-3.5" /> Laptop Borrowing
-          </span>
-        </div>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
-        <div className="bg-slate-800 border border-slate-700/80 py-8 px-6 shadow-2xl rounded-2xl sm:px-10">
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-white">Staff & Admin Sign In</h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Strictly for library desk officers and administration staff.
-            </p>
+            <label className="block text-[11px] font-bold tracking-wider text-slate-700 uppercase mb-1.5">
+              USERNAME
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <User className="w-4 h-4" />
+              </div>
+              <input
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
+                className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b91c1c] focus:border-transparent transition-all shadow-sm"
+              />
+            </div>
           </div>
 
-          {error && (
-            <div className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-rose-300 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <div className="leading-relaxed whitespace-pre-line">{error}</div>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Staff Email Address
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                  <Mail className="w-4 h-4" />
-                </div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@library.edu"
-                  className="w-full pl-9 pr-3 py-2 bg-slate-900/80 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                />
+          {/* PASSWORD */}
+          <div>
+            <label className="block text-[11px] font-bold tracking-wider text-slate-700 uppercase mb-1.5">
+              PASSWORD
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <Lock className="w-4 h-4" />
               </div>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b91c1c] focus:border-transparent transition-all shadow-sm"
+              />
             </div>
+          </div>
 
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-9 pr-3 py-2 bg-slate-900/80 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                />
-              </div>
-            </div>
+          {/* SIGN IN BUTTON */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full mt-6 py-2.5 px-4 bg-[#b91c1c] hover:bg-[#991b1b] text-white font-semibold text-sm rounded-lg shadow-md shadow-red-900/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+          >
+            <LogIn className="w-4 h-4" />
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full mt-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-lg shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-            >
-              {loading ? 'Authenticating...' : 'Enter Operations Portal'}
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </form>
-
-          <div className="mt-6 pt-5 border-t border-slate-700/60 text-center">
-            <p className="text-xs text-slate-400">
-              Need access or setting up a new staff account?
-            </p>
+        {/* Footer */}
+        <div className="mt-6 text-center text-xs text-slate-500">
+          <p>
+            No account yet?{' '}
             <Link
               href="/register"
-              className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+              className="font-bold text-[#b91c1c] hover:underline transition-colors"
             >
-              <UserPlus className="w-3.5 h-3.5" />
-              Register New Account (Staff, Admin, Super Admin)
+              Register here
             </Link>
-          </div>
+          </p>
+          <p className="text-[11px] text-slate-400 mt-2">
+            Default admin: admin / Admin@1234
+          </p>
         </div>
       </div>
     </div>
