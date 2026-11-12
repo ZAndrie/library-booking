@@ -43,9 +43,9 @@ export default function LoginView() {
     <div
       className="min-h-screen flex items-center justify-center p-4 sm:p-6"
       style={{
-        backgroundColor: '#b91c1c',
+        backgroundColor: '#8B1515',
         backgroundImage: `
-          radial-gradient(circle at center, rgba(185, 28, 28, 0.95), rgba(127, 29, 29, 1)),
+          radial-gradient(circle at center, rgba(139, 21, 21, 0.95), rgba(80, 10, 10, 1)),
           radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 0)
         `,
         backgroundSize: '100% 100%, 22px 22px',
@@ -54,14 +54,14 @@ export default function LoginView() {
       <div className="w-full max-w-[420px] bg-white rounded-3xl p-8 sm:p-10 shadow-2xl">
         {/* Card Header */}
         <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto mb-3 bg-[#b91c1c] rounded-2xl flex items-center justify-center shadow-lg shadow-red-950/20">
+          <div className="w-16 h-16 mx-auto mb-3 bg-[#8B1515] rounded-2xl flex items-center justify-center shadow-lg shadow-red-950/20">
             <BookOpen className="w-8 h-8 text-white fill-white" />
           </div>
-          <h1 className="font-serif text-2xl font-bold text-[#b91c1c] tracking-tight">
-            Library Booking
+          <h1 className="font-serif text-2xl font-bold text-[#8B1515] tracking-tight">
+            Discussion Room
           </h1>
-          <p className="text-xs text-slate-400 mt-1 font-medium">
-            Staff & Librarian Portal
+          <p className="text-[11px] uppercase tracking-wider text-slate-400 mt-1 font-semibold">
+            ROOM BOOKING & LAPTOP DESK
           </p>
         </div>
 
@@ -88,7 +88,7 @@ export default function LoginView() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
-                className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b91c1c] focus:border-transparent transition-all shadow-sm"
+                className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8B1515] focus:border-transparent transition-all shadow-sm"
               />
             </div>
           </div>
@@ -108,7 +108,7 @@ export default function LoginView() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
-                className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b91c1c] focus:border-transparent transition-all shadow-sm"
+                className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8B1515] focus:border-transparent transition-all shadow-sm"
               />
             </div>
           </div>
@@ -117,7 +117,7 @@ export default function LoginView() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-6 py-2.5 px-4 bg-[#b91c1c] hover:bg-[#991b1b] text-white font-semibold text-sm rounded-lg shadow-md shadow-red-900/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            className="w-full mt-6 py-2.5 px-4 bg-[#8B1515] hover:bg-[#721111] text-white font-semibold text-sm rounded-lg shadow-md shadow-red-950/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
           >
             <LogIn className="w-4 h-4" />
             {loading ? 'Signing in...' : 'Sign In'}
@@ -130,7 +130,7 @@ export default function LoginView() {
             No account yet?{' '}
             <Link
               href="/register"
-              className="font-bold text-[#b91c1c] hover:underline transition-colors"
+              className="font-bold text-[#8B1515] hover:underline transition-colors"
             >
               Register here
             </Link>

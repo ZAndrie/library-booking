@@ -18,8 +18,9 @@ export async function getRooms(req: NextRequest) {
     const rooms = await Room.find(filter).sort({ roomNumber: 1 });
     return NextResponse.json({ success: true, rooms });
   } catch (error: any) {
-    console.warn('Rooms notice: MongoDB offline, returning empty rooms array');
-    return NextResponse.json({ success: true, rooms: [], isDatabaseOffline: true });
+    console.warn('Rooms notice: MongoDB offline, returning dev store rooms');
+    const { getDevRooms } = await import('@/backend/database/devStore');
+    return NextResponse.json({ success: true, rooms: getDevRooms(), isDatabaseOffline: true });
   }
 }
 

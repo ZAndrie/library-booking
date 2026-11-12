@@ -34,8 +34,9 @@ export async function getLaptops(req: NextRequest) {
     const laptops = await Laptop.find(filter).sort({ assetTag: 1 });
     return NextResponse.json({ success: true, laptops });
   } catch (error: any) {
-    console.warn('Laptops notice: MongoDB offline, returning empty laptops array');
-    return NextResponse.json({ success: true, laptops: [], isDatabaseOffline: true });
+    console.warn('Laptops notice: MongoDB offline, returning dev store laptops');
+    const { getDevLaptops } = await import('@/backend/database/devStore');
+    return NextResponse.json({ success: true, laptops: getDevLaptops(), isDatabaseOffline: true });
   }
 }
 

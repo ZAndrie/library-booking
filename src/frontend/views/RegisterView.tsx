@@ -106,9 +106,9 @@ export default function RegisterView() {
     <div
       className="min-h-screen flex items-center justify-center p-4 sm:p-6"
       style={{
-        backgroundColor: '#b91c1c',
+        backgroundColor: '#8B1515',
         backgroundImage: `
-          radial-gradient(circle at center, rgba(185, 28, 28, 0.95), rgba(127, 29, 29, 1)),
+          radial-gradient(circle at center, rgba(139, 21, 21, 0.95), rgba(80, 10, 10, 1)),
           radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 0)
         `,
         backgroundSize: '100% 100%, 22px 22px',
@@ -117,14 +117,14 @@ export default function RegisterView() {
       <div className="w-full max-w-[520px] bg-white rounded-3xl p-8 sm:p-10 shadow-2xl">
         {/* Card Header */}
         <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto mb-3 bg-[#b91c1c] rounded-2xl flex items-center justify-center shadow-lg shadow-red-950/20">
+          <div className="w-16 h-16 mx-auto mb-3 bg-[#8B1515] rounded-2xl flex items-center justify-center shadow-lg shadow-red-950/20">
             <BookOpen className="w-8 h-8 text-white fill-white" />
           </div>
-          <h1 className="font-serif text-2xl font-bold text-[#b91c1c] tracking-tight">
-            Library Booking
+          <h1 className="font-serif text-2xl font-bold text-[#8B1515] tracking-tight">
+            Discussion Room
           </h1>
-          <p className="text-xs text-slate-400 mt-1 font-medium">
-            Staff & Administrator Registration
+          <p className="text-[11px] uppercase tracking-wider text-slate-400 mt-1 font-semibold">
+            STAFF & OFFICER REGISTRATION
           </p>
         </div>
 
@@ -152,7 +152,7 @@ export default function RegisterView() {
                     onClick={() => setFormData({ ...formData, role: opt.id })}
                     className={`text-left p-2.5 rounded-xl border transition-all ${
                       isSelected
-                        ? 'border-[#b91c1c] bg-red-50 ring-2 ring-[#b91c1c]/30 text-[#b91c1c]'
+                        ? 'border-[#8B1515] bg-red-50 ring-2 ring-[#8B1515]/30 text-[#8B1515]'
                         : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
                     }`}
                   >
@@ -185,7 +185,7 @@ export default function RegisterView() {
                   placeholder="e.g. Jane Miller"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b91c1c] focus:border-transparent transition-all"
+                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8B1515] focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -206,7 +206,7 @@ export default function RegisterView() {
                   onChange={(e) =>
                     setFormData({ ...formData, employeeId: e.target.value.toUpperCase() })
                   }
-                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 font-mono uppercase focus:outline-none focus:ring-2 focus:ring-[#b91c1c] focus:border-transparent transition-all"
+                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 font-mono uppercase focus:outline-none focus:ring-2 focus:ring-[#8B1515] focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -227,7 +227,7 @@ export default function RegisterView() {
                 placeholder="name@library.edu"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b91c1c] focus:border-transparent transition-all"
+                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8B1515] focus:border-transparent transition-all"
               />
             </div>
           </div>
@@ -248,7 +248,7 @@ export default function RegisterView() {
                   placeholder="Min 6 characters"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b91c1c] focus:border-transparent transition-all"
+                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8B1515] focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -269,7 +269,7 @@ export default function RegisterView() {
                   onChange={(e) =>
                     setFormData({ ...formData, confirmPassword: e.target.value })
                   }
-                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b91c1c] focus:border-transparent transition-all"
+                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8B1515] focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -278,7 +278,7 @@ export default function RegisterView() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-5 py-2.5 px-4 bg-[#b91c1c] hover:bg-[#991b1b] text-white font-semibold text-xs rounded-lg shadow-md shadow-red-900/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            className="w-full mt-5 py-2.5 px-4 bg-[#8B1515] hover:bg-[#991b1b] text-white font-semibold text-xs rounded-lg shadow-md shadow-red-900/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
           >
             <UserPlus className="w-4 h-4" />
             {loading ? 'Creating Account...' : 'Complete Registration'}
@@ -289,7 +289,7 @@ export default function RegisterView() {
           Already registered?{' '}
           <Link
             href="/login"
-            className="font-bold text-[#b91c1c] hover:underline transition-colors"
+            className="font-bold text-[#8B1515] hover:underline transition-colors"
           >
             Sign in here
           </Link>

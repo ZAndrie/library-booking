@@ -6,10 +6,21 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   DoorOpen,
-  Laptop,
-  LogOut,
-  ShieldCheck,
+  CalendarPlus,
+  CalendarDays,
   Clock,
+  BookOpen,
+  BarChart3,
+  TrendingUp,
+  Laptop,
+  MonitorCheck,
+  AlertTriangle,
+  HardDrive,
+  LogOut,
+  Menu,
+  X,
+  User,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface AppShellProps {
@@ -24,29 +35,24 @@ interface UserProfile {
   employeeId: string;
 }
 
+interface NavItem {
+  label: string;
+  href: string;
+  icon: any;
+  badge?: string;
+  onClick?: () => void;
+}
+
+interface NavSection {
+  label: string;
+  items: NavItem[];
+}
+
 export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [currentTime, setCurrentTime] = useState<string>('');
-
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleDateString('en-US', {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
-      );
-    };
-    updateTime();
-    const timer = setInterval(updateTime, 30000);
-    return () => clearInterval(timer);
-  }, []);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     async function loadUser() {
@@ -66,155 +72,206 @@ export default function AppShell({ children }: AppShellProps) {
   }, [router]);
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
-    router.refresh();
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      router.push('/login');
+      router.refresh();
+    }
   };
 
-  const navItems = [
+  const navSections: NavSection[] = [
     {
-      label: 'Operations Hub',
-      href: '/',
-      icon: LayoutDashboard,
-      desc: 'Combined System Overview',
+      label: 'MAIN',
+      items: [
+        { label: 'Dashboard', href: '/', icon: LayoutDashboard },
+        { label: 'Rooms', href: '/rooms', icon: DoorOpen },
+      ],
     },
     {
-      label: 'Discussion Rooms',
-      href: '/rooms',
-      icon: DoorOpen,
-      desc: 'Schedules & Reservations',
-      badge: 'System 1',
+      label: 'BOOKINGS',
+      items: [
+        { label: 'Add Booking', href: '/rooms?action=new', icon: CalendarPlus },
+        { label: 'All Bookings', href: '/rooms', icon: CalendarDays },
+        { label: 'Pending', href: '/rooms?filter=pending', icon: Clock, badge: '0' },
+        { label: 'Ledger', href: '/rooms?tab=ledger', icon: BookOpen },
+        { label: 'Time Plotter', href: '/rooms?tab=plotter', icon: BarChart3 },
+        { label: 'Analytics', href: '/rooms?tab=analytics', icon: TrendingUp },
+      ],
     },
     {
-      label: 'Laptop Borrowing',
-      href: '/laptops',
-      icon: Laptop,
-      desc: 'Checkout, Returns & Inventory',
-      badge: 'System 2',
+      label: 'LAPTOPS (SYSTEM 2)',
+      items: [
+        { label: 'Checkout Desk', href: '/laptops?action=checkout', icon: Laptop },
+        { label: 'Active Loans', href: '/laptops?filter=active', icon: MonitorCheck },
+        { label: 'Overdue Tracker', href: '/laptops?filter=overdue', icon: AlertTriangle },
+        { label: 'Fleet Inventory', href: '/laptops', icon: HardDrive },
+      ],
+    },
+    {
+      label: 'ACCOUNT',
+      items: [
+        { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
+      ],
     },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100">
-      {/* Top Banner Navigation */}
-      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 p-0.5 shadow-md shadow-emerald-900/20">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center text-emerald-400">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col md:flex-row font-sans">
+      {/* Mobile Top Header */}
+      <div className="md:hidden bg-[#8B1515] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-red-900/60 border border-red-400/40 flex items-center justify-center">
+            <BookOpen className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <div className="font-serif font-bold text-base tracking-wide leading-tight">Discussion Room</div>
+            <div className="text-[9px] uppercase tracking-wider text-rose-200">Room Booking & Laptops</div>
+          </div>
+        </div>
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-1.5 rounded-lg bg-red-900/60 text-white hover:bg-red-900"
+        >
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </div>
+
+      {/* Crimson Left Sidebar */}
+      <aside
+        className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-[#8B1515] text-white flex flex-col justify-between z-40 shadow-xl transition-transform duration-300 ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
+      >
+        <div className="flex-1 overflow-y-auto py-5 px-4 space-y-6">
+          {/* Brand Emblem */}
+          <div className="flex items-center gap-3 px-2 pb-4 border-b border-red-700/60">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-700 to-red-950 p-0.5 border border-red-400/30 flex items-center justify-center shadow-inner">
+              <BookOpen className="w-5 h-5 text-white" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-base tracking-tight text-white">
-                  Library Operations Hub
-                </span>
-                <span className="text-[10px] uppercase tracking-wider font-bold bg-slate-800 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">
-                  Staff Only
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">
-                Unified Discussion Rooms & Laptop Borrowing Platform
+              <h1 className="font-serif font-bold text-lg leading-tight tracking-wide text-white">
+                Discussion Room
+              </h1>
+              <p className="text-[10px] uppercase tracking-widest text-rose-200/90 font-medium">
+                ROOM BOOKING SYSTEM
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {currentTime && (
-              <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
-                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                <span>{currentTime}</span>
-              </div>
-            )}
-
-            {user && (
-              <div className="flex items-center gap-3 pl-2 border-l border-slate-800">
-                <div className="text-right">
-                  <div className="text-xs font-semibold text-white flex items-center gap-1.5 justify-end">
-                    {user.name}
-                    <span
-                      className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border ${
-                        user.role === 'super_admin'
-                          ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                          : user.role === 'admin'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                          : 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
-                      }`}
-                    >
-                      {user.role.replace('_', ' ')}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-slate-400">{user.employeeId}</div>
+          {/* Navigation Sections */}
+          <nav className="space-y-5">
+            {navSections.map((section) => (
+              <div key={section.label} className="space-y-1">
+                <div className="px-3 text-[11px] font-bold uppercase tracking-wider text-rose-200/70 mb-1">
+                  {section.label}
                 </div>
+                <div className="space-y-0.5">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const isCurrent =
+                      item.href === '/'
+                        ? pathname === '/'
+                        : !item.href.startsWith('#') && pathname.startsWith(item.href.split('?')[0]);
 
-                <button
-                  onClick={handleLogout}
-                  title="Sign out of operations hub"
-                  className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800/80 transition-colors border border-transparent hover:border-slate-700"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+                    if (item.onClick) {
+                      return (
+                        <button
+                          key={item.label}
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            item.onClick?.();
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-rose-100 hover:bg-red-900/70 hover:text-white transition-colors group"
+                        >
+                          <Icon className="w-4 h-4 text-rose-300 group-hover:text-white transition-colors" />
+                          <span className="font-medium">{item.label}</span>
+                        </button>
+                      );
+                    }
 
-        {/* Primary Subsystem Navigation Bar */}
-        <div className="bg-slate-900/90 border-t border-slate-800/60 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <nav className="flex space-x-1 sm:space-x-2 py-2 overflow-x-auto">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all ${
-                      isActive
-                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30 font-semibold'
-                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                    {item.badge && (
-                      <span
-                        className={`text-[9px] uppercase px-1.5 py-0.2 rounded font-semibold ${
-                          isActive
-                            ? 'bg-emerald-700 text-emerald-100'
-                            : 'bg-slate-800 text-slate-400'
+                    return (
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all group ${
+                          isCurrent
+                            ? 'bg-red-900/90 text-white font-semibold shadow-inner border-l-4 border-rose-300'
+                            : 'text-rose-100/90 hover:bg-red-900/60 hover:text-white'
                         }`}
                       >
-                        {item.badge}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
+                        <div className="flex items-center gap-3">
+                          <Icon
+                            className={`w-4 h-4 transition-colors ${
+                              isCurrent ? 'text-white' : 'text-rose-300 group-hover:text-white'
+                            }`}
+                          />
+                          <span>{item.label}</span>
+                        </div>
+                        {item.badge && (
+                          <span className="text-[10px] bg-red-950/70 text-rose-200 px-1.5 py-0.5 rounded-full font-bold">
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </nav>
+        </div>
 
-            <div className="hidden sm:flex items-center gap-2">
-              <span className="text-xs text-slate-400">Desk Terminal Ready</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        {/* User Card at Bottom */}
+        <div className="p-4 border-t border-red-700/60 bg-red-950/40">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full bg-red-800 border border-red-500/40 flex items-center justify-center font-bold text-xs text-white">
+                {user ? user.name.slice(0, 2).toUpperCase() : 'LA'}
+              </div>
+              <div className="overflow-hidden">
+                <div className="text-xs font-semibold text-white truncate">
+                  {user?.name || 'Library Admin'}
+                </div>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[9px] uppercase tracking-wider font-bold bg-red-900/90 text-rose-200 px-1.5 py-0.2 rounded border border-red-600/40">
+                    {user?.role ? user.role.replace('_', ' ') : 'ADMIN'}
+                  </span>
+                </div>
+              </div>
             </div>
+
+            <button
+              onClick={handleLogout}
+              title="Logout"
+              className="p-1.5 text-rose-300 hover:text-white hover:bg-red-900/60 rounded-md transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
-      </header>
+      </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {children}
-      </main>
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+          {children}
+        </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800 bg-slate-950 py-4 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Library Operations Terminal (Admin/Staff) • Dual Subsystem Engine</span>
-          <span>Deployable on Vercel • MongoDB Atlas</span>
-        </div>
-      </footer>
+        <footer className="py-4 px-6 border-t border-slate-200 bg-white text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
+          <span>Discussion Room Booking & Laptop Fleet Management System • Admin Desk</span>
+          <span className="text-[11px] text-slate-400">Node.js + MongoDB + Next.js</span>
+        </footer>
+      </div>
+
+      {/* Mobile backdrop */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm"
+        />
+      )}
     </div>
   );
 }

@@ -45,8 +45,9 @@ export async function getRoomBookings(req: NextRequest) {
 
     return NextResponse.json({ success: true, bookings });
   } catch (error: any) {
-    console.warn('Bookings notice: MongoDB offline, returning empty bookings array');
-    return NextResponse.json({ success: true, bookings: [], isDatabaseOffline: true });
+    console.warn('Bookings notice: MongoDB offline, returning dev store bookings');
+    const { getDevBookings } = await import('@/backend/database/devStore');
+    return NextResponse.json({ success: true, bookings: getDevBookings(), isDatabaseOffline: true });
   }
 }
 

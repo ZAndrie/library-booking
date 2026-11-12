@@ -74,15 +74,14 @@ export async function getDashboardStats() {
       recentLaptopLoans,
     });
   } catch (error: any) {
-    console.warn('Dashboard notice: MongoDB offline, returning default stats payload');
+    console.warn('Dashboard notice: MongoDB offline, returning dev store stats');
+    const { getDevStats, getDevBookings, getDevLoans } = await import('@/backend/database/devStore');
+    const devStats = getDevStats();
     return NextResponse.json({
       success: true,
-      stats: {
-        rooms: { total: 0, available: 0, maintenance: 0, currentlyOccupied: 0, todayTotal: 0 },
-        laptops: { total: 0, available: 0, borrowed: 0, maintenance: 0, overdue: 0 },
-      },
-      recentRoomBookings: [],
-      recentLaptopLoans: [],
+      stats: devStats,
+      recentRoomBookings: getDevBookings().slice(0, 5),
+      recentLaptopLoans: getDevLoans().slice(0, 5),
       isDatabaseOffline: true,
     });
   }

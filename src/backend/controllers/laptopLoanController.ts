@@ -46,8 +46,14 @@ export async function getLaptopLoans(req: NextRequest) {
 
     return NextResponse.json({ success: true, loans: enrichedLoans });
   } catch (error: any) {
-    console.warn('Laptop loans notice: MongoDB offline, returning empty loans array');
-    return NextResponse.json({ success: true, loans: [], isDatabaseOffline: true });
+    console.warn('Laptop loans notice: MongoDB offline, returning dev store loans');
+    const { getDevLoans } = await import('@/backend/database/devStore');
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get('status');
+    const borrowerId = searchParams.get('borrowerId');
+    const laptopId = searchParams.get('laptopId');
+    const loans = getDevLoans(status || undefined, borrowerId || undefined, laptopId || undefined);
+    return NextResponse.json({ success: true, loans, isDatabaseOffline: true });
   }
 }
 
@@ -136,11 +142,32 @@ export async function createLaptopLoan(req: NextRequest) {
 
     return NextResponse.json({ success: true, loan: populated }, { status: 201 });
   } catch (error: any) {
-    console.error('Checkout laptop error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to checkout laptop' },
-      { status: 500 }
-    );
+    console.warn('Checkout laptop notice: MongoDB offline, saving to dev store');
+    try {
+      const { createDevLoan } = await import('@/backend/database/devStore');
+      const body = await req.json().catch(() => ({}));
+      const user = await getCurrentUser();
+      const newLoan = createDevLoan({
+        laptopId: body.laptopId,
+        borrowerName: body.borrowerName,
+        borrowerId: body.borrowerId,
+        borrowerEmail: body.borrowerEmail,
+        borrowerContact: body.borrowerContact,
+        borrowedAt: new Date().toISOString(),
+        dueAt: body.dueAt,
+        status: 'active',
+        staffIssuerId: { name: user?.name || 'Admin Staff', employeeId: user?.employeeId || 'STAFF-001' },
+        checkoutAccessories: body.checkoutAccessories || [],
+        checkoutNotes: body.checkoutNotes || '',
+      });
+      return NextResponse.json({ success: true, loan: newLoan, isDatabaseOffline: true }, { status: 201 });
+    } catch (devErr: any) {
+      console.error('Checkout laptop error:', error);
+      return NextResponse.json(
+        { error: error.message || 'Failed to checkout laptop' },
+        { status: 500 }
+      );
+    }
   }
 }
 
@@ -202,7 +229,20 @@ export async function returnLaptopLoan(id: string, req: NextRequest) {
       loan: populated,
     });
   } catch (error: any) {
-    console.error('Return laptop error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.warn('Return laptop notice: MongoDB offline, updating dev store');
+    try {
+      const { returnDevLoan } = await import('@/backend/database/devStore');
+      const body = await req.json().catch(() => ({}));
+      const updated = returnDevLoan(id, body.returnCondition || 'good', body.returnNotes || '');
+      return NextResponse.json({
+        success: true,
+        message: 'Laptop checked in successfully (devStore)',
+        loan: updated,
+        isDatabaseOffline: true,
+      });
+    } catch (devErr) {
+      console.error('Return laptop error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
   }
 }

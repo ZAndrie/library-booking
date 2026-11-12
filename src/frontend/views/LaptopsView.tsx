@@ -10,9 +10,10 @@ import {
   Plus,
   RotateCcw,
   ShieldAlert,
-  UserCheck,
   AlertCircle,
   Boxes,
+  X,
+  Send,
 } from 'lucide-react';
 
 interface LaptopItem {
@@ -112,6 +113,7 @@ export default function LaptopsView() {
 
   const fetchLoans = async () => {
     try {
+      setLoading(true);
       const res = await fetch('/api/laptop-loans');
       if (res.ok) {
         const data = await res.json();
@@ -129,6 +131,25 @@ export default function LaptopsView() {
     fetchLoans();
   }, []);
 
+  const availableLaptops = laptops.filter((l) => l.status === 'available');
+  const activeLoans = loans.filter((l) => l.status === 'active');
+  const overdueLoans = loans.filter(
+    (l) => l.status === 'active' && new Date(l.dueAt) < new Date()
+  );
+
+  const filteredInventory = laptops.filter((item) => {
+    const matchesSearch =
+      item.assetTag.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.serialNumber.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesStatus =
+      inventoryStatusFilter === 'all' || item.status === inventoryStatusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setCheckoutError('');
@@ -144,35 +165,35 @@ export default function LaptopsView() {
           laptopId: checkoutData.laptopId,
           borrowerName: checkoutData.borrowerName,
           borrowerId: checkoutData.borrowerId,
-          borrowerEmail: checkoutData.borrowerEmail,
-          borrowerContact: checkoutData.borrowerContact,
+          borrowerEmail: checkoutData.borrowerEmail || undefined,
+          borrowerContact: checkoutData.borrowerContact || undefined,
           dueAt: dueDateTime.toISOString(),
           checkoutAccessories: checkoutData.checkoutAccessories,
-          checkoutNotes: checkoutData.checkoutNotes,
+          checkoutNotes: checkoutData.checkoutNotes || undefined,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to checkout laptop');
+        setCheckoutError(data.error || 'Failed to checkout laptop');
+      } else {
+        setShowCheckoutModal(false);
+        setCheckoutData({
+          laptopId: '',
+          borrowerName: '',
+          borrowerId: '',
+          borrowerEmail: '',
+          borrowerContact: '',
+          dueDate: new Date().toISOString().split('T')[0],
+          dueTime: '18:00',
+          checkoutAccessories: ['65W Charger', 'Padded Sleeve'],
+          checkoutNotes: '',
+        });
+        fetchLaptops();
+        fetchLoans();
       }
-
-      setShowCheckoutModal(false);
-      setCheckoutData({
-        laptopId: '',
-        borrowerName: '',
-        borrowerId: '',
-        borrowerEmail: '',
-        borrowerContact: '',
-        dueDate: new Date().toISOString().split('T')[0],
-        dueTime: '18:00',
-        checkoutAccessories: ['65W Charger', 'Padded Sleeve'],
-        checkoutNotes: '',
-      });
-      fetchLaptops();
-      fetchLoans();
     } catch (err: any) {
-      setCheckoutError(err.message);
+      setCheckoutError(err.message || 'Error occurred while checking out');
     } finally {
       setCheckoutSubmitting(false);
     }
@@ -197,15 +218,14 @@ export default function LaptopsView() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to process return');
+        setReturnError(data.error || 'Failed to return laptop');
+      } else {
+        setReturningLoan(null);
+        fetchLaptops();
+        fetchLoans();
       }
-
-      setReturningLoan(null);
-      setReturnNotes('');
-      fetchLaptops();
-      fetchLoans();
     } catch (err: any) {
-      setReturnError(err.message);
+      setReturnError(err.message || 'Error during return');
     } finally {
       setReturnSubmitting(false);
     }
@@ -217,162 +237,140 @@ export default function LaptopsView() {
     setAddLaptopSubmitting(true);
 
     try {
-      const accessoriesArray = newLaptopData.accessories
-        .split(',')
-        .map((a) => a.trim())
-        .filter(Boolean);
+      const accessories = newLaptopData.accessories
+        ? newLaptopData.accessories.split(',').map((s) => s.trim()).filter(Boolean)
+        : [];
 
       const res = await fetch('/api/laptops', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          assetTag: newLaptopData.assetTag,
-          serialNumber: newLaptopData.serialNumber,
-          brand: newLaptopData.brand,
-          model: newLaptopData.model,
-          specs: newLaptopData.specs,
-          condition: newLaptopData.condition,
-          location: newLaptopData.location,
-          accessoriesIncluded: accessoriesArray,
-          notes: newLaptopData.notes,
-          status: 'available',
+          ...newLaptopData,
+          accessoriesIncluded: accessories,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to register laptop');
+        setAddLaptopError(data.error || 'Failed to add laptop');
+      } else {
+        setShowAddLaptopModal(false);
+        setNewLaptopData({
+          assetTag: '',
+          serialNumber: '',
+          brand: 'Lenovo',
+          model: '',
+          specs: '',
+          condition: 'excellent',
+          location: 'Counter Desk Shelf A',
+          accessories: 'Charger, Padded Sleeve',
+          notes: '',
+        });
+        fetchLaptops();
       }
-
-      setShowAddLaptopModal(false);
-      setNewLaptopData({
-        assetTag: '',
-        serialNumber: '',
-        brand: 'Lenovo',
-        model: '',
-        specs: '',
-        condition: 'excellent',
-        location: 'Counter Desk Shelf A',
-        accessories: 'Charger, Padded Sleeve',
-        notes: '',
-      });
-      fetchLaptops();
     } catch (err: any) {
-      setAddLaptopError(err.message);
+      setAddLaptopError(err.message || 'Error adding laptop');
     } finally {
       setAddLaptopSubmitting(false);
     }
   };
 
-  const activeLoans = loans.filter((l) => l.status === 'active');
-  const overdueLoans = loans.filter((l) => l.status === 'active' && new Date(l.dueAt) < new Date());
-  const availableLaptops = laptops.filter((l) => l.status === 'available');
-
-  const filteredInventory = laptops.filter((l) => {
-    const matchesStatus =
-      inventoryStatusFilter === 'all' || l.status === inventoryStatusFilter;
-    const matchesSearch =
-      searchQuery === '' ||
-      l.assetTag.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      l.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      l.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      l.serialNumber.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
-
   return (
     <AppShell>
       <div className="space-y-6">
-        {/* Header with Subsystem 2 Identifier */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Header with Subsystem Identifier */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                System 2
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                System 2 Desk
               </span>
-              <h1 className="text-xl font-bold text-white tracking-tight">
+              <h1 className="font-serif font-bold text-2xl text-slate-900 tracking-tight">
                 Laptop Borrowing Management System
               </h1>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Counter desk workflow: fast student checkout, condition inspection check-in, and fleet management.
+            <p className="text-xs text-slate-500 mt-1">
+              Counter checkout terminal for portable hardware, condition inspection, and overdue monitoring.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <button
-              onClick={() => setShowCheckoutModal(true)}
+              onClick={() => {
+                setCheckoutData({ ...checkoutData, laptopId: availableLaptops[0]?._id || '' });
+                setShowCheckoutModal(true);
+              }}
               disabled={availableLaptops.length === 0}
-              className="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-emerald-900/30 transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
             >
-              <Plus className="w-4 h-4" />
-              Checkout Laptop ({availableLaptops.length} Ready)
+              <Send className="w-4 h-4 text-emerald-300" />
+              Checkout Laptop
             </button>
             <button
               onClick={() => setShowAddLaptopModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium transition-all"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-all shadow-sm"
             >
-              <Boxes className="w-4 h-4 text-slate-400" />
+              <Plus className="w-4 h-4 text-slate-500" />
               Add Device to Fleet
             </button>
           </div>
         </div>
 
         {/* View Switcher Tabs */}
-        <div className="flex border-b border-slate-800">
+        <div className="flex border-b border-slate-200 gap-4">
           <button
             onClick={() => setActiveTab('desk')}
-            className={`pb-3 px-4 text-xs font-semibold border-b-2 transition-all flex items-center gap-2 ${
+            className={`pb-3 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
               activeTab === 'desk'
-                ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-[#8B1515] text-[#8B1515]'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <UserCheck className="w-4 h-4" />
-            Counter Desk & Active Loans ({activeLoans.length})
+            <Clock className="w-4 h-4" />
+            Active Loans Desk ({activeLoans.length})
           </button>
           <button
             onClick={() => setActiveTab('overdue')}
-            className={`pb-3 px-4 text-xs font-semibold border-b-2 transition-all flex items-center gap-2 ${
+            className={`pb-3 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
               activeTab === 'overdue'
-                ? 'border-rose-500 text-rose-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-[#8B1515] text-[#8B1515]'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             <ShieldAlert className="w-4 h-4" />
-            Overdue Loans Tracker ({overdueLoans.length})
+            Overdue Tracker ({overdueLoans.length})
           </button>
           <button
             onClick={() => setActiveTab('inventory')}
-            className={`pb-3 px-4 text-xs font-semibold border-b-2 transition-all flex items-center gap-2 ${
+            className={`pb-3 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
               activeTab === 'inventory'
-                ? 'border-emerald-500 text-emerald-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-[#8B1515] text-[#8B1515]'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             <Laptop className="w-4 h-4" />
-            Hardware Inventory Fleet ({laptops.length})
+            Hardware Fleet Inventory ({laptops.length})
           </button>
         </div>
 
-        {/* TAB 1: COUNTER DESK & ACTIVE LOANS */}
+        {/* TAB 1: ACTIVE LOANS */}
         {activeTab === 'desk' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="flex items-center justify-between text-xs text-slate-500">
               <span>
                 Currently <strong>{activeLoans.length}</strong> devices out on loan across campus.
               </span>
               <button
                 onClick={() => setShowCheckoutModal(true)}
-                className="text-emerald-400 hover:underline font-semibold"
+                className="text-[#8B1515] hover:underline font-semibold"
               >
                 + Issue New Loan Over Counter
               </button>
             </div>
 
             {activeLoans.length === 0 ? (
-              <div className="bg-slate-800/40 border border-dashed border-slate-700 rounded-2xl py-12 text-center text-xs text-slate-400">
-                <Laptop className="w-8 h-8 text-slate-500 mx-auto mb-2 opacity-50" />
+              <div className="bg-white border border-dashed border-slate-300 rounded-xl py-12 text-center text-xs text-slate-500 shadow-sm">
+                <Laptop className="w-8 h-8 text-slate-400 mx-auto mb-2 opacity-50" />
                 No laptops currently checked out. All available devices are safe in inventory.
               </div>
             ) : (
@@ -395,75 +393,64 @@ export default function LaptopsView() {
                   return (
                     <div
                       key={loan._id}
-                      className={`bg-slate-800/90 border rounded-2xl p-5 shadow-lg flex flex-col justify-between transition-all ${
+                      className={`bg-white border rounded-xl p-5 shadow-sm flex flex-col justify-between transition-all ${
                         isOverdue
-                          ? 'border-rose-500/80 shadow-rose-950/40'
-                          : 'border-slate-700/80'
+                          ? 'border-rose-300 ring-1 ring-rose-200'
+                          : 'border-slate-200'
                       }`}
                     >
                       <div>
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-base text-white">
+                            <span className="font-bold text-base text-slate-900 font-mono">
                               {loan.laptopId?.assetTag}
                             </span>
-                            <span className="text-xs px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700">
+                            <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">
                               {loan.laptopId?.brand} {loan.laptopId?.model}
                             </span>
                           </div>
 
                           {isOverdue ? (
-                            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse">
+                            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
                               OVERDUE
                             </span>
                           ) : (
-                            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">
                               ACTIVE LOAN
                             </span>
                           )}
                         </div>
 
                         {/* Borrower Details */}
-                        <div className="bg-slate-900/80 rounded-xl p-3 border border-slate-700/60 text-xs space-y-1 mb-3">
+                        <div className="bg-slate-50 rounded-lg p-3 border border-slate-200 text-xs space-y-1 mb-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-slate-400">Borrower:</span>
-                            <span className="font-bold text-white">{loan.borrowerName}</span>
+                            <span className="text-slate-500">Borrower:</span>
+                            <span className="font-bold text-slate-900">{loan.borrowerName}</span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-slate-400">Student/Staff ID:</span>
-                            <span className="font-mono text-emerald-400">{loan.borrowerId}</span>
+                            <span className="text-slate-500">Student/Staff ID:</span>
+                            <span className="font-mono text-[#8B1515] font-semibold">{loan.borrowerId}</span>
                           </div>
                           {loan.borrowerContact && (
                             <div className="flex items-center justify-between">
-                              <span className="text-slate-400">Phone:</span>
-                              <span className="text-slate-300">{loan.borrowerContact}</span>
-                            </div>
-                          )}
-                          {loan.borrowerEmail && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-slate-400">Email:</span>
-                              <span className="text-slate-300">{loan.borrowerEmail}</span>
+                              <span className="text-slate-500">Phone:</span>
+                              <span className="text-slate-700">{loan.borrowerContact}</span>
                             </div>
                           )}
                         </div>
 
-                        {/* Timeline & Accessories */}
-                        <div className="text-xs text-slate-400 space-y-1 mb-3">
+                        <div className="text-xs text-slate-600 space-y-1 mb-3">
                           <div className="flex items-center gap-2">
                             <Clock className="w-3.5 h-3.5 text-slate-400" />
-                            <span>
-                              Borrowed at <strong>{borrowedTime}</strong>
-                            </span>
+                            <span>Borrowed at <strong>{borrowedTime}</strong></span>
                           </div>
                           <div
                             className={`flex items-center gap-2 font-medium ${
-                              isOverdue ? 'text-rose-400 font-bold' : 'text-slate-300'
+                              isOverdue ? 'text-rose-600 font-bold' : 'text-slate-700'
                             }`}
                           >
                             <AlertCircle className="w-3.5 h-3.5" />
-                            <span>
-                              Due: <strong>{dueDateStr} at {dueTime}</strong>
-                            </span>
+                            <span>Due: <strong>{dueDateStr} at {dueTime}</strong></span>
                           </div>
 
                           {loan.checkoutAccessories?.length > 0 && (
@@ -471,24 +458,17 @@ export default function LaptopsView() {
                               {loan.checkoutAccessories.map((acc, i) => (
                                 <span
                                   key={i}
-                                  className="text-[10px] px-1.5 py-0.5 bg-slate-900 text-slate-400 rounded border border-slate-800"
+                                  className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded"
                                 >
                                   ✓ {acc}
                                 </span>
                               ))}
                             </div>
                           )}
-
-                          {loan.checkoutNotes && (
-                            <p className="text-[11px] text-slate-400 italic mt-1">
-                              Note: {loan.checkoutNotes}
-                            </p>
-                          )}
                         </div>
                       </div>
 
-                      {/* Return Action Button */}
-                      <div className="pt-3 border-t border-slate-700/60 flex items-center justify-between">
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                         <span className="text-[11px] text-slate-500">
                           Issued by {loan.staffIssuerId?.name || 'Staff'}
                         </span>
@@ -498,10 +478,10 @@ export default function LaptopsView() {
                             setReturnCondition('excellent');
                             setReturnNotes('');
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors"
+                          className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
-                          Process Return & Inspection
+                          Process Return & Restock
                         </button>
                       </div>
                     </div>
@@ -512,28 +492,28 @@ export default function LaptopsView() {
           </div>
         )}
 
-        {/* TAB 2: OVERDUE LOANS TRACKER */}
+        {/* TAB 2: OVERDUE RADAR */}
         {activeTab === 'overdue' && (
           <div className="space-y-4">
-            <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-start gap-3">
-              <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3">
+              <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-sm font-bold text-rose-300">Overdue Equipment Radar</h3>
-                <p className="text-xs text-rose-300/80 mt-0.5">
-                  Laptops below have exceeded their expected return timestamp. Staff should contact borrowers immediately.
+                <h3 className="text-sm font-bold text-rose-900">Overdue Equipment Radar</h3>
+                <p className="text-xs text-rose-700 mt-0.5">
+                  Devices below have passed their expected checkout duration. Staff should prompt borrowers to return the units immediately.
                 </p>
               </div>
             </div>
 
             {overdueLoans.length === 0 ? (
-              <div className="bg-slate-800/40 border border-dashed border-slate-700 rounded-2xl py-12 text-center text-xs text-emerald-400 flex flex-col items-center gap-2">
-                <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+              <div className="bg-white border border-dashed border-slate-300 rounded-xl py-12 text-center text-xs text-emerald-700 flex flex-col items-center gap-2 shadow-sm">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600" />
                 <span>Zero overdue devices! All equipment is accounted for within schedule.</span>
               </div>
             ) : (
-              <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-xl">
-                <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-900/80 text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-700">
+              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                <table className="w-full text-left text-xs text-slate-700">
+                  <thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
                     <tr>
                       <th className="py-3 px-4">Asset Tag</th>
                       <th className="py-3 px-4">Borrower Info</th>
@@ -542,26 +522,26 @@ export default function LaptopsView() {
                       <th className="py-3 px-4 text-right">Desk Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-700/60">
+                  <tbody className="divide-y divide-slate-100">
                     {overdueLoans.map((loan) => (
-                      <tr key={loan._id} className="hover:bg-slate-800 transition-colors">
+                      <tr key={loan._id} className="hover:bg-slate-50 transition-colors">
                         <td className="py-3 px-4">
-                          <div className="font-bold text-white">{loan.laptopId?.assetTag}</div>
-                          <div className="text-[11px] text-slate-400">
+                          <div className="font-bold text-slate-900 font-mono">{loan.laptopId?.assetTag}</div>
+                          <div className="text-[11px] text-slate-500">
                             {loan.laptopId?.brand} {loan.laptopId?.model}
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <div className="font-semibold text-white">{loan.borrowerName}</div>
-                          <div className="text-[11px] text-emerald-400 font-mono">
+                          <div className="font-semibold text-slate-900">{loan.borrowerName}</div>
+                          <div className="text-[11px] text-[#8B1515] font-mono">
                             ID: {loan.borrowerId}
                           </div>
                         </td>
                         <td className="py-3 px-4">
                           <div>{loan.borrowerContact || 'No phone'}</div>
-                          <div className="text-[11px] text-slate-400">{loan.borrowerEmail}</div>
+                          <div className="text-[11px] text-slate-500">{loan.borrowerEmail}</div>
                         </td>
-                        <td className="py-3 px-4 font-bold text-rose-400">
+                        <td className="py-3 px-4 font-bold text-rose-600">
                           {new Date(loan.dueAt).toLocaleString([], {
                             month: 'short',
                             day: 'numeric',
@@ -576,7 +556,7 @@ export default function LaptopsView() {
                               setReturnCondition('excellent');
                               setReturnNotes('');
                             }}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold"
+                            className="px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold"
                           >
                             Check-in Return
                           </button>
@@ -593,8 +573,7 @@ export default function LaptopsView() {
         {/* TAB 3: HARDWARE INVENTORY FLEET */}
         {activeTab === 'inventory' && (
           <div className="space-y-4">
-            {/* Search and Filters */}
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-xl p-4 flex flex-wrap items-center gap-3">
+            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-wrap items-center gap-3">
               <div className="flex-1 min-w-[200px] relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                 <input
@@ -602,7 +581,7 @@ export default function LaptopsView() {
                   placeholder="Search by Asset Tag, Brand, Model, Serial Number..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#8B1515]"
                 />
               </div>
 
@@ -610,7 +589,7 @@ export default function LaptopsView() {
                 <select
                   value={inventoryStatusFilter}
                   onChange={(e) => setInventoryStatusFilter(e.target.value)}
-                  className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#8B1515]"
                 >
                   <option value="all">All Device Statuses</option>
                   <option value="available">Available on Shelf</option>
@@ -620,89 +599,66 @@ export default function LaptopsView() {
                 </select>
               </div>
 
-              <div className="text-xs text-slate-400 ml-auto">
-                Fleet Total: <strong className="text-white">{filteredInventory.length}</strong> devices
+              <div className="text-xs text-slate-500 ml-auto font-medium">
+                Fleet Total: <strong className="text-slate-800">{filteredInventory.length}</strong> devices
               </div>
             </div>
 
-            {/* Inventory Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredInventory.map((item) => (
                 <div
                   key={item._id}
-                  className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg flex flex-col justify-between"
+                  className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
                 >
                   <div>
-                    <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="bg-slate-800 text-white p-3.5 flex items-start justify-between">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-base text-white">{item.assetTag}</span>
-                          <span className="text-[11px] text-slate-400 font-mono">
-                            SN: {item.serialNumber}
-                          </span>
-                        </div>
-                        <h4 className="text-xs font-semibold text-emerald-400 mt-0.5">
-                          {item.brand} {item.model}
-                        </h4>
+                        <div className="font-mono font-bold text-sm text-white">{item.assetTag}</div>
+                        <div className="text-xs text-slate-300">{item.brand} {item.model}</div>
                       </div>
 
                       <span
-                        className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           item.status === 'available'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                            : item.status === 'borrowed'
-                            ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
-                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                            ? 'bg-emerald-900/80 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-blue-900/80 text-blue-300 border border-blue-500/30'
                         }`}
                       >
-                        {item.status.replace('_', ' ')}
+                        {item.status.replace('_', ' ').toUpperCase()}
                       </span>
                     </div>
 
-                    <div className="text-xs text-slate-300 space-y-1 mb-3">
+                    <div className="p-4 space-y-2 text-xs text-slate-600">
                       <p>
-                        <strong className="text-slate-400">Specs:</strong> {item.specs}
+                        <strong className="text-slate-700">Specs:</strong> {item.specs}
                       </p>
                       <p>
-                        <strong className="text-slate-400">Shelf Location:</strong> {item.location}
+                        <strong className="text-slate-700">Shelf Location:</strong> {item.location}
                       </p>
                       <p>
-                        <strong className="text-slate-400">Condition:</strong>{' '}
-                        <span className="capitalize font-medium text-emerald-300">
-                          {item.condition}
-                        </span>
+                        <strong className="text-slate-700">Condition:</strong>{' '}
+                        <span className="capitalize font-semibold text-emerald-700">{item.condition}</span>
                       </p>
                       {item.notes && (
-                        <p className="text-slate-400 italic text-[11px] mt-1">{item.notes}</p>
+                        <p className="text-slate-500 italic text-[11px]">{item.notes}</p>
                       )}
-                    </div>
-
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {item.accessoriesIncluded?.map((acc, idx) => (
-                        <span
-                          key={idx}
-                          className="text-[10px] bg-slate-900 text-slate-400 px-2 py-0.5 rounded border border-slate-800"
-                        >
-                          {acc}
-                        </span>
-                      ))}
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-700/60 flex items-center justify-between text-xs">
+                  <div className="p-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs bg-slate-50/50">
                     {item.status === 'available' ? (
                       <button
                         onClick={() => {
                           setCheckoutData({ ...checkoutData, laptopId: item._id });
                           setShowCheckoutModal(true);
                         }}
-                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold"
+                        className="px-3 py-1.5 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
                       >
                         Direct Checkout
                       </button>
                     ) : (
-                      <span className="text-[11px] text-slate-500">
-                        {item.status === 'borrowed' ? 'Out with student' : 'Unavailable'}
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        {item.status === 'borrowed' ? 'Out on active loan' : 'In repair'}
                       </span>
                     )}
                   </div>
@@ -714,28 +670,28 @@ export default function LaptopsView() {
 
         {/* MODAL: CHECKOUT LAPTOP */}
         {showCheckoutModal && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Laptop className="w-5 h-5 text-emerald-400" />
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-serif font-bold text-lg text-slate-900 flex items-center gap-2">
+                  <Laptop className="w-5 h-5 text-emerald-600" />
                   Issue Laptop Checkout Over Counter
                 </h3>
-                <button onClick={() => setShowCheckoutModal(false)} className="text-slate-400">
-                  ✕
+                <button onClick={() => setShowCheckoutModal(false)} className="text-slate-400 hover:text-slate-600">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
               {checkoutError && (
-                <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2">
+                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{checkoutError}</span>
                 </div>
               )}
 
-              <form onSubmit={handleCheckoutSubmit} className="space-y-3.5">
+              <form onSubmit={handleCheckoutSubmit} className="space-y-3.5 text-xs">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                  <label className="block font-semibold text-slate-700 mb-1">
                     Select Available Laptop *
                   </label>
                   <select
@@ -744,7 +700,7 @@ export default function LaptopsView() {
                     onChange={(e) =>
                       setCheckoutData({ ...checkoutData, laptopId: e.target.value })
                     }
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                   >
                     <option value="">-- Choose Laptop from Shelf --</option>
                     {availableLaptops.map((l) => (
@@ -757,7 +713,7 @@ export default function LaptopsView() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                    <label className="block font-semibold text-slate-700 mb-1">
                       Student / Borrower Name *
                     </label>
                     <input
@@ -768,11 +724,11 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setCheckoutData({ ...checkoutData, borrowerName: e.target.value })
                       }
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                    <label className="block font-semibold text-slate-700 mb-1">
                       Student / Staff ID *
                     </label>
                     <input
@@ -783,14 +739,14 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setCheckoutData({ ...checkoutData, borrowerId: e.target.value })
                       }
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                    <label className="block font-semibold text-slate-700 mb-1">
                       Phone Number
                     </label>
                     <input
@@ -800,11 +756,11 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setCheckoutData({ ...checkoutData, borrowerContact: e.target.value })
                       }
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                    <label className="block font-semibold text-slate-700 mb-1">
                       Borrower Email
                     </label>
                     <input
@@ -814,14 +770,14 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setCheckoutData({ ...checkoutData, borrowerEmail: e.target.value })
                       }
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                    <label className="block font-semibold text-slate-700 mb-1">
                       Return Due Date *
                     </label>
                     <input
@@ -831,11 +787,11 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setCheckoutData({ ...checkoutData, dueDate: e.target.value })
                       }
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                    <label className="block font-semibold text-slate-700 mb-1">
                       Return Due Time *
                     </label>
                     <input
@@ -845,90 +801,23 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setCheckoutData({ ...checkoutData, dueTime: e.target.value })
                       }
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    Accessories Handed Out Over Desk
-                  </label>
-                  <div className="flex gap-4 text-xs text-slate-300 mt-1">
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={checkoutData.checkoutAccessories.includes('65W Charger')}
-                        onChange={(e) => {
-                          const accs = e.target.checked
-                            ? [...checkoutData.checkoutAccessories, '65W Charger']
-                            : checkoutData.checkoutAccessories.filter((a) => a !== '65W Charger');
-                          setCheckoutData({ ...checkoutData, checkoutAccessories: accs });
-                        }}
-                        className="rounded bg-slate-800 border-slate-700 text-emerald-500"
-                      />
-                      Power Charger
-                    </label>
-
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={checkoutData.checkoutAccessories.includes('Padded Sleeve')}
-                        onChange={(e) => {
-                          const accs = e.target.checked
-                            ? [...checkoutData.checkoutAccessories, 'Padded Sleeve']
-                            : checkoutData.checkoutAccessories.filter((a) => a !== 'Padded Sleeve');
-                          setCheckoutData({ ...checkoutData, checkoutAccessories: accs });
-                        }}
-                        className="rounded bg-slate-800 border-slate-700 text-emerald-500"
-                      />
-                      Padded Sleeve
-                    </label>
-
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={checkoutData.checkoutAccessories.includes('Mouse')}
-                        onChange={(e) => {
-                          const accs = e.target.checked
-                            ? [...checkoutData.checkoutAccessories, 'Mouse']
-                            : checkoutData.checkoutAccessories.filter((a) => a !== 'Mouse');
-                          setCheckoutData({ ...checkoutData, checkoutAccessories: accs });
-                        }}
-                        className="rounded bg-slate-800 border-slate-700 text-emerald-500"
-                      />
-                      Wireless Mouse
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    Staff Checkout Notes
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Clean device handed over, battery at 100%"
-                    value={checkoutData.checkoutNotes}
-                    onChange={(e) =>
-                      setCheckoutData({ ...checkoutData, checkoutNotes: e.target.value })
-                    }
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
-                  />
-                </div>
-
-                <div className="pt-3 border-t border-slate-800 flex justify-end gap-2">
+                <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setShowCheckoutModal(false)}
-                    className="px-3.5 py-2 rounded-lg bg-slate-800 text-xs text-slate-300"
+                    className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={checkoutSubmitting}
-                    className="px-4 py-2 rounded-lg bg-emerald-600 text-xs font-bold text-white disabled:opacity-50"
+                    className="px-4 py-2 rounded-lg bg-[#8B1515] hover:bg-[#721111] text-white font-semibold shadow-sm disabled:opacity-50"
                   >
                     {checkoutSubmitting ? 'Recording Loan...' : 'Hand Over & Authorize Loan'}
                   </button>
@@ -940,82 +829,82 @@ export default function LaptopsView() {
 
         {/* MODAL: RETURN INSPECTION */}
         {returningLoan && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <RotateCcw className="w-5 h-5 text-emerald-400" />
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-serif font-bold text-lg text-slate-900 flex items-center gap-2">
+                  <RotateCcw className="w-5 h-5 text-emerald-600" />
                   Laptop Return & Condition Inspection
                 </h3>
-                <button onClick={() => setReturningLoan(null)} className="text-slate-400">
-                  ✕
+                <button onClick={() => setReturningLoan(null)} className="text-slate-400 hover:text-slate-600">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
               {returnError && (
-                <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
+                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs">
                   {returnError}
                 </div>
               )}
 
-              <div className="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs space-y-1">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
                 <div>
                   Device:{' '}
-                  <strong className="text-white">
+                  <strong className="text-slate-900">
                     {returningLoan.laptopId?.assetTag} ({returningLoan.laptopId?.brand}{' '}
                     {returningLoan.laptopId?.model})
                   </strong>
                 </div>
                 <div>
                   Returned by:{' '}
-                  <strong className="text-emerald-400">
+                  <strong className="text-[#8B1515]">
                     {returningLoan.borrowerName} ({returningLoan.borrowerId})
                   </strong>
                 </div>
               </div>
 
-              <form onSubmit={handleReturnSubmit} className="space-y-3.5">
+              <form onSubmit={handleReturnSubmit} className="space-y-3.5 text-xs">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    Hardware Return Condition Assessment *
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Condition Assessment *
                   </label>
                   <select
                     value={returnCondition}
                     onChange={(e: any) => setReturnCondition(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                   >
                     <option value="excellent">Excellent - No scratches, clean, fully functional</option>
                     <option value="good">Good - Normal minor cosmetic wear</option>
                     <option value="fair">Fair - Heavy smudges, noticeable scuffs</option>
-                    <option value="damaged">Damaged - Cracked screen, liquid, key missing (Sent to Maintenance)</option>
+                    <option value="damaged">Damaged - Cracked screen or key issue (Sent to repair)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    Inspection / Damage Notes
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Inspection Remarks
                   </label>
                   <textarea
                     rows={2}
                     placeholder="e.g. Charger returned in pouch, no physical damage detected."
                     value={returnNotes}
                     onChange={(e) => setReturnNotes(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                   />
                 </div>
 
-                <div className="pt-3 border-t border-slate-800 flex justify-end gap-2">
+                <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setReturningLoan(null)}
-                    className="px-3.5 py-2 rounded-lg bg-slate-800 text-xs text-slate-300"
+                    className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={returnSubmitting}
-                    className="px-4 py-2 rounded-lg bg-emerald-600 text-xs font-bold text-white disabled:opacity-50"
+                    className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shadow-sm disabled:opacity-50"
                   >
                     {returnSubmitting ? 'Checking In...' : 'Confirm Return & Restock'}
                   </button>
@@ -1025,31 +914,31 @@ export default function LaptopsView() {
           </div>
         )}
 
-        {/* MODAL: REGISTER NEW LAPTOP TO FLEET */}
+        {/* MODAL: ADD LAPTOP */}
         {showAddLaptopModal && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Boxes className="w-5 h-5 text-emerald-400" />
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-serif font-bold text-lg text-slate-900 flex items-center gap-2">
+                  <Boxes className="w-5 h-5 text-emerald-600" />
                   Add Hardware Device to Fleet
                 </h3>
-                <button onClick={() => setShowAddLaptopModal(false)} className="text-slate-400">
-                  ✕
+                <button onClick={() => setShowAddLaptopModal(false)} className="text-slate-400 hover:text-slate-600">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
               {addLaptopError && (
-                <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
+                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs">
                   {addLaptopError}
                 </div>
               )}
 
-              <form onSubmit={handleAddLaptopSubmit} className="space-y-3">
+              <form onSubmit={handleAddLaptopSubmit} className="space-y-3 text-xs">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">
-                      Asset Tag (Barcode) *
+                    <label className="block font-semibold text-slate-700 mb-1">
+                      Asset Tag *
                     </label>
                     <input
                       type="text"
@@ -1059,11 +948,11 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setNewLaptopData({ ...newLaptopData, assetTag: e.target.value })
                       }
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                    <label className="block font-semibold text-slate-700 mb-1">
                       Serial Number *
                     </label>
                     <input
@@ -1074,29 +963,29 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setNewLaptopData({ ...newLaptopData, serialNumber: e.target.value })
                       }
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                    <label className="block font-semibold text-slate-700 mb-1">
                       Brand *
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Lenovo, Dell, Apple, HP"
+                      placeholder="Lenovo, Dell, HP, Apple"
                       value={newLaptopData.brand}
                       onChange={(e) =>
                         setNewLaptopData({ ...newLaptopData, brand: e.target.value })
                       }
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                    <label className="block font-semibold text-slate-700 mb-1">
                       Model *
                     </label>
                     <input
@@ -1107,13 +996,13 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setNewLaptopData({ ...newLaptopData, model: e.target.value })
                       }
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                  <label className="block font-semibold text-slate-700 mb-1">
                     Hardware Specifications *
                   </label>
                   <input
@@ -1124,12 +1013,12 @@ export default function LaptopsView() {
                     onChange={(e) =>
                       setNewLaptopData({ ...newLaptopData, specs: e.target.value })
                     }
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                  <label className="block font-semibold text-slate-700 mb-1">
                     Shelf Storage Location
                   </label>
                   <input
@@ -1139,22 +1028,22 @@ export default function LaptopsView() {
                     onChange={(e) =>
                       setNewLaptopData({ ...newLaptopData, location: e.target.value })
                     }
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                   />
                 </div>
 
-                <div className="pt-3 border-t border-slate-800 flex justify-end gap-2">
+                <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setShowAddLaptopModal(false)}
-                    className="px-3.5 py-2 rounded-lg bg-slate-800 text-xs text-slate-300"
+                    className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={addLaptopSubmitting}
-                    className="px-4 py-2 rounded-lg bg-emerald-600 text-xs font-bold text-white disabled:opacity-50"
+                    className="px-4 py-2 rounded-lg bg-[#8B1515] hover:bg-[#721111] text-white font-semibold shadow-sm"
                   >
                     {addLaptopSubmitting ? 'Registering...' : 'Add Device'}
                   </button>
