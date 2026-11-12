@@ -283,10 +283,10 @@ export default function LaptopsView() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
-                System 2 Desk
+                Library Booking System
               </span>
               <h1 className="font-serif font-bold text-2xl text-slate-900 tracking-tight">
-                Laptop Borrowing Management System
+                Laptop Borrowing Management
               </h1>
             </div>
             <p className="text-xs text-slate-500 mt-1">

@@ -383,7 +383,7 @@ export default function DashboardView() {
             <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
               <Laptop className="w-4 h-4" />
             </div>
-            <span className="font-bold text-slate-800">System 2 Fleet: Laptop Borrowing Desk</span>
+            <span className="font-bold text-slate-800">Laptop Borrowing Fleet Desk</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 text-xs">

@@ -323,10 +323,10 @@ export default function RoomsView() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-red-100 text-[#8B1515] border border-red-200">
-                System 1 Desk
+                Library Booking System
               </span>
               <h1 className="font-serif font-bold text-2xl text-[#8B1515] tracking-tight">
-                Discussion Room Booking System
+                Discussion Room Booking
               </h1>
             </div>
             <p className="text-xs text-slate-500 mt-1">

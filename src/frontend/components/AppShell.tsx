@@ -125,8 +125,8 @@ export default function AppShell({ children }: AppShellProps) {
             <BookOpen className="w-4 h-4 text-white" />
           </div>
           <div>
-            <div className="font-serif font-bold text-base tracking-wide leading-tight">Discussion Room</div>
-            <div className="text-[9px] uppercase tracking-wider text-rose-200">Room Booking & Laptops</div>
+            <div className="font-serif font-bold text-base tracking-wide leading-tight">Library Booking System</div>
+            <div className="text-[9px] uppercase tracking-wider text-rose-200">Rooms & Laptops Desk</div>
           </div>
         </div>
         <button
@@ -151,10 +151,10 @@ export default function AppShell({ children }: AppShellProps) {
             </div>
             <div>
               <h1 className="font-serif font-bold text-lg leading-tight tracking-wide text-white">
-                Discussion Room
+                Library Booking
               </h1>
               <p className="text-[10px] uppercase tracking-widest text-rose-200/90 font-medium">
-                ROOM BOOKING SYSTEM
+                BOOKING & LOAN SYSTEM
               </p>
             </div>
           </div>
@@ -260,7 +260,7 @@ export default function AppShell({ children }: AppShellProps) {
         </main>
 
         <footer className="py-4 px-6 border-t border-slate-200 bg-white text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <span>Discussion Room Booking & Laptop Fleet Management System • Admin Desk</span>
+          <span>Library Booking System • Discussion Rooms & Laptop Fleet Desk</span>
           <span className="text-[11px] text-slate-400">Node.js + MongoDB + Next.js</span>
         </footer>
       </div>

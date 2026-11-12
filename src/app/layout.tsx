@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Library Operations Hub | Rooms & Laptop Management',
-  description: 'Internal Admin & Staff portal for Discussion Room Bookings and Laptop Borrowing Management',
+  title: 'Library Booking System | Admin & Staff Desk',
+  description: 'Admin & Staff portal for Discussion Room Bookings and Laptop Borrowing Management',
 };
 
 export default function RootLayout({

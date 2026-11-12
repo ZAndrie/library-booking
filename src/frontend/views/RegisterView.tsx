@@ -121,7 +121,7 @@ export default function RegisterView() {
             <BookOpen className="w-8 h-8 text-white fill-white" />
           </div>
           <h1 className="font-serif text-2xl font-bold text-[#8B1515] tracking-tight">
-            Discussion Room
+            Library Booking System
           </h1>
           <p className="text-[11px] uppercase tracking-wider text-slate-400 mt-1 font-semibold">
             STAFF & OFFICER REGISTRATION
