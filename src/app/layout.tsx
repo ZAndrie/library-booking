@@ -2,8 +2,12 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Library Booking System | Admin & Staff Desk',
-  description: 'Admin & Staff portal for Discussion Room Bookings and Laptop Borrowing Management',
+  title: 'Cor Jesu College | Library Booking System',
+  description: 'Cor Jesu College Library Staff & Admin Portal for Discussion Room Bookings and Laptop Fleet Borrowing Management',
+  icons: {
+    icon: '/cjc-logo.png',
+    apple: '/cjc-logo.png',
+  },
 };
 
 export default function RootLayout({

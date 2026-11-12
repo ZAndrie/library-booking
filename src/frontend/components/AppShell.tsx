@@ -121,12 +121,16 @@ export default function AppShell({ children }: AppShellProps) {
       {/* Mobile Top Header */}
       <div className="md:hidden bg-[#8B1515] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-red-900/60 border border-red-400/40 flex items-center justify-center">
-            <BookOpen className="w-4 h-4 text-white" />
+          <div className="w-9 h-9 rounded-lg bg-white p-1 border border-red-400/40 flex items-center justify-center shrink-0 shadow-sm">
+            <img
+              src="/cjc-logo.png"
+              alt="Cor Jesu College Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
-            <div className="font-serif font-bold text-base tracking-wide leading-tight">Library Booking System</div>
-            <div className="text-[9px] uppercase tracking-wider text-rose-200">Rooms & Laptops Desk</div>
+            <div className="font-serif font-bold text-sm tracking-wide leading-tight">Cor Jesu College</div>
+            <div className="text-[10px] uppercase tracking-wider text-rose-200 font-medium">Library Booking System</div>
           </div>
         </div>
         <button
@@ -146,15 +150,19 @@ export default function AppShell({ children }: AppShellProps) {
         <div className="flex-1 overflow-y-auto py-5 px-4 space-y-6">
           {/* Brand Emblem */}
           <div className="flex items-center gap-3 px-2 pb-4 border-b border-red-700/60">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-700 to-red-950 p-0.5 border border-red-400/30 flex items-center justify-center shadow-inner">
-              <BookOpen className="w-5 h-5 text-white" />
+            <div className="w-11 h-11 rounded-xl bg-white p-1 border border-red-400/30 flex items-center justify-center shadow-md shrink-0">
+              <img
+                src="/cjc-logo.png"
+                alt="Cor Jesu College Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
-              <h1 className="font-serif font-bold text-lg leading-tight tracking-wide text-white">
-                Library Booking
+              <h1 className="font-serif font-bold text-sm leading-tight tracking-wide text-white">
+                Cor Jesu College
               </h1>
-              <p className="text-[10px] uppercase tracking-widest text-rose-200/90 font-medium">
-                BOOKING & LOAN SYSTEM
+              <p className="text-[10px] uppercase tracking-wider text-rose-200/90 font-medium">
+                Library Booking System
               </p>
             </div>
           </div>
@@ -255,6 +263,42 @@ export default function AppShell({ children }: AppShellProps) {
 
       {/* Main Content Area */}
       <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+        {/* Desktop Top Header Bar */}
+        <header className="hidden md:flex items-center justify-between px-6 lg:px-8 py-3.5 bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 shadow-xs p-1 flex items-center justify-center shrink-0">
+              <img
+                src="/cjc-logo.png"
+                alt="Cor Jesu College Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <div className="font-serif font-bold text-base text-[#8B1515] tracking-tight leading-tight flex items-center gap-2">
+                COR JESU COLLEGE
+                <span className="text-[10px] font-sans font-bold bg-red-100 text-[#8B1515] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  LIRC Desk
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-500 font-medium">
+                Library Booking System • Discussion Rooms & Laptop Fleet Management
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className="text-xs font-bold text-slate-800">{user?.name || 'Library Staff'}</div>
+              <div className="text-[10px] uppercase font-bold tracking-wider text-[#8B1515]">
+                {user?.role ? user.role.replace('_', ' ') : 'STAFF DESK'}
+              </div>
+            </div>
+            <div className="w-9 h-9 rounded-full bg-[#8B1515] text-white flex items-center justify-center font-bold text-xs shadow-sm">
+              {user ? user.name.slice(0, 2).toUpperCase() : 'CJ'}
+            </div>
+          </div>
+        </header>
+
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {children}
         </main>

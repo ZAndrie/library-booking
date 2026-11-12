@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  BookOpen,
   User,
   Mail,
   Lock,
@@ -117,10 +116,17 @@ export default function RegisterView() {
       <div className="w-full max-w-[520px] bg-white rounded-3xl p-8 sm:p-10 shadow-2xl">
         {/* Card Header */}
         <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto mb-3 bg-[#8B1515] rounded-2xl flex items-center justify-center shadow-lg shadow-red-950/20">
-            <BookOpen className="w-8 h-8 text-white fill-white" />
+          <div className="w-20 h-20 mx-auto mb-3 bg-white rounded-2xl p-2 flex items-center justify-center shadow-lg shadow-red-950/15 border border-slate-100">
+            <img
+              src="/cjc-logo.png"
+              alt="Cor Jesu College Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
-          <h1 className="font-serif text-2xl font-bold text-[#8B1515] tracking-tight">
+          <div className="text-xs font-bold uppercase tracking-widest text-[#8B1515] mb-1">
+            Cor Jesu College
+          </div>
+          <h1 className="font-serif text-2xl font-bold text-slate-900 tracking-tight">
             Library Booking System
           </h1>
           <p className="text-[11px] uppercase tracking-wider text-slate-400 mt-1 font-semibold">
