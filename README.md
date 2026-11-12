@@ -1,4 +1,4 @@
-# 🏛️ Library Operations Hub
+# 🏛️ Library Booking System
 ### *Unified Discussion Room Booking & Laptop Borrowing Management System*
 
 > **Staff & Admin Operations Portal**: An internal, dual-subsystem management system designed exclusively for Library Staff and Desk Administrators to manage walk-in / phone room reservations, conflict schedules, and counter laptop checkouts/returns.
@@ -20,7 +20,7 @@ This platform merges two essential library systems into one single administrativ
 * **Room Facilities & Capacity Catalog**: Configure rooms, seats, multimedia equipment (TV, HDMI, Projector, Whiteboards), and toggle maintenance mode.
 
 ### 2. 💻 Laptop Borrowing Management System (System 2)
-* **Fast Counter Checkout Desk**: Scan/type Asset Tag (e.g., `LAP-001`), enter Student ID, set return due time, and check off accessories handed over (charger, sleeve, mouse).
+* **Fast Counter Checkout Desk**: Scan/type Asset Tag (e.g., `LIB-LAP-001`), enter Student ID, set return due time, and check off accessories handed over (charger, sleeve, mouse).
 * **Return & Condition Inspection Desk**: One-click check-in workflow where staff inspect hardware condition (`excellent`, `good`, `fair`, `damaged`) and log inspection notes.
 * **Automatic Maintenance Routing**: If a device is checked in as `damaged`, its status is automatically moved to `under_maintenance` to prevent re-issuing.
 * **Overdue Loan Radar**: Live alert table highlighting all active loans that have exceeded their due date, complete with student contact details.
@@ -46,7 +46,9 @@ Library-Booking/
 │   │   │   ├── roomBookingController.ts# Room reservations & overlap conflict detection
 │   │   │   └── roomController.ts       # Discussion rooms & facilities configuration
 │   │   ├── database/
-│   │   │   └── db.ts                   # Cached Mongoose MongoDB connection pool
+│   │   │   ├── db.ts                   # Cached Mongoose MongoDB connection pool
+│   │   │   ├── devStore.ts             # Offline fallback JSON store
+│   │   │   └── seedMongo.ts            # Auto-seed initial rooms, laptops & super admin
 │   │   └── models/
 │   │       ├── Laptop.ts               # Laptop inventory schema
 │   │       ├── LaptopLoan.ts           # Loan transaction & return condition schema
@@ -56,13 +58,12 @@ Library-Booking/
 │   │
 │   ├── frontend/                       <-- 🎨 100% FRONTEND UI & VIEWS
 │   │   ├── components/
-│   │   │   └── AppShell.tsx            # Global Navigation, live clock & staff status bar
-│   │   ├── styles/
-│   │   │   └── globals.css             # Tailwind base & theme CSS
+│   │   │   └── AppShell.tsx            # Left Crimson Navigation Sidebar & status bar
 │   │   └── views/
-│   │       ├── DashboardView.tsx       # Unified Operations Hub view (KPIs & feeds)
+│   │       ├── DashboardView.tsx       # Unified Operations Hub view (KPIs, feeds & rooms)
 │   │       ├── LaptopsView.tsx         # System 2: Laptop desk, overdue radar & inventory
-│   │       ├── LoginView.tsx           # Staff & Admin sign-in screen (with 1-click demo)
+│   │       ├── LoginView.tsx           # Staff & Admin sign-in screen
+│   │       ├── RegisterView.tsx        # Staff, Admin & Super Admin registration
 │   │       └── RoomsView.tsx           # System 1: Discussion room schedules & reservations
 │   │
 │   ├── app/                            <-- 🌐 URL ROUTING CONNECTOR LAYER
@@ -71,7 +72,8 @@ Library-Booking/
 │   │   │   ├── page.tsx                # '/' -> renders DashboardView
 │   │   │   ├── rooms/page.tsx          # '/rooms' -> renders RoomsView
 │   │   │   ├── laptops/page.tsx        # '/laptops' -> renders LaptopsView
-│   │   │   └── login/page.tsx          # '/login' -> renders LoginView
+│   │   │   ├── login/page.tsx          # '/login' -> renders LoginView
+│   │   │   └── register/page.tsx       # '/register' -> renders RegisterView
 │   │   └── api/                        # Maps REST endpoints to backend controllers
 │   │       ├── auth/                   # /api/auth/*
 │   │       ├── dashboard/              # /api/dashboard/*
@@ -82,8 +84,6 @@ Library-Booking/
 │   │
 │   └── middleware.ts                   # Route protection (redirects unauthenticated users)
 │
-├── scripts/
-│   └── seed.mjs                        # Database seeder (sample rooms, laptops, loans)
 ├── .env.example                        # Template environment variables
 ├── .env.local                          # Local environment variables
 └── package.json
@@ -94,9 +94,9 @@ Library-Booking/
 ## 🛠️ Tech Stack
 
 * **Full-Stack Framework**: Next.js 14+ (App Router) with Node.js runtime.
-* **Database & ODM**: MongoDB Atlas + Mongoose (with cached connection singleton for serverless).
-* **Security & Auth**: Role-Based Access Control (`admin` & `staff`) via secure HTTP-Only JWT cookies and Next.js middleware.
-* **Styling & UI**: Tailwind CSS + Lucide Icons (dark-themed operations dashboard).
+* **Database & ODM**: MongoDB Atlas + Mongoose.
+* **Security & Auth**: Role-Based Access Control (`super_admin`, `admin`, `staff`) via secure HTTP-Only JWT cookies and Next.js middleware.
+* **Styling & UI**: Tailwind CSS with custom Crimson `#8B1515` theme matching the library administration reference design.
 
 ---
 
@@ -104,34 +104,27 @@ Library-Booking/
 
 ### 1. Prerequisites
 * [Node.js](https://nodejs.org/) (v18.x or v20.x+)
-* [MongoDB](https://www.mongodb.com/) (Local MongoDB Community Server or free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster)
+* [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) connection string or local MongoDB.
 
 ### 2. Configure Environment Variables
 Copy `.env.example` to `.env.local`:
 ```bash
 cp .env.example .env.local
 ```
-Ensure your `MONGODB_URI` points to your MongoDB instance:
+Add your MongoDB Atlas connection string:
 ```env
-MONGODB_URI=mongodb://localhost:27017/library-booking
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/library-booking?retryWrites=true&w=majority
 JWT_SECRET=super_secret_library_admin_jwt_key_2026
 NODE_ENV=development
 ```
 
-### 3. Seed the Database
-Populate the database with sample discussion rooms, laptops, active test loans, and default Staff/Admin accounts:
-```bash
-npm run seed
-```
-
-#### 🔑 Pre-Configured Demo Accounts:
-| Role | Email | Password | Permissions |
-| :--- | :--- | :--- | :--- |
-| **Admin** | `admin@library.edu` | `admin123` | Full access, delete rooms/laptops, manage system |
-| **Staff** | `staff@library.edu` | `staff123` | Room reservations, laptop checkout/check-in |
-
-### 4. Start the Development Server
+### 3. Start the Development Server
 ```bash
 npm run dev
 ```
 Open **[http://localhost:3000](http://localhost:3000)** in your browser.
+
+#### 🔑 Default Administrator Credentials:
+| Username | Password | Role | Permissions |
+| :--- | :--- | :--- | :--- |
+| `admin` | `Admin@1234` | **Super Admin** | Full access to rooms, fleet inventory, and bookings |
