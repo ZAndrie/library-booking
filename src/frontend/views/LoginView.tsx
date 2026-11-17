@@ -144,9 +144,6 @@ export default function LoginView() {
               Register here
             </Link>
           </p>
-          <p className="text-[11px] text-slate-400 mt-2">
-            Default admin: admin / Admin@1234
-          </p>
         </div>
       </div>
     </div>

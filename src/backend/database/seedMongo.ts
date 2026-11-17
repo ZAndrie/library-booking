@@ -1,7 +1,6 @@
 import User from '@/backend/models/User';
 import Room from '@/backend/models/Room';
 import Laptop from '@/backend/models/Laptop';
-import { hashPassword } from '@/backend/auth/jwt';
 
 let seeded = false;
 
@@ -9,20 +8,13 @@ export async function ensureInitialDataSeeded(): Promise<void> {
   if (seeded) return;
 
   try {
-    // 1. Ensure at least one Super Admin exists
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      const passwordHash = await hashPassword('Admin@1234');
-      await User.create({
-        name: 'Library Admin',
-        email: 'admin@library.edu',
-        employeeId: 'ADMIN',
-        role: 'super_admin',
-        passwordHash,
-        isActive: true,
-      });
-      console.log('MongoDB Seed: Created default admin account (admin / Admin@1234)');
-    }
+    // 1. Remove legacy default seeded admin accounts to enforce user self-registration
+    await User.deleteMany({
+      $or: [
+        { employeeId: 'ADMIN', email: 'admin@library.edu' },
+        { employeeId: 'admin', email: 'admin@library.edu' },
+      ],
+    });
 
     // 2. Ensure initial rooms exist
     const roomCount = await Room.countDocuments();

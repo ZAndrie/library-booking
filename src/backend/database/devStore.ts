@@ -90,9 +90,6 @@ interface DevDbData {
 }
 
 function getInitialDevDb(): DevDbData {
-  const salt = bcrypt.genSaltSync(10);
-  const defaultAdminHash = bcrypt.hashSync('Admin@1234', salt);
-
   const rooms: DevRoom[] = [
     {
       _id: 'room_1',
@@ -230,18 +227,7 @@ function getInitialDevDb(): DevDbData {
   ];
 
   return {
-    users: [
-      {
-        id: 'dev_default_admin',
-        name: 'Library Admin',
-        email: 'admin@library.edu',
-        employeeId: 'admin',
-        role: 'super_admin',
-        passwordHash: defaultAdminHash,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-      },
-    ],
+    users: [],
     rooms,
     bookings: [],
     laptops,

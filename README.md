@@ -124,7 +124,8 @@ npm run dev
 ```
 Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
-#### 🔑 Default Administrator Credentials:
-| Username | Password | Role | Permissions |
-| :--- | :--- | :--- | :--- |
-| `admin` | `Admin@1234` | **Super Admin** | Full access to rooms, fleet inventory, and bookings |
+#### 👤 Account Registration:
+Staff and administrator accounts are created via the **[Register](/register)** screen:
+- Choose your authorization role (`Staff`, `Admin`, or `Super Admin`).
+- Enter your Full Name, Institutional Email, Employee ID, and secure Password.
+- Once registered, sign in via the **[Login](/login)** screen.
