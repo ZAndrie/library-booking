@@ -58,6 +58,8 @@ export default function LoginView() {
             <img
               src="/cjc-logo.png"
               alt="Cor Jesu College Logo"
+              width={80}
+              height={80}
               className="w-full h-full object-contain"
             />
           </div>
