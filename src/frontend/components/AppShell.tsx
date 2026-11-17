@@ -121,10 +121,12 @@ export default function AppShell({ children }: AppShellProps) {
       {/* Mobile Top Header */}
       <div className="md:hidden bg-[#8B1515] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-white p-1 border border-red-400/40 flex items-center justify-center shrink-0 shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-white p-1 border border-red-400/40 flex items-center justify-center shrink-0 shadow-sm">
             <img
               src="/cjc-logo.png"
               alt="Cor Jesu College Logo"
+              width={40}
+              height={40}
               className="w-full h-full object-contain"
             />
           </div>
@@ -154,6 +156,8 @@ export default function AppShell({ children }: AppShellProps) {
               <img
                 src="/cjc-logo.png"
                 alt="Cor Jesu College Logo"
+                width={44}
+                height={44}
                 className="w-full h-full object-contain"
               />
             </div>
@@ -270,6 +274,8 @@ export default function AppShell({ children }: AppShellProps) {
               <img
                 src="/cjc-logo.png"
                 alt="Cor Jesu College Logo"
+                width={44}
+                height={44}
                 className="w-full h-full object-contain"
               />
             </div>
