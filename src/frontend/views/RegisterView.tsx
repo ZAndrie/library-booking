@@ -66,7 +66,7 @@ export default function RegisterView() {
         throw new Error(data.error || 'Registration failed');
       }
 
-      router.push('/');
+      router.push('/login?registered=true');
       router.refresh();
     } catch (err: any) {
       setError(err.message);

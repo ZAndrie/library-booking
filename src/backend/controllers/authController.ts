@@ -259,27 +259,15 @@ export async function handleRegister(req: NextRequest) {
       };
     }
 
-    const token = signToken(sessionUser);
-
-    const response = NextResponse.json(
+    return NextResponse.json(
       {
         success: true,
-        message: 'Account registered successfully',
+        message: 'Account registered successfully. Please sign in with your credentials.',
         user: sessionUser,
         storageMode: hasDb ? 'mongodb' : 'local_dev_store',
       },
       { status: 201 }
     );
-
-    response.cookies.set('staff_auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
-
-    return response;
   } catch (error: any) {
     console.error('Registration error:', error);
     return NextResponse.json(

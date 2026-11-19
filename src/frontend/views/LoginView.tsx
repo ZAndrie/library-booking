@@ -2,11 +2,14 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { User, Lock, LogIn, AlertCircle } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { User, Lock, LogIn, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function LoginView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isRegistered = searchParams.get('registered') === 'true';
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -73,6 +76,15 @@ export default function LoginView() {
             DISCUSSION ROOMS & LAPTOP BORROWING
           </p>
         </div>
+
+        {isRegistered && !error && (
+          <div className="mb-5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2.5 text-emerald-800 text-xs shadow-xs">
+            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+            <div className="leading-relaxed font-medium">
+              Registration successful! Please sign in with your credentials to access the system.
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-600 text-xs">
