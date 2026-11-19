@@ -13,7 +13,8 @@ async function tryConnectDb(): Promise<boolean> {
   try {
     await connectToDatabase();
     return true;
-  } catch {
+  } catch (err: any) {
+    console.warn('tryConnectDb notice:', err?.message || err);
     return false;
   }
 }
@@ -79,6 +80,13 @@ export async function handleLogin(req: NextRequest) {
         employeeId: user.employeeId,
       };
     } else {
+      if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+        return NextResponse.json(
+          { error: 'Database is temporarily unreachable. Please ensure MongoDB Atlas Network Access allows IP 0.0.0.0/0.' },
+          { status: 503 }
+        );
+      }
+
       // Offline / Local Development Fallback
       console.log('MongoDB is offline. Verifying login using local dev store...');
       const devUser = findDevUserByIdentifier(identifier);
@@ -209,6 +217,13 @@ export async function handleRegister(req: NextRequest) {
         employeeId: newUser.employeeId,
       };
     } else {
+      if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+        return NextResponse.json(
+          { error: 'Database is temporarily unreachable. Please ensure MongoDB Atlas Network Access allows IP 0.0.0.0/0.' },
+          { status: 503 }
+        );
+      }
+
       // Local Dev Store Fallback
       console.log('MongoDB is offline. Saving registered user to local dev store...');
       const existingEmail = findDevUserByEmail(normalizedEmail);
@@ -288,35 +303,9 @@ export async function handleLogout() {
 
 export async function handleGetCurrentUser() {
   const user = await getCurrentUser();
-  const hasMongoEnv = Boolean(process.env.MONGODB_URI);
-  let dbStatus = 'disconnected';
-  let dbError: string | null = null;
-  try {
-    await connectToDatabase();
-    dbStatus = 'connected';
-  } catch (err: any) {
-    dbStatus = 'error';
-    dbError = err?.message || String(err);
-  }
-
   if (!user) {
-    return NextResponse.json({
-      authenticated: false,
-      user: null,
-      diagnostics: {
-        hasMongoEnv,
-        dbStatus,
-        dbError,
-      },
-    }, { status: 401 });
+    return NextResponse.json({ authenticated: false, user: null }, { status: 401 });
   }
 
-  return NextResponse.json({
-    authenticated: true,
-    user,
-    diagnostics: {
-      hasMongoEnv,
-      dbStatus,
-    },
-  });
+  return NextResponse.json({ authenticated: true, user });
 }
