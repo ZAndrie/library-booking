@@ -11,11 +11,8 @@ import {
   Users,
   Monitor,
   CalendarDays,
-  ArrowRight,
   LogIn,
-  UserPlus,
   Sparkles,
-  ChevronRight,
   Shield,
   Layers,
   CheckCircle,
@@ -254,29 +251,10 @@ export default function LandingView() {
             <p className="mt-5 text-sm sm:text-base lg:text-lg text-rose-100/90 leading-relaxed font-normal max-w-2xl mx-auto">
               A unified administrative counter desk uniting <strong>Discussion Room Bookings</strong> and <strong>Laptop Borrowing Services</strong> in one seamless, conflict-free platform.
             </p>
-
-            {/* Action Buttons */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
-              <Link
-                href="/login"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-[#8B1515] font-bold text-sm rounded-xl shadow-xl hover:bg-rose-50 transition-all transform hover:-translate-y-0.5"
-              >
-                <LogIn className="w-4 h-4 text-[#8B1515]" />
-                Enter Staff Portal
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Link>
-              <Link
-                href="/register"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-red-900/70 hover:bg-red-900 border border-red-400/40 text-white font-bold text-sm rounded-xl transition-all"
-              >
-                <UserPlus className="w-4 h-4 text-rose-200" />
-                Register Staff Account
-              </Link>
-            </div>
           </div>
 
           {/* 4 Pillars Highlight Row */}
-          <div className="mt-14 sm:mt-18 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div className="mt-12 sm:mt-16 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <div className="bg-red-950/40 border border-red-500/20 rounded-2xl p-4 sm:p-5 backdrop-blur-xs">
               <div className="w-9 h-9 rounded-xl bg-red-800/80 text-rose-200 flex items-center justify-center mb-3">
                 <DoorOpen className="w-5 h-5" />
@@ -416,12 +394,9 @@ export default function LandingView() {
                       <span className="w-2 h-2 rounded-full bg-emerald-500" />
                       Available for Booking
                     </span>
-                    <Link
-                      href="/login"
-                      className="font-bold text-[#8B1515] hover:underline inline-flex items-center gap-1"
-                    >
-                      Book at Desk <ChevronRight className="w-3 h-3" />
-                    </Link>
+                    <span className="text-[11px] text-slate-500 font-medium">
+                      Inquire at LIRC Desk
+                    </span>
                   </div>
                 </div>
               ))}
@@ -432,19 +407,15 @@ export default function LandingView() {
                   <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white mb-4">
                     <Sparkles className="w-5 h-5 text-amber-300" />
                   </div>
-                  <h4 className="font-serif text-2xl font-bold">Room Desk Actions</h4>
+                  <h4 className="font-serif text-2xl font-bold">Room Desk Operations</h4>
                   <p className="text-xs text-rose-100/90 mt-2 leading-relaxed">
-                    Staff officers can extend active bookings by +30m or +60m, execute early returns, or mark rooms for maintenance with a single click.
+                    Staff officers extend active sessions, manage schedule conflicts, inspect multimedia equipment, and coordinate walk-in reservations.
                   </p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-white/15">
-                  <Link
-                    href="/login"
-                    className="w-full py-2.5 bg-white text-[#8B1515] rounded-xl text-xs font-bold text-center block hover:bg-rose-50 transition-colors shadow-sm"
-                  >
-                    Open Rooms Desk
-                  </Link>
+                <div className="mt-6 pt-4 border-t border-white/15 text-xs text-rose-200 font-medium flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-rose-300" />
+                  Managed by LIRC Staff Officers
                 </div>
               </div>
             </div>
@@ -498,12 +469,9 @@ export default function LandingView() {
                       <span className="w-2 h-2 rounded-full bg-emerald-500" />
                       Available
                     </span>
-                    <Link
-                      href="/login"
-                      className="font-bold text-[#8B1515] hover:underline"
-                    >
-                      Checkout →
-                    </Link>
+                    <span className="text-[11px] text-slate-500 font-medium">
+                      In-Library Use • Inquire at Desk
+                    </span>
                   </div>
                 </div>
               ))}
@@ -557,43 +525,6 @@ export default function LandingView() {
                 Discussion room booking overlaps are automatically rejected by the scheduler engine, guaranteeing that confirmed sessions never collide.
               </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action Banner */}
-      <section className="py-16 bg-[#8B1515] text-white text-center relative overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="w-14 h-14 mx-auto mb-4 bg-white/10 rounded-2xl p-2 border border-white/20 flex items-center justify-center">
-            <img
-              src="/cjc-logo.png"
-              alt="Cor Jesu College Seal"
-              width={56}
-              height={56}
-              className="w-full h-full object-contain"
-            />
-          </div>
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight">
-            Ready to Begin Desk Operations?
-          </h2>
-          <p className="mt-3 text-rose-100/90 text-sm max-w-xl mx-auto">
-            Sign in with your verified Cor Jesu College staff credentials to manage discussion room reservations and laptop loans today.
-          </p>
-
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
-            <Link
-              href="/login"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-[#8B1515] font-bold text-sm rounded-xl shadow-lg hover:bg-rose-50 transition-all"
-            >
-              <LogIn className="w-4 h-4 text-[#8B1515]" />
-              Sign In to LIRC Portal
-            </Link>
-            <Link
-              href="/register"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-red-900/60 hover:bg-red-900 border border-red-400/40 text-white font-bold text-sm rounded-xl transition-all"
-            >
-              Register Officer Account
-            </Link>
           </div>
         </div>
       </section>
