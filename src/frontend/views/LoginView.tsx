@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { User, Lock, LogIn, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { User, Lock, LogIn, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 export default function LoginView() {
   const router = useRouter();
@@ -44,7 +44,7 @@ export default function LoginView() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 sm:p-6"
+      className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6"
       style={{
         backgroundColor: '#8B1515',
         backgroundImage: `
@@ -54,6 +54,17 @@ export default function LoginView() {
         backgroundSize: '100% 100%, 22px 22px',
       }}
     >
+      {/* Back to Landing Page Header Link */}
+      <div className="w-full max-w-[420px] mb-3 flex items-center justify-start">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-rose-100 hover:text-white transition-all bg-red-950/50 hover:bg-red-950/80 border border-red-400/30 px-3.5 py-1.5 rounded-full backdrop-blur-xs shadow-xs group"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+          Back to Landing Page
+        </Link>
+      </div>
+
       <div className="w-full max-w-[420px] bg-white rounded-3xl p-8 sm:p-10 shadow-2xl">
         {/* Card Header */}
         <div className="text-center mb-6">
@@ -146,7 +157,7 @@ export default function LoginView() {
         </form>
 
         {/* Footer */}
-        <div className="mt-6 text-center text-xs text-slate-500">
+        <div className="mt-6 text-center text-xs text-slate-500 space-y-3">
           <p>
             No account yet?{' '}
             <Link
@@ -156,6 +167,15 @@ export default function LoginView() {
               Register here
             </Link>
           </p>
+          <div className="pt-3 border-t border-slate-100">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#8B1515] transition-colors font-medium"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Return to Landing Page
+            </Link>
+          </div>
         </div>
       </div>
     </div>
