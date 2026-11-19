@@ -69,7 +69,7 @@ export async function ensureInitialDataSeeded(): Promise<void> {
       console.log('MongoDB Seed: Inserted 5 initial discussion rooms.');
     }
 
-    // 3. Ensure initial laptop fleet exists
+    // 3. Ensure initial laptop borrowing inventory exists
     const laptopCount = await Laptop.countDocuments();
     if (laptopCount === 0) {
       await Laptop.insertMany([
@@ -134,7 +134,7 @@ export async function ensureInitialDataSeeded(): Promise<void> {
           notes: 'Standard general-purpose loan device.',
         },
       ]);
-      console.log('MongoDB Seed: Inserted 5 initial laptop fleet units.');
+      console.log('MongoDB Seed: Inserted 5 initial laptop borrowing units.');
     }
 
     seeded = true;

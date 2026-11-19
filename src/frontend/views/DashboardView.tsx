@@ -377,18 +377,18 @@ export default function DashboardView() {
           </div>
         </div>
 
-        {/* Laptop Borrowing Fleet Quick Status Strip (System 2 Integration) */}
+        {/* Laptop Borrowing Services Quick Status Strip */}
         <div className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
               <Laptop className="w-4 h-4" />
             </div>
-            <span className="font-bold text-slate-800">Laptop Borrowing Fleet Desk</span>
+            <span className="font-bold text-slate-800">Laptop Borrowing Services Desk</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 text-xs">
             <span className="text-slate-600">
-              Total Fleet: <strong className="text-slate-900">{stats?.laptops.total ?? laptops.length}</strong>
+              Total Laptops: <strong className="text-slate-900">{stats?.laptops.total ?? laptops.length}</strong>
             </span>
             <span className="text-slate-600">
               Available on Shelf:{' '}
@@ -530,14 +530,14 @@ export default function DashboardView() {
             <div className="flex items-center gap-2">
               <Laptop className="w-5 h-5 text-slate-800" />
               <h2 className="font-serif font-bold text-xl text-slate-800">
-                Laptop Borrowing Fleet
+                Laptop Borrowing Services
               </h2>
             </div>
             <Link
               href="/laptops"
               className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-800 hover:text-white transition-colors"
             >
-              Manage Fleet
+              Manage Laptops
             </Link>
           </div>
 

@@ -24,7 +24,7 @@ This platform merges two essential library systems into one single administrativ
 * **Return & Condition Inspection Desk**: One-click check-in workflow where staff inspect hardware condition (`excellent`, `good`, `fair`, `damaged`) and log inspection notes.
 * **Automatic Maintenance Routing**: If a device is checked in as `damaged`, its status is automatically moved to `under_maintenance` to prevent re-issuing.
 * **Overdue Loan Radar**: Live alert table highlighting all active loans that have exceeded their due date, complete with student contact details.
-* **Hardware Fleet Management**: Add new laptops to inventory, manage hardware specs, track serial numbers, and track shelf locations.
+* **Laptop Inventory Management**: Add new laptops to inventory, manage hardware specs, track serial numbers, and track shelf locations.
 
 ---
 

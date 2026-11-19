@@ -145,7 +145,7 @@ export default function LandingView() {
           <nav className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-600">
             <a href="#overview" className="hover:text-[#8B1515] transition-colors">Overview</a>
             <a href="#rooms" className="hover:text-[#8B1515] transition-colors">Discussion Rooms</a>
-            <a href="#laptops" className="hover:text-[#8B1515] transition-colors">Laptop Fleet</a>
+            <a href="#laptops" className="hover:text-[#8B1515] transition-colors">Laptop Borrowing</a>
             <a href="#guidelines" className="hover:text-[#8B1515] transition-colors">Operating Guidelines</a>
           </nav>
 
@@ -197,7 +197,7 @@ export default function LandingView() {
               onClick={() => setMobileMenuOpen(false)}
               className="block text-sm font-medium text-slate-700 py-1.5"
             >
-              Laptop Fleet Desk
+              Laptop Borrowing Services
             </a>
             <a
               href="#guidelines"
@@ -247,12 +247,12 @@ export default function LandingView() {
 
             {/* Main Headline */}
             <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight">
-              Library Operations Hub: Rooms & Hardware Fleet
+              Discussion Room Bookings & Laptop Borrowing Services
             </h1>
 
             {/* Description */}
             <p className="mt-5 text-sm sm:text-base lg:text-lg text-rose-100/90 leading-relaxed font-normal max-w-2xl mx-auto">
-              A unified administrative counter desk uniting <strong>Discussion Room Reservations</strong> and <strong>Laptop Borrowing Fleet Management</strong> in one seamless, conflict-free platform.
+              A unified administrative counter desk uniting <strong>Discussion Room Bookings</strong> and <strong>Laptop Borrowing Services</strong> in one seamless, conflict-free platform.
             </p>
 
             {/* Action Buttons */}
@@ -290,7 +290,7 @@ export default function LandingView() {
                 <Laptop className="w-5 h-5" />
               </div>
               <div className="text-xl sm:text-2xl font-bold text-white font-serif">5 Laptops</div>
-              <p className="text-xs text-rose-200/80 mt-1">Ready-to-lend Dell, Lenovo, HP & Apple fleet with chargers.</p>
+              <p className="text-xs text-rose-200/80 mt-1">Ready-to-borrow Dell, Lenovo, HP & Apple laptops with chargers.</p>
             </div>
 
             <div className="bg-red-950/40 border border-red-500/20 rounded-2xl p-4 sm:p-5 backdrop-blur-xs">
@@ -336,7 +336,7 @@ export default function LandingView() {
                 }`}
               >
                 <DoorOpen className="w-4 h-4" />
-                System 1: Rooms
+                Discussion Rooms
               </button>
               <button
                 onClick={() => setActiveTab('laptops')}
@@ -347,7 +347,7 @@ export default function LandingView() {
                 }`}
               >
                 <Laptop className="w-4 h-4" />
-                System 2: Laptops
+                Laptop Borrowing
               </button>
             </div>
           </div>
@@ -455,10 +455,10 @@ export default function LandingView() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-10 text-center max-w-2xl mx-auto">
               <span className="text-[11px] font-bold uppercase tracking-widest text-[#8B1515] bg-red-100/70 px-3 py-1 rounded-full">
-                HARDWARE INVENTORY & COUNTER CHECKOUT
+                LAPTOP INVENTORY & BORROWING SERVICES
               </span>
               <h3 className="font-serif text-3xl font-bold text-slate-900 mt-3">
-                Laptop Fleet Lending Desk
+                Laptop Borrowing Services Desk
               </h3>
               <p className="text-slate-600 text-sm mt-2">
                 Rapid counter checkout to patrons, real-time overdue countdown tracking, and multi-tier return condition inspection.
@@ -621,7 +621,7 @@ export default function LandingView() {
             <div className="flex flex-wrap items-center gap-6 text-slate-400 font-medium">
               <a href="#overview" className="hover:text-white transition-colors">Overview</a>
               <a href="#rooms" className="hover:text-white transition-colors">Discussion Rooms</a>
-              <a href="#laptops" className="hover:text-white transition-colors">Laptop Fleet</a>
+              <a href="#laptops" className="hover:text-white transition-colors">Laptop Borrowing</a>
               <a href="#guidelines" className="hover:text-white transition-colors">Guidelines</a>
               <Link href="/login" className="text-rose-400 hover:text-rose-300 font-bold transition-colors">Staff Login</Link>
               <Link href="/register" className="hover:text-white transition-colors">Register</Link>
@@ -633,7 +633,7 @@ export default function LandingView() {
               © 1959–2026 Cor Jesu College, Inc. • Learning Information and Resource Center (LIRC). All rights reserved.
             </div>
             <div>
-              Unified Library Booking & Hardware Lending Platform • Node.js + MongoDB Atlas + Next.js
+              Unified Discussion Room Booking & Laptop Borrowing Platform • Node.js + MongoDB Atlas + Next.js
             </div>
           </div>
         </div>

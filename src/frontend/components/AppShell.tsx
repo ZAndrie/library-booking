@@ -100,12 +100,12 @@ export default function AppShell({ children }: AppShellProps) {
       ],
     },
     {
-      label: 'LAPTOPS (SYSTEM 2)',
+      label: 'LAPTOP BORROWING',
       items: [
         { label: 'Checkout Desk', href: '/laptops?action=checkout', icon: Laptop },
         { label: 'Active Loans', href: '/laptops?filter=active', icon: MonitorCheck },
         { label: 'Overdue Tracker', href: '/laptops?filter=overdue', icon: AlertTriangle },
-        { label: 'Fleet Inventory', href: '/laptops', icon: HardDrive },
+        { label: 'Laptop Inventory', href: '/laptops', icon: HardDrive },
       ],
     },
     {
@@ -287,7 +287,7 @@ export default function AppShell({ children }: AppShellProps) {
                 </span>
               </div>
               <div className="text-[11px] text-slate-500 font-medium">
-                Library Booking System • Discussion Rooms & Laptop Fleet Management
+                Library Booking System • Discussion Rooms & Laptop Borrowing Services
               </div>
             </div>
           </div>
@@ -310,7 +310,7 @@ export default function AppShell({ children }: AppShellProps) {
         </main>
 
         <footer className="py-4 px-6 border-t border-slate-200 bg-white text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <span>Library Booking System • Discussion Rooms & Laptop Fleet Desk</span>
+          <span>Library Booking System • Discussion Rooms & Laptop Borrowing Services</span>
           <span className="text-[11px] text-slate-400">Node.js + MongoDB + Next.js</span>
         </footer>
       </div>

@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Cor Jesu College | Library Booking System',
-  description: 'Cor Jesu College Library Staff & Admin Portal for Discussion Room Bookings and Laptop Fleet Borrowing Management',
+  description: 'Cor Jesu College Library Staff & Admin Portal for Discussion Room Bookings and Laptop Borrowing Services',
   icons: {
     icon: '/cjc-logo.png',
     apple: '/cjc-logo.png',

@@ -91,7 +91,7 @@ export default function RegisterView() {
     {
       id: 'admin',
       title: 'Admin',
-      description: 'Fleet catalog, room facilities & operational reports.',
+      description: 'Laptop inventory, room facilities & operational reports.',
       icon: Shield,
     },
     {
