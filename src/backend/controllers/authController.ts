@@ -288,9 +288,35 @@ export async function handleLogout() {
 
 export async function handleGetCurrentUser() {
   const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ authenticated: false, user: null }, { status: 401 });
+  const hasMongoEnv = Boolean(process.env.MONGODB_URI);
+  let dbStatus = 'disconnected';
+  let dbError: string | null = null;
+  try {
+    await connectToDatabase();
+    dbStatus = 'connected';
+  } catch (err: any) {
+    dbStatus = 'error';
+    dbError = err?.message || String(err);
   }
 
-  return NextResponse.json({ authenticated: true, user });
+  if (!user) {
+    return NextResponse.json({
+      authenticated: false,
+      user: null,
+      diagnostics: {
+        hasMongoEnv,
+        dbStatus,
+        dbError,
+      },
+    }, { status: 401 });
+  }
+
+  return NextResponse.json({
+    authenticated: true,
+    user,
+    diagnostics: {
+      hasMongoEnv,
+      dbStatus,
+    },
+  });
 }
