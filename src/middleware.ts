@@ -5,19 +5,26 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('staff_auth_token')?.value;
   const { pathname } = request.nextUrl;
 
-  // Allow static files, assets, images, api auth, and public auth routes
+  // If visiting the public root '/' while already authenticated, forward directly to the dashboard
+  if (pathname === '/' && token) {
+    const dashboardUrl = new URL('/dashboard', request.url);
+    return NextResponse.redirect(dashboardUrl);
+  }
+
+  // Allow public landing page, auth routes, and static assets
   if (
+    pathname === '/' ||
+    pathname === '/login' ||
+    pathname === '/register' ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon.ico') ||
     pathname.startsWith('/api/auth') ||
-    pathname === '/login' ||
-    pathname === '/register' ||
     pathname.includes('.') // Any static asset file (e.g. .png, .jpg, .ico, .svg, .webp)
   ) {
     return NextResponse.next();
   }
 
-  // If no auth token, redirect to login
+  // If no auth token on protected routes (/dashboard, /rooms, /laptops, /api/*), redirect to login
   if (!token) {
     const loginUrl = new URL('/login', request.url);
     return NextResponse.redirect(loginUrl);

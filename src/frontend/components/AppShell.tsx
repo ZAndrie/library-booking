@@ -84,7 +84,7 @@ export default function AppShell({ children }: AppShellProps) {
     {
       label: 'MAIN',
       items: [
-        { label: 'Dashboard', href: '/', icon: LayoutDashboard },
+        { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         { label: 'Rooms', href: '/rooms', icon: DoorOpen },
       ],
     },
@@ -182,8 +182,8 @@ export default function AppShell({ children }: AppShellProps) {
                   {section.items.map((item) => {
                     const Icon = item.icon;
                     const isCurrent =
-                      item.href === '/'
-                        ? pathname === '/'
+                      item.href === '/dashboard'
+                        ? pathname === '/dashboard'
                         : !item.href.startsWith('#') && pathname.startsWith(item.href.split('?')[0]);
 
                     if (item.onClick) {

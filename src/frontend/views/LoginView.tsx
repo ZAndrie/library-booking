@@ -33,7 +33,7 @@ export default function LoginView() {
         throw new Error(data.error || 'Failed to authenticate');
       }
 
-      router.push('/');
+      router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
       setError(err.message);
