@@ -8,7 +8,6 @@ import {
   Laptop,
   LayoutDashboard,
   LogOut,
-  LogIn,
   ArrowRight,
   CheckCircle2,
   Menu,
@@ -127,9 +126,9 @@ export default function PortalGatewayView() {
             </Link>
           </nav>
 
-          {/* User Auth or Sign In Button */}
+          {/* User Auth (Only shown when logged in; staff must choose a portal to sign in) */}
           <div className="hidden sm:flex items-center gap-3">
-            {user ? (
+            {user && (
               <div className="flex items-center gap-2.5">
                 <div className="text-right">
                   <div className="text-xs font-bold text-slate-800 leading-tight">{user.name}</div>
@@ -148,14 +147,6 @@ export default function PortalGatewayView() {
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
               </div>
-            ) : (
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg text-xs font-bold shadow-xs transition-all"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                Staff Sign In
-              </Link>
             )}
           </div>
 
@@ -199,23 +190,16 @@ export default function PortalGatewayView() {
             >
               Operating Guidelines
             </Link>
-            <div className="pt-2 border-t border-slate-100">
-              {user ? (
+            {user && (
+              <div className="pt-2 border-t border-slate-100">
                 <button
                   onClick={handleLogout}
                   className="w-full text-center py-2 bg-slate-100 text-slate-800 text-xs font-bold rounded-lg"
                 >
                   Sign Out ({user.name})
                 </button>
-              ) : (
-                <Link
-                  href="/login"
-                  className="w-full block text-center py-2 bg-[#8B1515] text-white text-xs font-bold rounded-lg shadow-xs"
-                >
-                  Staff Sign In
-                </Link>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </header>
@@ -499,14 +483,10 @@ export default function PortalGatewayView() {
             <Link href="/#guidelines" className="hover:text-white transition-colors">
               Guidelines
             </Link>
-            {user ? (
+            {user && (
               <button onClick={handleLogout} className="text-rose-400 hover:text-rose-300 font-semibold transition-colors">
                 Sign Out
               </button>
-            ) : (
-              <Link href="/login" className="text-rose-400 hover:text-rose-300 font-semibold transition-colors">
-                Staff Sign In
-              </Link>
             )}
           </div>
         </div>
