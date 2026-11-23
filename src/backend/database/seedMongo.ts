@@ -16,26 +16,17 @@ export async function ensureInitialDataSeeded(): Promise<void> {
       ],
     });
 
-    // 2. Ensure initial rooms exist with Table and Chairs and 15 capacity
+    // 2. Ensure initial rooms exist with Table and Chairs, 15 capacity, and Norbert Building 2nd Floor location
     const roomCount = await Room.countDocuments();
     if (roomCount === 0) {
       await Room.insertMany([
-        {
-          name: 'Conference Room',
-          roomNumber: 'CR-101',
-          capacity: 15,
-          facilities: ['Table and Chairs'],
-          status: 'available',
-          location: 'Third floor — large discussion hall',
-          notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
-        },
         {
           name: 'Discussion Room A',
           roomNumber: 'DR-A',
           capacity: 15,
           facilities: ['Table and Chairs'],
           status: 'available',
-          location: 'Ground floor — collaborative study area',
+          location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
           notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
         },
         {
@@ -44,7 +35,7 @@ export async function ensureInitialDataSeeded(): Promise<void> {
           capacity: 15,
           facilities: ['Table and Chairs'],
           status: 'available',
-          location: 'Second floor — quiet study wing',
+          location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
           notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
         },
         {
@@ -53,7 +44,7 @@ export async function ensureInitialDataSeeded(): Promise<void> {
           capacity: 15,
           facilities: ['Table and Chairs'],
           status: 'available',
-          location: 'Second floor — corner consultation booth',
+          location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
           notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
         },
         {
@@ -62,17 +53,39 @@ export async function ensureInitialDataSeeded(): Promise<void> {
           capacity: 15,
           facilities: ['Table and Chairs'],
           status: 'available',
-          location: 'Third floor — multimedia lab area',
+          location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
+          notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
+        },
+        {
+          name: 'Discussion Room E',
+          roomNumber: 'DR-E',
+          capacity: 15,
+          facilities: ['Table and Chairs'],
+          status: 'available',
+          location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
           notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
         },
       ]);
       console.log('MongoDB Seed: Inserted 5 initial discussion rooms.');
     } else {
-      // Ensure all discussion rooms strictly reflect Table and Chairs and 15 capacity
+      // Rename any legacy Conference Room / CR-101 to Discussion Room E / DR-E
+      await Room.updateMany(
+        { $or: [{ name: 'Conference Room' }, { roomNumber: 'CR-101' }] },
+        {
+          $set: {
+            name: 'Discussion Room E',
+            roomNumber: 'DR-E',
+          },
+        }
+      );
+
+      // Ensure all discussion rooms strictly reflect Norbert Building 2nd Floor Left Wing location, Table & Chairs, and 15 capacity
       await Room.updateMany({}, {
         $set: {
           facilities: ['Table and Chairs'],
           capacity: 15,
+          location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
+          notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
         }
       });
     }

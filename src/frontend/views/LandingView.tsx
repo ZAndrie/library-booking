@@ -67,14 +67,14 @@ interface AvailabilityCounts {
 const initialRooms: AvailabilityRoom[] = [
   {
     _id: 'room_1',
-    name: 'Conference Room',
-    roomNumber: 'CR-101',
+    name: 'Discussion Room A',
+    roomNumber: 'DR-A',
     capacity: 15,
     minCapacity: 3,
     maxCapacity: 15,
     capacityText: 'Min. 3 to Max. 15 Students',
     facilities: ['Table and Chairs'],
-    location: 'Third Floor — Large Discussion Hall',
+    location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
     notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
     status: 'available',
     isAvailable: true,
@@ -83,14 +83,14 @@ const initialRooms: AvailabilityRoom[] = [
   },
   {
     _id: 'room_2',
-    name: 'Discussion Room A',
-    roomNumber: 'DR-A',
+    name: 'Discussion Room B',
+    roomNumber: 'DR-B',
     capacity: 15,
     minCapacity: 3,
     maxCapacity: 15,
     capacityText: 'Min. 3 to Max. 15 Students',
     facilities: ['Table and Chairs'],
-    location: 'Ground Floor — Collaborative Area',
+    location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
     notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
     status: 'available',
     isAvailable: true,
@@ -99,14 +99,14 @@ const initialRooms: AvailabilityRoom[] = [
   },
   {
     _id: 'room_3',
-    name: 'Discussion Room B',
-    roomNumber: 'DR-B',
+    name: 'Discussion Room C',
+    roomNumber: 'DR-C',
     capacity: 15,
     minCapacity: 3,
     maxCapacity: 15,
     capacityText: 'Min. 3 to Max. 15 Students',
     facilities: ['Table and Chairs'],
-    location: 'Second Floor — Quiet Study Wing',
+    location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
     notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
     status: 'available',
     isAvailable: true,
@@ -115,14 +115,14 @@ const initialRooms: AvailabilityRoom[] = [
   },
   {
     _id: 'room_4',
-    name: 'Discussion Room C',
-    roomNumber: 'DR-C',
+    name: 'Discussion Room D',
+    roomNumber: 'DR-D',
     capacity: 15,
     minCapacity: 3,
     maxCapacity: 15,
     capacityText: 'Min. 3 to Max. 15 Students',
     facilities: ['Table and Chairs'],
-    location: 'Second Floor — Corner Consultation Booth',
+    location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
     notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
     status: 'available',
     isAvailable: true,
@@ -131,14 +131,14 @@ const initialRooms: AvailabilityRoom[] = [
   },
   {
     _id: 'room_5',
-    name: 'Discussion Room D',
-    roomNumber: 'DR-D',
+    name: 'Discussion Room E',
+    roomNumber: 'DR-E',
     capacity: 15,
     minCapacity: 3,
     maxCapacity: 15,
     capacityText: 'Min. 3 to Max. 15 Students',
     facilities: ['Table and Chairs'],
-    location: 'Third Floor — Multimedia Lab Area',
+    location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
     notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
     status: 'available',
     isAvailable: true,
@@ -198,15 +198,11 @@ const initialLaptops: AvailabilityLaptop[] = [
   },
 ];
 
-function getRoomBadge(index: number) {
-  const badges = [
-    { badge: 'Conference Hall', accent: 'border-amber-200 bg-amber-50/60 text-amber-900' },
-    { badge: 'Group Collaboration', accent: 'border-blue-200 bg-blue-50/60 text-blue-900' },
-    { badge: 'Discussion Space', accent: 'border-purple-200 bg-purple-50/60 text-purple-900' },
-    { badge: 'Study Consultation', accent: 'border-emerald-200 bg-emerald-50/60 text-emerald-900' },
-    { badge: 'Group Study', accent: 'border-rose-200 bg-rose-50/60 text-rose-900' },
-  ];
-  return badges[index % badges.length];
+function getRoomBadge() {
+  return {
+    badge: 'Discussion Space',
+    accent: 'border-red-200 bg-red-50 text-[#8B1515]',
+  };
 }
 
 function getConditionBadge(condition: string) {
@@ -549,13 +545,13 @@ export default function LandingView() {
               </h3>
               <p className="text-slate-600 text-sm mt-2">
                 Real-time availability monitoring, collision prevention, and walk-in reservation desk managed by library staff.
-                Discussion room capacity strictly requires a <strong>minimum of 3 students and maximum of 15 students</strong>.
+                All discussion rooms are located inside the <strong>2nd Floor Left Wing of Norbert Building</strong> (Capacity: <strong>Min. 3 to Max. 15 students</strong>).
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {rooms.map((room, idx) => {
-                const roomBadge = getRoomBadge(idx);
+              {rooms.map((room) => {
+                const roomBadge = getRoomBadge();
                 return (
                   <div
                     key={room._id || room.roomNumber}
@@ -572,7 +568,9 @@ export default function LandingView() {
                       </div>
 
                       <h4 className="font-serif text-xl font-bold text-slate-900">{room.name}</h4>
-                      <p className="text-xs text-slate-500 font-medium mt-1">{room.location}</p>
+                      <p className="text-xs text-slate-500 font-medium mt-1">
+                        {room.location || '2nd Floor Left Wing, Norbert Building (Inside Library)'}
+                      </p>
 
                       <div className="mt-4 pt-4 border-t border-slate-100">
                         <div className="text-xs font-semibold text-slate-700 flex items-center justify-between mb-2">

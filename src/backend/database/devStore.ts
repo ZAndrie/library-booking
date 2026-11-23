@@ -93,60 +93,60 @@ function getInitialDevDb(): DevDbData {
   const rooms: DevRoom[] = [
     {
       _id: 'room_1',
-      name: 'Conference Room',
-      roomNumber: 'CR-101',
+      name: 'Discussion Room A',
+      roomNumber: 'DR-A',
       capacity: 15,
       facilities: ['Table and Chairs'],
       status: 'available',
-      location: 'Third floor — large discussion hall',
+      location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
       notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
       todayBookingsCount: 0,
       createdAt: new Date().toISOString(),
     },
     {
       _id: 'room_2',
-      name: 'Discussion Room A',
-      roomNumber: 'DR-A',
+      name: 'Discussion Room B',
+      roomNumber: 'DR-B',
       capacity: 15,
       facilities: ['Table and Chairs'],
       status: 'available',
-      location: 'Ground floor — collaborative study area',
+      location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
       notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
       todayBookingsCount: 0,
       createdAt: new Date().toISOString(),
     },
     {
       _id: 'room_3',
-      name: 'Discussion Room B',
-      roomNumber: 'DR-B',
+      name: 'Discussion Room C',
+      roomNumber: 'DR-C',
       capacity: 15,
       facilities: ['Table and Chairs'],
       status: 'available',
-      location: 'Second floor — quiet study wing',
+      location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
       notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
       todayBookingsCount: 0,
       createdAt: new Date().toISOString(),
     },
     {
       _id: 'room_4',
-      name: 'Discussion Room C',
-      roomNumber: 'DR-C',
+      name: 'Discussion Room D',
+      roomNumber: 'DR-D',
       capacity: 15,
       facilities: ['Table and Chairs'],
       status: 'available',
-      location: 'Second floor — corner consultation booth',
+      location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
       notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
       todayBookingsCount: 0,
       createdAt: new Date().toISOString(),
     },
     {
       _id: 'room_5',
-      name: 'Discussion Room D',
-      roomNumber: 'DR-D',
+      name: 'Discussion Room E',
+      roomNumber: 'DR-E',
       capacity: 15,
       facilities: ['Table and Chairs'],
       status: 'available',
-      location: 'Third floor — multimedia lab area',
+      location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
       notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
       todayBookingsCount: 0,
       createdAt: new Date().toISOString(),
@@ -249,12 +249,20 @@ function readDevDb(): DevDbData {
       fs.writeFileSync(DEV_DB_PATH, JSON.stringify(initial, null, 2), 'utf-8');
       return initial;
     }
-    // Ensure all rooms strictly have Table and Chairs and capacity 15 (min 3, max 15)
-    parsed.rooms = parsed.rooms.map((r) => ({
-      ...r,
-      capacity: 15,
-      facilities: ['Table and Chairs'],
-    }));
+    // Ensure all rooms strictly have Discussion Room naming, Norbert Building 2nd Floor location, Table and Chairs, and capacity 15 (min 3, max 15)
+    parsed.rooms = parsed.rooms.map((r, idx) => {
+      const letters = ['A', 'B', 'C', 'D', 'E'];
+      const letter = letters[idx % letters.length];
+      return {
+        ...r,
+        name: r.name === 'Conference Room' ? `Discussion Room ${letter}` : r.name,
+        roomNumber: r.roomNumber === 'CR-101' ? `DR-${letter}` : r.roomNumber,
+        capacity: 15,
+        location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
+        facilities: ['Table and Chairs'],
+        notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
+      };
+    });
     return parsed;
   } catch {
     return getInitialDevDb();

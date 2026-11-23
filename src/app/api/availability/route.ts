@@ -61,7 +61,7 @@ export async function GET() {
         maxCapacity: 15,
         capacityText: 'Min. 3 to Max. 15 Students',
         facilities: ['Table and Chairs'], // Strictly table and chairs as required
-        location: room.location,
+        location: room.location || '2nd Floor Left Wing, Norbert Building (Inside Library)',
         notes: room.notes || '',
         status: room.status,
         isAvailable,
@@ -171,7 +171,7 @@ export async function GET() {
         maxCapacity: 15,
         capacityText: 'Min. 3 to Max. 15 Students',
         facilities: ['Table and Chairs'],
-        location: room.location,
+        location: room.location || '2nd Floor Left Wing, Norbert Building (Inside Library)',
         notes: room.notes || '',
         status: room.status,
         isAvailable,
