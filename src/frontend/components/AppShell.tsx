@@ -21,6 +21,7 @@ import {
   X,
   User,
   ShieldCheck,
+  Layers,
 } from 'lucide-react';
 
 interface AppShellProps {
@@ -81,6 +82,12 @@ export default function AppShell({ children }: AppShellProps) {
   };
 
   const navSections: NavSection[] = [
+    {
+      label: 'PORTAL',
+      items: [
+        { label: 'Switch Portal', href: '/portal', icon: Layers },
+      ],
+    },
     {
       label: 'MAIN',
       items: [
@@ -292,7 +299,15 @@ export default function AppShell({ children }: AppShellProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link
+              href="/portal"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 hover:text-[#8B1515] transition-colors shadow-2xs"
+            >
+              <Layers className="w-3.5 h-3.5 text-[#8B1515]" />
+              <span className="hidden sm:inline">Switch Portal</span>
+            </Link>
+
             <div className="text-right">
               <div className="text-xs font-bold text-slate-800">{user?.name || 'Library Staff'}</div>
               <div className="text-[10px] uppercase font-bold tracking-wider text-[#8B1515]">

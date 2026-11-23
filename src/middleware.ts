@@ -5,10 +5,10 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('staff_auth_token')?.value;
   const { pathname } = request.nextUrl;
 
-  // If visiting the public root '/' while already authenticated, forward directly to the dashboard
+  // If visiting the public root '/' while already authenticated, forward directly to the portal gateway
   if (pathname === '/' && token) {
-    const dashboardUrl = new URL('/dashboard', request.url);
-    return NextResponse.redirect(dashboardUrl);
+    const portalUrl = new URL('/portal', request.url);
+    return NextResponse.redirect(portalUrl);
   }
 
   // Allow public landing page, auth routes, public availability API, and static assets
