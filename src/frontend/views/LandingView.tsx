@@ -28,6 +28,9 @@ interface AvailabilityRoom {
   name: string;
   roomNumber: string;
   capacity: number;
+  minCapacity?: number;
+  maxCapacity?: number;
+  capacityText?: string;
   facilities: string[];
   location: string;
   notes?: string;
@@ -67,9 +70,12 @@ const initialRooms: AvailabilityRoom[] = [
     name: 'Conference Room',
     roomNumber: 'CR-101',
     capacity: 15,
+    minCapacity: 3,
+    maxCapacity: 15,
+    capacityText: 'Min. 3 to Max. 15 Students',
     facilities: ['Table and Chairs'],
     location: 'Third Floor — Large Discussion Hall',
-    notes: 'Discussion room equipped with tables and chairs.',
+    notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
     status: 'available',
     isAvailable: true,
     availabilityState: 'available',
@@ -79,10 +85,13 @@ const initialRooms: AvailabilityRoom[] = [
     _id: 'room_2',
     name: 'Discussion Room A',
     roomNumber: 'DR-A',
-    capacity: 8,
+    capacity: 15,
+    minCapacity: 3,
+    maxCapacity: 15,
+    capacityText: 'Min. 3 to Max. 15 Students',
     facilities: ['Table and Chairs'],
     location: 'Ground Floor — Collaborative Area',
-    notes: 'Discussion room equipped with tables and chairs.',
+    notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
     status: 'available',
     isAvailable: true,
     availabilityState: 'available',
@@ -92,10 +101,13 @@ const initialRooms: AvailabilityRoom[] = [
     _id: 'room_3',
     name: 'Discussion Room B',
     roomNumber: 'DR-B',
-    capacity: 6,
+    capacity: 15,
+    minCapacity: 3,
+    maxCapacity: 15,
+    capacityText: 'Min. 3 to Max. 15 Students',
     facilities: ['Table and Chairs'],
     location: 'Second Floor — Quiet Study Wing',
-    notes: 'Discussion room equipped with tables and chairs.',
+    notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
     status: 'available',
     isAvailable: true,
     availabilityState: 'available',
@@ -105,10 +117,13 @@ const initialRooms: AvailabilityRoom[] = [
     _id: 'room_4',
     name: 'Discussion Room C',
     roomNumber: 'DR-C',
-    capacity: 4,
+    capacity: 15,
+    minCapacity: 3,
+    maxCapacity: 15,
+    capacityText: 'Min. 3 to Max. 15 Students',
     facilities: ['Table and Chairs'],
     location: 'Second Floor — Corner Consultation Booth',
-    notes: 'Discussion room equipped with tables and chairs.',
+    notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
     status: 'available',
     isAvailable: true,
     availabilityState: 'available',
@@ -118,10 +133,13 @@ const initialRooms: AvailabilityRoom[] = [
     _id: 'room_5',
     name: 'Discussion Room D',
     roomNumber: 'DR-D',
-    capacity: 10,
+    capacity: 15,
+    minCapacity: 3,
+    maxCapacity: 15,
+    capacityText: 'Min. 3 to Max. 15 Students',
     facilities: ['Table and Chairs'],
     location: 'Third Floor — Multimedia Lab Area',
-    notes: 'Discussion room equipped with tables and chairs.',
+    notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
     status: 'available',
     isAvailable: true,
     availabilityState: 'available',
@@ -531,6 +549,7 @@ export default function LandingView() {
               </h3>
               <p className="text-slate-600 text-sm mt-2">
                 Real-time availability monitoring, collision prevention, and walk-in reservation desk managed by library staff.
+                Discussion room capacity strictly requires a <strong>minimum of 3 students and maximum of 15 students</strong>.
               </p>
             </div>
 
@@ -556,9 +575,11 @@ export default function LandingView() {
                       <p className="text-xs text-slate-500 font-medium mt-1">{room.location}</p>
 
                       <div className="mt-4 pt-4 border-t border-slate-100">
-                        <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 mb-2">
-                          <Users className="w-3.5 h-3.5 text-[#8B1515]" />
-                          Capacity: Up to {room.capacity} Persons
+                        <div className="text-xs font-semibold text-slate-700 flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-1.5">
+                            <Users className="w-3.5 h-3.5 text-[#8B1515]" />
+                            <span>Capacity: <strong className="text-slate-900 font-bold">Min. 3 to Max. 15 Students</strong></span>
+                          </div>
                         </div>
 
                         <div className="space-y-1.5 mt-3">
@@ -775,9 +796,9 @@ export default function LandingView() {
               <div className="w-10 h-10 rounded-xl bg-red-100 text-[#8B1515] flex items-center justify-center font-bold text-sm mb-4">
                 03
               </div>
-              <h4 className="font-serif text-lg font-bold text-slate-900">Collision Prevention</h4>
+              <h4 className="font-serif text-lg font-bold text-slate-900">Group Capacity & Collision Prevention</h4>
               <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                Discussion room booking overlaps are automatically rejected by the scheduler engine, guaranteeing that confirmed sessions never collide.
+                Discussion room reservations strictly require a minimum of 3 students and accommodate a maximum of 15 students. Schedule overlaps are automatically prevented.
               </p>
             </div>
           </div>

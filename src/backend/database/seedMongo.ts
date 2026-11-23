@@ -16,7 +16,7 @@ export async function ensureInitialDataSeeded(): Promise<void> {
       ],
     });
 
-    // 2. Ensure initial rooms exist with Table and Chairs
+    // 2. Ensure initial rooms exist with Table and Chairs and 15 capacity
     const roomCount = await Room.countDocuments();
     if (roomCount === 0) {
       await Room.insertMany([
@@ -27,50 +27,53 @@ export async function ensureInitialDataSeeded(): Promise<void> {
           facilities: ['Table and Chairs'],
           status: 'available',
           location: 'Third floor — large discussion hall',
-          notes: 'Discussion room equipped with tables and chairs.',
+          notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
         },
         {
           name: 'Discussion Room A',
           roomNumber: 'DR-A',
-          capacity: 8,
+          capacity: 15,
           facilities: ['Table and Chairs'],
           status: 'available',
           location: 'Ground floor — collaborative study area',
-          notes: 'Discussion room equipped with tables and chairs.',
+          notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
         },
         {
           name: 'Discussion Room B',
           roomNumber: 'DR-B',
-          capacity: 6,
+          capacity: 15,
           facilities: ['Table and Chairs'],
           status: 'available',
           location: 'Second floor — quiet study wing',
-          notes: 'Discussion room equipped with tables and chairs.',
+          notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
         },
         {
           name: 'Discussion Room C',
           roomNumber: 'DR-C',
-          capacity: 4,
+          capacity: 15,
           facilities: ['Table and Chairs'],
           status: 'available',
           location: 'Second floor — corner consultation booth',
-          notes: 'Discussion room equipped with tables and chairs.',
+          notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
         },
         {
           name: 'Discussion Room D',
           roomNumber: 'DR-D',
-          capacity: 10,
+          capacity: 15,
           facilities: ['Table and Chairs'],
           status: 'available',
           location: 'Third floor — multimedia lab area',
-          notes: 'Discussion room equipped with tables and chairs.',
+          notes: 'Discussion room equipped with tables and chairs. Capacity: 3 to 15 students.',
         },
       ]);
       console.log('MongoDB Seed: Inserted 5 initial discussion rooms.');
     } else {
-      // Ensure all discussion rooms strictly reflect only Table and Chairs as requested
+      // Ensure all discussion rooms strictly reflect Table and Chairs and 15 capacity
       await Room.updateMany({}, {
-        $set: { facilities: ['Table and Chairs'] }
+        $set: {
+          facilities: ['Table and Chairs'],
+          capacity: 15,
+        }
       });
     }
 

@@ -104,9 +104,9 @@ export async function createRoomBooking(req: NextRequest) {
       );
     }
 
-    if (attendeesCount && Number(attendeesCount) > room.capacity) {
+    if (attendeesCount && (Number(attendeesCount) < 3 || Number(attendeesCount) > 15)) {
       return NextResponse.json(
-        { error: `Requested attendees (${attendeesCount}) exceeds room capacity (${room.capacity}).` },
+        { error: `Requested attendees (${attendeesCount}) is invalid. Discussion rooms require a minimum of 3 students and a maximum of 15 students.` },
         { status: 400 }
       );
     }

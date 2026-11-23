@@ -87,7 +87,7 @@ export default function DashboardView() {
     startTime: '09:00',
     endTime: '11:00',
     purpose: 'Group Study & Research',
-    attendeesCount: 2,
+    attendeesCount: 3,
     notes: '',
   });
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
@@ -157,7 +157,7 @@ export default function DashboardView() {
     setSelectedRoomForBooking(room);
     setBookingFormData((prev) => ({
       ...prev,
-      attendeesCount: Math.min(2, room.capacity),
+      attendeesCount: 3,
     }));
     setShowBookModal(true);
   };
@@ -449,7 +449,7 @@ export default function DashboardView() {
                         </h3>
                       </div>
                       <p className="text-xs text-rose-200/90 font-medium">
-                        Up to {room.capacity} persons • Room {room.roomNumber}
+                        Min. 3 to Max. 15 students • Room {room.roomNumber}
                       </p>
                     </div>
 
@@ -798,15 +798,20 @@ export default function DashboardView() {
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Expected Attendees</label>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Expected Attendees (3 – 15 students)
+                  </label>
                   <input
                     type="number"
-                    min="1"
-                    max={selectedRoomForBooking.capacity}
+                    min="3"
+                    max="15"
                     value={bookingFormData.attendeesCount}
-                    onChange={(e) => setBookingFormData({ ...bookingFormData, attendeesCount: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => setBookingFormData({ ...bookingFormData, attendeesCount: parseInt(e.target.value) || 3 })}
                     className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                   />
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    Policy: Minimum 3 students, maximum 15 students.
+                  </span>
                 </div>
               </div>
 

@@ -608,7 +608,7 @@ export default function RoomsView() {
                       </p>
                       <p className="flex items-center gap-1">
                         <Users className="w-3.5 h-3.5 text-slate-500" />
-                        <strong>Max Capacity:</strong> Up to {room.capacity} persons
+                        <strong>Capacity:</strong> Min. 3 to Max. 15 students
                       </p>
                       {room.notes && (
                         <p className="text-slate-500 italic text-[11px]">{room.notes}</p>
