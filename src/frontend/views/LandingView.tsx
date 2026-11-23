@@ -225,66 +225,94 @@ export default function LandingView() {
       <section
         id="overview"
         className="relative text-white overflow-hidden py-16 sm:py-24"
-        style={{
-          backgroundColor: '#8B1515',
-          backgroundImage: `
-            radial-gradient(circle at 50% 20%, rgba(160, 25, 25, 0.95), rgba(75, 10, 10, 1)),
-            radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 0)
-          `,
-          backgroundSize: '100% 100%, 24px 24px',
-        }}
       >
+        {/* Campus Background Image with Crimson Tint Overlay */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <img
+            src="/cjc-campus.jpg"
+            alt="Cor Jesu College Campus"
+            className="w-full h-full object-cover object-center scale-105"
+          />
+          {/* Base Crimson Multiply Overlay (tints the architecture into authentic CJC crimson) */}
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundColor: '#8B1515',
+              mixBlendMode: 'multiply',
+              opacity: 0.88,
+            }}
+          />
+          {/* Depth & Contrast Gradient Overlay */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `
+                radial-gradient(circle at 50% 30%, rgba(139, 21, 21, 0.72) 0%, rgba(60, 8, 8, 0.95) 100%),
+                linear-gradient(to bottom, rgba(139, 21, 21, 0.5) 0%, rgba(35, 5, 5, 0.88) 100%)
+              `,
+            }}
+          />
+          {/* Subtle Halftone Pattern */}
+          <div
+            className="absolute inset-0 opacity-15"
+            style={{
+              backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.25) 1px, transparent 0)',
+              backgroundSize: '24px 24px',
+            }}
+          />
+        </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
             {/* Status Pill */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-950/60 border border-red-400/30 text-rose-200 text-xs font-semibold mb-6 shadow-inner">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-950/70 border border-red-400/40 text-rose-200 text-xs font-semibold mb-6 shadow-inner backdrop-blur-md">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               Cor Jesu College • Learning Information & Resource Center (LIRC)
             </div>
 
             {/* Main Headline */}
-            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight">
+            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight drop-shadow-md">
               Discussion Room Bookings & Laptop Borrowing Services
             </h1>
 
             {/* Description */}
-            <p className="mt-5 text-sm sm:text-base lg:text-lg text-rose-100/90 leading-relaxed font-normal max-w-2xl mx-auto">
+            <p className="mt-5 text-sm sm:text-base lg:text-lg text-rose-100 leading-relaxed font-normal max-w-2xl mx-auto drop-shadow-sm">
               A unified administrative counter desk uniting <strong>Discussion Room Bookings</strong> and <strong>Laptop Borrowing Services</strong> in one seamless, conflict-free platform.
             </p>
           </div>
 
           {/* 4 Pillars Highlight Row */}
           <div className="mt-12 sm:mt-16 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <div className="bg-red-950/40 border border-red-500/20 rounded-2xl p-4 sm:p-5 backdrop-blur-xs">
+            <div className="bg-red-950/60 border border-white/15 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-lg transition-transform hover:-translate-y-0.5">
               <div className="w-9 h-9 rounded-xl bg-red-800/80 text-rose-200 flex items-center justify-center mb-3">
                 <DoorOpen className="w-5 h-5" />
               </div>
               <div className="text-xl sm:text-2xl font-bold text-white font-serif">5 Rooms</div>
-              <p className="text-xs text-rose-200/80 mt-1">Conference hall & study rooms with HD displays & smartboards.</p>
+              <p className="text-xs text-rose-100/80 mt-1">Conference hall & study rooms with HD displays & smartboards.</p>
             </div>
 
-            <div className="bg-red-950/40 border border-red-500/20 rounded-2xl p-4 sm:p-5 backdrop-blur-xs">
+            <div className="bg-red-950/60 border border-white/15 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-lg transition-transform hover:-translate-y-0.5">
               <div className="w-9 h-9 rounded-xl bg-red-800/80 text-rose-200 flex items-center justify-center mb-3">
                 <Laptop className="w-5 h-5" />
               </div>
               <div className="text-xl sm:text-2xl font-bold text-white font-serif">5 Laptops</div>
-              <p className="text-xs text-rose-200/80 mt-1">Ready-to-borrow Dell, Lenovo, HP & Apple laptops with chargers.</p>
+              <p className="text-xs text-rose-100/80 mt-1">Ready-to-borrow Dell, Lenovo, HP & Apple laptops with chargers.</p>
             </div>
 
-            <div className="bg-red-950/40 border border-red-500/20 rounded-2xl p-4 sm:p-5 backdrop-blur-xs">
+            <div className="bg-red-950/60 border border-white/15 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-lg transition-transform hover:-translate-y-0.5">
               <div className="w-9 h-9 rounded-xl bg-red-800/80 text-rose-200 flex items-center justify-center mb-3">
                 <CalendarDays className="w-5 h-5" />
               </div>
               <div className="text-xl sm:text-2xl font-bold text-white font-serif">Collision-Free</div>
-              <p className="text-xs text-rose-200/80 mt-1">Automatic double-booking detection and time slot validation.</p>
+              <p className="text-xs text-rose-100/80 mt-1">Automatic double-booking detection and time slot validation.</p>
             </div>
 
-            <div className="bg-red-950/40 border border-red-500/20 rounded-2xl p-4 sm:p-5 backdrop-blur-xs">
+            <div className="bg-red-950/60 border border-white/15 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-lg transition-transform hover:-translate-y-0.5">
               <div className="w-9 h-9 rounded-xl bg-red-800/80 text-rose-200 flex items-center justify-center mb-3">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div className="text-xl sm:text-2xl font-bold text-white font-serif">Condition Graded</div>
-              <p className="text-xs text-rose-200/80 mt-1">Counter inspection logs return hardware health status on return.</p>
+              <p className="text-xs text-rose-100/80 mt-1">Counter inspection logs return hardware health status on return.</p>
             </div>
           </div>
         </div>
