@@ -314,7 +314,7 @@ export default function LandingView() {
               Register
             </Link>
             <Link
-              href="/login"
+              href="/portal"
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg text-xs font-bold shadow-md shadow-red-950/20 transition-all transform hover:-translate-y-0.5"
             >
               <LogIn className="w-3.5 h-3.5" />
@@ -364,7 +364,7 @@ export default function LandingView() {
             </a>
             <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
               <Link
-                href="/login"
+                href="/portal"
                 className="w-full text-center py-2.5 bg-[#8B1515] text-white text-xs font-bold rounded-lg shadow-sm"
               >
                 Staff Sign In
@@ -828,7 +828,7 @@ export default function LandingView() {
               <a href="#rooms" className="hover:text-white transition-colors">Discussion Rooms</a>
               <a href="#laptops" className="hover:text-white transition-colors">Laptop Borrowing</a>
               <a href="#guidelines" className="hover:text-white transition-colors">Guidelines</a>
-              <Link href="/login" className="text-rose-400 hover:text-rose-300 font-bold transition-colors">Staff Login</Link>
+              <Link href="/portal" className="text-rose-400 hover:text-rose-300 font-bold transition-colors">Staff Login</Link>
               <Link href="/register" className="hover:text-white transition-colors">Register</Link>
             </div>
           </div>

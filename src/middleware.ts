@@ -11,9 +11,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(portalUrl);
   }
 
-  // Allow public landing page, auth routes, public availability API, and static assets
+  // Allow public landing page, portal gateway, auth routes, public availability API, and static assets
   if (
     pathname === '/' ||
+    pathname === '/portal' ||
     pathname === '/login' ||
     pathname === '/register' ||
     pathname.startsWith('/_next') ||
@@ -25,9 +26,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // If no auth token on protected routes (/dashboard, /rooms, /laptops, /api/*), redirect to login
+  // If no auth token on protected routes (/dashboard, /rooms, /laptops, /api/*), redirect to login with portal context
   if (!token) {
-    const loginUrl = new URL('/login', request.url);
+    let portalParam = '';
+    if (pathname.startsWith('/rooms')) portalParam = '?portal=rooms';
+    else if (pathname.startsWith('/laptops')) portalParam = '?portal=laptops';
+    else if (pathname.startsWith('/dashboard')) portalParam = '?portal=dashboard';
+
+    const loginUrl = new URL(`/login${portalParam}`, request.url);
     return NextResponse.redirect(loginUrl);
   }
 

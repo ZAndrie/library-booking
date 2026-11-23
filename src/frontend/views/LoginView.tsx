@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { User, Lock, LogIn, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { User, Lock, LogIn, AlertCircle, CheckCircle2, ArrowLeft, DoorOpen, Laptop, LayoutDashboard } from 'lucide-react';
 
 export default function LoginView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isRegistered = searchParams.get('registered') === 'true';
+  const portal = searchParams.get('portal'); // 'rooms' | 'laptops' | 'dashboard'
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -33,7 +34,15 @@ export default function LoginView() {
         throw new Error(data.error || 'Failed to authenticate');
       }
 
-      router.push('/portal');
+      if (portal === 'rooms') {
+        router.push('/rooms');
+      } else if (portal === 'laptops') {
+        router.push('/laptops');
+      } else if (portal === 'dashboard') {
+        router.push('/dashboard');
+      } else {
+        router.push('/portal');
+      }
       router.refresh();
     } catch (err: any) {
       setError(err.message);
@@ -75,6 +84,21 @@ export default function LoginView() {
           <p className="text-[11px] uppercase tracking-wider text-slate-400 mt-1 font-semibold">
             DISCUSSION ROOMS & LAPTOP BORROWING
           </p>
+
+          {portal && (
+            <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-[#8B1515] text-[11px] font-bold">
+              {portal === 'rooms' && <DoorOpen className="w-3.5 h-3.5" />}
+              {portal === 'laptops' && <Laptop className="w-3.5 h-3.5" />}
+              {portal === 'dashboard' && <LayoutDashboard className="w-3.5 h-3.5" />}
+              <span>
+                {portal === 'rooms'
+                  ? 'Discussion Rooms Portal Authentication'
+                  : portal === 'laptops'
+                  ? 'Laptop Borrowing Portal Authentication'
+                  : 'Unified Operations Authentication'}
+              </span>
+            </div>
+          )}
         </div>
 
         {isRegistered && !error && (
@@ -156,13 +180,19 @@ export default function LoginView() {
               Register here
             </Link>
           </p>
-          <div className="pt-3 border-t border-slate-100">
+          <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
             <Link
-              href="/"
-              className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#8B1515] transition-colors font-medium"
+              href="/portal"
+              className="inline-flex items-center justify-center gap-1.5 text-xs text-[#8B1515] hover:text-[#721111] hover:underline transition-colors font-bold"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              Return to Landing Page
+              Return to Portal Selection
+            </Link>
+            <Link
+              href="/"
+              className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              Back to Landing Page
             </Link>
           </div>
         </div>
