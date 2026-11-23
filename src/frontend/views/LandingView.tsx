@@ -274,7 +274,7 @@ export default function LandingView() {
               <div className="w-9 h-9 rounded-xl bg-red-800 text-rose-100 flex items-center justify-center mb-3 shadow-inner">
                 <DoorOpen className="w-5 h-5" />
               </div>
-              <div className="text-xl sm:text-2xl font-bold text-white font-serif">5 Rooms</div>
+              <div className="text-xl sm:text-2xl font-bold text-white font-serif">Discussion Rooms</div>
               <p className="text-xs text-rose-100/90 mt-1">Conference hall & study rooms with HD displays & smartboards.</p>
             </div>
 
@@ -282,7 +282,7 @@ export default function LandingView() {
               <div className="w-9 h-9 rounded-xl bg-red-800 text-rose-100 flex items-center justify-center mb-3 shadow-inner">
                 <Laptop className="w-5 h-5" />
               </div>
-              <div className="text-xl sm:text-2xl font-bold text-white font-serif">5 Laptops</div>
+              <div className="text-xl sm:text-2xl font-bold text-white font-serif">Laptop Borrowing</div>
               <p className="text-xs text-rose-100/90 mt-1">Ready-to-borrow Dell, Lenovo, HP & Apple laptops with chargers.</p>
             </div>
 
