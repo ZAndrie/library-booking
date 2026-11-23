@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   DoorOpen,
@@ -23,88 +23,233 @@ import {
   Building,
 } from 'lucide-react';
 
+interface AvailabilityRoom {
+  _id: string;
+  name: string;
+  roomNumber: string;
+  capacity: number;
+  facilities: string[];
+  location: string;
+  notes?: string;
+  status: string;
+  isAvailable: boolean;
+  availabilityState: 'available' | 'occupied' | 'maintenance' | 'closed';
+  statusLabel: string;
+}
+
+interface AvailabilityLaptop {
+  _id: string;
+  assetTag: string;
+  brand: string;
+  model: string;
+  specs: string;
+  condition: string;
+  status: string;
+  isAvailable: boolean;
+  statusLabel: string;
+  location?: string;
+  accessoriesIncluded: string[];
+}
+
+interface AvailabilityCounts {
+  totalRooms: number;
+  availableRooms: number;
+  occupiedRooms: number;
+  maintenanceRooms: number;
+  totalLaptops: number;
+  availableLaptops: number;
+  borrowedLaptops: number;
+}
+
+const initialRooms: AvailabilityRoom[] = [
+  {
+    _id: 'room_1',
+    name: 'Conference Room',
+    roomNumber: 'CR-101',
+    capacity: 15,
+    facilities: ['Table and Chairs'],
+    location: 'Third Floor — Large Discussion Hall',
+    notes: 'Discussion room equipped with tables and chairs.',
+    status: 'available',
+    isAvailable: true,
+    availabilityState: 'available',
+    statusLabel: 'Available for Booking',
+  },
+  {
+    _id: 'room_2',
+    name: 'Discussion Room A',
+    roomNumber: 'DR-A',
+    capacity: 8,
+    facilities: ['Table and Chairs'],
+    location: 'Ground Floor — Collaborative Area',
+    notes: 'Discussion room equipped with tables and chairs.',
+    status: 'available',
+    isAvailable: true,
+    availabilityState: 'available',
+    statusLabel: 'Available for Booking',
+  },
+  {
+    _id: 'room_3',
+    name: 'Discussion Room B',
+    roomNumber: 'DR-B',
+    capacity: 6,
+    facilities: ['Table and Chairs'],
+    location: 'Second Floor — Quiet Study Wing',
+    notes: 'Discussion room equipped with tables and chairs.',
+    status: 'available',
+    isAvailable: true,
+    availabilityState: 'available',
+    statusLabel: 'Available for Booking',
+  },
+  {
+    _id: 'room_4',
+    name: 'Discussion Room C',
+    roomNumber: 'DR-C',
+    capacity: 4,
+    facilities: ['Table and Chairs'],
+    location: 'Second Floor — Corner Consultation Booth',
+    notes: 'Discussion room equipped with tables and chairs.',
+    status: 'available',
+    isAvailable: true,
+    availabilityState: 'available',
+    statusLabel: 'Available for Booking',
+  },
+  {
+    _id: 'room_5',
+    name: 'Discussion Room D',
+    roomNumber: 'DR-D',
+    capacity: 10,
+    facilities: ['Table and Chairs'],
+    location: 'Third Floor — Multimedia Lab Area',
+    notes: 'Discussion room equipped with tables and chairs.',
+    status: 'available',
+    isAvailable: true,
+    availabilityState: 'available',
+    statusLabel: 'Available for Booking',
+  },
+];
+
+const initialLaptops: AvailabilityLaptop[] = [
+  {
+    _id: 'lap_1',
+    assetTag: 'LIB-LAP-001',
+    brand: 'Dell',
+    model: 'Latitude 5420',
+    specs: 'Intel Core i5-1145G7, 16GB RAM, 512GB NVMe',
+    condition: 'excellent',
+    status: 'available',
+    isAvailable: true,
+    statusLabel: 'Available on Shelf',
+    accessoriesIncluded: ['65W Type-C Charger', 'Sleeve', 'Wireless Mouse'],
+  },
+  {
+    _id: 'lap_2',
+    assetTag: 'LIB-LAP-002',
+    brand: 'Lenovo',
+    model: 'ThinkPad T14 Gen 2',
+    specs: 'AMD Ryzen 5 PRO, 16GB RAM, 512GB SSD',
+    condition: 'excellent',
+    status: 'available',
+    isAvailable: true,
+    statusLabel: 'Available on Shelf',
+    accessoriesIncluded: ['65W Slim Tip Charger', 'Padded Sleeve'],
+  },
+  {
+    _id: 'lap_3',
+    assetTag: 'LIB-LAP-003',
+    brand: 'HP',
+    model: 'EliteBook 840 G8',
+    specs: 'Intel Core i7-1165G7, 16GB RAM, Sure View Privacy',
+    condition: 'excellent',
+    status: 'available',
+    isAvailable: true,
+    statusLabel: 'Available on Shelf',
+    accessoriesIncluded: ['65W Fast Charger', 'Sleeve', 'Ethernet Adapter'],
+  },
+  {
+    _id: 'lap_4',
+    assetTag: 'LIB-LAP-004',
+    brand: 'Apple',
+    model: 'MacBook Air M1',
+    specs: 'Apple M1 Chip, 8-Core CPU, 8GB Unified, 256GB SSD',
+    condition: 'excellent',
+    status: 'available',
+    isAvailable: true,
+    statusLabel: 'Available on Shelf',
+    accessoriesIncluded: ['30W USB-C Adapter', 'Cable', 'Hardshell Case'],
+  },
+];
+
+function getRoomBadge(index: number) {
+  const badges = [
+    { badge: 'Conference Hall', accent: 'border-amber-200 bg-amber-50/60 text-amber-900' },
+    { badge: 'Group Collaboration', accent: 'border-blue-200 bg-blue-50/60 text-blue-900' },
+    { badge: 'Discussion Space', accent: 'border-purple-200 bg-purple-50/60 text-purple-900' },
+    { badge: 'Study Consultation', accent: 'border-emerald-200 bg-emerald-50/60 text-emerald-900' },
+    { badge: 'Group Study', accent: 'border-rose-200 bg-rose-50/60 text-rose-900' },
+  ];
+  return badges[index % badges.length];
+}
+
+function getConditionBadge(condition: string) {
+  const cond = condition ? condition.toLowerCase() : 'excellent';
+  if (cond === 'excellent') {
+    return 'text-emerald-700 bg-emerald-50 border-emerald-200';
+  } else if (cond === 'good') {
+    return 'text-blue-700 bg-blue-50 border-blue-200';
+  } else if (cond === 'fair') {
+    return 'text-amber-700 bg-amber-50 border-amber-200';
+  } else {
+    return 'text-rose-700 bg-rose-50 border-rose-200';
+  }
+}
+
 export default function LandingView() {
   const [activeTab, setActiveTab] = useState<'rooms' | 'laptops'>('rooms');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [rooms, setRooms] = useState<AvailabilityRoom[]>(initialRooms);
+  const [laptops, setLaptops] = useState<AvailabilityLaptop[]>(initialLaptops);
+  const [counts, setCounts] = useState<AvailabilityCounts | null>({
+    totalRooms: 5,
+    availableRooms: 5,
+    occupiedRooms: 0,
+    maintenanceRooms: 0,
+    totalLaptops: 4,
+    availableLaptops: 4,
+    borrowedLaptops: 0,
+  });
 
-  const roomsData = [
-    {
-      name: 'Conference Room',
-      code: 'CR-101',
-      capacity: '15 Persons',
-      location: 'Third Floor — Large Hall',
-      amenities: ['HD Projector', 'Large Whiteboard', 'Video Conference Audio', 'Air Conditioned'],
-      badge: 'Conference Hall',
-      accent: 'border-amber-200 bg-amber-50/40 text-amber-900',
-    },
-    {
-      name: 'Discussion Room A',
-      code: 'DR-A',
-      capacity: '8 Persons',
-      location: 'Ground Floor — Collaborative Area',
-      amenities: ['Whiteboard', 'HD Projector', 'Ergonomic Seating'],
-      badge: 'Group Collaboration',
-      accent: 'border-blue-200 bg-blue-50/40 text-blue-900',
-    },
-    {
-      name: 'Discussion Room B',
-      code: 'DR-B',
-      capacity: '6 Persons',
-      location: 'Second Floor — Quiet Study Wing',
-      amenities: ['4K Smart Display', 'Wireless Screen Casting', 'Whiteboard'],
-      badge: 'Digital Presentation',
-      accent: 'border-purple-200 bg-purple-50/40 text-purple-900',
-    },
-    {
-      name: 'Discussion Room C',
-      code: 'DR-C',
-      capacity: '4 Persons',
-      location: 'Second Floor — Corner Consultation',
-      amenities: ['Whiteboard', 'Power Hub', 'High-Speed LAN'],
-      badge: 'Focused Study',
-      accent: 'border-emerald-200 bg-emerald-50/40 text-emerald-900',
-    },
-    {
-      name: 'Discussion Room D',
-      code: 'DR-D',
-      capacity: '10 Persons',
-      location: 'Third Floor — Multimedia Lab Wing',
-      amenities: ['Smart Board', 'Conference Speakerphone', 'HDMI Hub'],
-      badge: 'Multimedia Studio',
-      accent: 'border-rose-200 bg-rose-50/40 text-rose-900',
-    },
-  ];
+  useEffect(() => {
+    let isMounted = true;
 
-  const laptopsData = [
-    {
-      model: 'Lenovo ThinkPad T14 Gen 2',
-      tag: 'LIB-LAP-002',
-      specs: 'AMD Ryzen 5 PRO, 16GB RAM, 512GB SSD',
-      condition: 'Excellent',
-      accessories: '65W Slim Tip Charger, Padded Sleeve',
-    },
-    {
-      model: 'Dell Latitude 5420',
-      tag: 'LIB-LAP-001',
-      specs: 'Intel Core i5-1145G7, 16GB RAM, 512GB NVMe',
-      condition: 'Excellent',
-      accessories: '65W Type-C Charger, Sleeve, Wireless Mouse',
-    },
-    {
-      model: 'HP EliteBook 840 G8',
-      tag: 'LIB-LAP-003',
-      specs: 'Intel Core i7-1165G7, 16GB RAM, Sure View Privacy',
-      condition: 'Excellent',
-      accessories: '65W Fast Charger, Sleeve, Ethernet Adapter',
-    },
-    {
-      model: 'Apple MacBook Air M1',
-      tag: 'LIB-LAP-004',
-      specs: 'Apple M1 Chip, 8-Core CPU, 8GB Unified, 256GB SSD',
-      condition: 'Excellent',
-      accessories: '30W USB-C Adapter, Cable, Hardshell Case',
-    },
-  ];
+    async function loadAvailability() {
+      try {
+        const res = await fetch('/api/availability', { cache: 'no-store' });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (isMounted && json.success && json.data) {
+          if (Array.isArray(json.data.rooms) && json.data.rooms.length > 0) {
+            setRooms(json.data.rooms);
+          }
+          if (Array.isArray(json.data.laptops) && json.data.laptops.length > 0) {
+            setLaptops(json.data.laptops);
+          }
+          if (json.data.counts) {
+            setCounts(json.data.counts);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching availability:', err);
+      }
+    }
+
+    loadAvailability();
+    const interval = setInterval(loadAvailability, 30000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-[#8B1515] selection:text-white">
@@ -275,7 +420,7 @@ export default function LandingView() {
                 <DoorOpen className="w-5 h-5" />
               </div>
               <div className="text-xl sm:text-2xl font-bold text-white font-serif">Discussion Rooms</div>
-              <p className="text-xs text-rose-100/90 mt-1">Conference hall & study rooms with HD displays & smartboards.</p>
+              <p className="text-xs text-rose-100/90 mt-1">Discussion & study rooms equipped with tables and chairs.</p>
             </div>
 
             <div className="bg-red-950/75 border border-white/20 rounded-2xl p-4 sm:p-5 backdrop-blur-md shadow-xl transition-transform hover:-translate-y-0.5">
@@ -329,7 +474,20 @@ export default function LandingView() {
                 }`}
               >
                 <DoorOpen className="w-4 h-4" />
-                Discussion Rooms
+                <span>Discussion Rooms</span>
+                {counts && (
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      activeTab === 'rooms'
+                        ? 'bg-white/20 text-white'
+                        : counts.availableRooms > 0
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {counts.availableRooms > 0 ? `${counts.availableRooms} Available` : 'All In Session'}
+                  </span>
+                )}
               </button>
               <button
                 onClick={() => setActiveTab('laptops')}
@@ -340,7 +498,20 @@ export default function LandingView() {
                 }`}
               >
                 <Laptop className="w-4 h-4" />
-                Laptop Borrowing
+                <span>Laptop Borrowing</span>
+                {counts && (
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      activeTab === 'laptops'
+                        ? 'bg-white/20 text-white'
+                        : counts.availableLaptops > 0
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {counts.availableLaptops > 0 ? `${counts.availableLaptops} Available` : 'All Borrowed'}
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -364,57 +535,88 @@ export default function LandingView() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {roomsData.map((room) => (
-                <div
-                  key={room.code}
-                  className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${room.accent}`}>
-                        {room.badge}
-                      </span>
-                      <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                        {room.code}
-                      </span>
-                    </div>
-
-                    <h4 className="font-serif text-xl font-bold text-slate-900">{room.name}</h4>
-                    <p className="text-xs text-slate-500 font-medium mt-1">{room.location}</p>
-
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                      <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 mb-2">
-                        <Users className="w-3.5 h-3.5 text-[#8B1515]" />
-                        Capacity: {room.capacity}
+              {rooms.map((room, idx) => {
+                const roomBadge = getRoomBadge(idx);
+                return (
+                  <div
+                    key={room._id || room.roomNumber}
+                    className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${roomBadge.accent}`}>
+                          {roomBadge.badge}
+                        </span>
+                        <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                          {room.roomNumber}
+                        </span>
                       </div>
 
-                      <div className="space-y-1.5 mt-3">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Amenities:</div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {room.amenities.map((a) => (
-                            <span
-                              key={a}
-                              className="text-[11px] bg-slate-50 text-slate-600 border border-slate-200/80 px-2 py-0.5 rounded-md"
-                            >
-                              {a}
+                      <h4 className="font-serif text-xl font-bold text-slate-900">{room.name}</h4>
+                      <p className="text-xs text-slate-500 font-medium mt-1">{room.location}</p>
+
+                      <div className="mt-4 pt-4 border-t border-slate-100">
+                        <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 mb-2">
+                          <Users className="w-3.5 h-3.5 text-[#8B1515]" />
+                          Capacity: Up to {room.capacity} Persons
+                        </div>
+
+                        <div className="space-y-1.5 mt-3">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Amenities:</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            <span className="text-[11px] bg-slate-50 text-slate-700 border border-slate-200/80 px-2.5 py-1 rounded-md font-medium">
+                              Table and Chairs
                             </span>
-                          ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-emerald-700 font-bold flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                      Available for Booking
-                    </span>
-                    <span className="text-[11px] text-slate-500 font-medium">
-                      Inquire at LIRC Desk
-                    </span>
+                    {/* Live Dynamic Availability Status Indicator */}
+                    {room.isAvailable ? (
+                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <span className="text-emerald-700 font-bold flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Available for Booking
+                        </span>
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          Inquire at LIRC Desk
+                        </span>
+                      </div>
+                    ) : room.availabilityState === 'occupied' ? (
+                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <span className="text-amber-700 font-bold flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                          Occupied / In Session
+                        </span>
+                        <span className="text-[11px] text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                          Active Booking
+                        </span>
+                      </div>
+                    ) : room.availabilityState === 'maintenance' ? (
+                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <span className="text-rose-700 font-bold flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                          Under Maintenance
+                        </span>
+                        <span className="text-[11px] text-rose-600 font-medium">
+                          Temporarily Unavailable
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <span className="text-slate-600 font-bold flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-slate-400" />
+                          {room.statusLabel || 'Not Available'}
+                        </span>
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          Closed
+                        </span>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {/* Summary Card */}
               <div className="bg-gradient-to-br from-[#8B1515] to-[#5A0B0B] text-white rounded-2xl p-6 shadow-md flex flex-col justify-between">
@@ -424,7 +626,7 @@ export default function LandingView() {
                   </div>
                   <h4 className="font-serif text-2xl font-bold">Room Desk Operations</h4>
                   <p className="text-xs text-rose-100/90 mt-2 leading-relaxed">
-                    Staff officers extend active sessions, manage schedule conflicts, inspect multimedia equipment, and coordinate walk-in reservations.
+                    Staff officers extend active sessions, manage schedule conflicts, inspect room condition, and coordinate walk-in reservations.
                   </p>
                 </div>
 
@@ -452,17 +654,17 @@ export default function LandingView() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {laptopsData.map((lap) => (
+              {laptops.map((lap) => (
                 <div
-                  key={lap.tag}
+                  key={lap._id || lap.assetTag}
                   className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <span className="text-[10px] font-bold font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                        {lap.tag}
+                        {lap.assetTag}
                       </span>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${getConditionBadge(lap.condition)}`}>
                         {lap.condition}
                       </span>
                     </div>
@@ -471,23 +673,61 @@ export default function LandingView() {
                       <Laptop className="w-5 h-5 text-[#8B1515]" />
                     </div>
 
-                    <h4 className="font-serif text-base font-bold text-slate-900 leading-snug">{lap.model}</h4>
+                    <h4 className="font-serif text-base font-bold text-slate-900 leading-snug">
+                      {lap.brand ? `${lap.brand} ` : ''}{lap.model}
+                    </h4>
                     <p className="text-xs text-slate-500 mt-1 font-sans leading-relaxed">{lap.specs}</p>
 
                     <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-600">
-                      <span className="font-bold text-slate-700">Accessories:</span> {lap.accessories}
+                      <span className="font-bold text-slate-700">Accessories:</span>{' '}
+                      {Array.isArray(lap.accessoriesIncluded) && lap.accessoriesIncluded.length > 0
+                        ? lap.accessoriesIncluded.join(', ')
+                        : 'Fast Charger, Protective Sleeve'}
                     </div>
                   </div>
 
-                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-emerald-700 font-bold flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                      Available
-                    </span>
-                    <span className="text-[11px] text-slate-500 font-medium">
-                      In-Library Use • Inquire at Desk
-                    </span>
-                  </div>
+                  {/* Live Dynamic Availability Status Indicator */}
+                  {lap.isAvailable ? (
+                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <span className="text-emerald-700 font-bold flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        Available on Shelf
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        Ready to Borrow
+                      </span>
+                    </div>
+                  ) : lap.status === 'borrowed' ? (
+                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <span className="text-amber-700 font-bold flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-500" />
+                        Currently Borrowed
+                      </span>
+                      <span className="text-[11px] text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                        Active Loan
+                      </span>
+                    </div>
+                  ) : lap.status === 'under_maintenance' ? (
+                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <span className="text-rose-700 font-bold flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-rose-500" />
+                        Under Maintenance
+                      </span>
+                      <span className="text-[11px] text-rose-600 font-medium">
+                        Service Desk
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <span className="text-slate-500 font-bold flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-slate-400" />
+                        {lap.statusLabel || 'Not Available'}
+                      </span>
+                      <span className="text-[11px] text-slate-400 font-medium">
+                        Unavailable
+                      </span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

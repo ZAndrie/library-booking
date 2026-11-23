@@ -11,7 +11,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(dashboardUrl);
   }
 
-  // Allow public landing page, auth routes, and static assets
+  // Allow public landing page, auth routes, public availability API, and static assets
   if (
     pathname === '/' ||
     pathname === '/login' ||
@@ -19,6 +19,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon.ico') ||
     pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api/availability') ||
     pathname.includes('.') // Any static asset file (e.g. .png, .jpg, .ico, .svg, .webp)
   ) {
     return NextResponse.next();

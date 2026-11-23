@@ -972,7 +972,7 @@ export default function RoomsView() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Whiteboard, 55&quot; Smart TV, Power Sockets"
+                    placeholder="Table and Chairs"
                     value={roomFormData.facilities}
                     onChange={(e) =>
                       setRoomFormData({ ...roomFormData, facilities: e.target.value })

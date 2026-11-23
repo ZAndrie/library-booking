@@ -16,7 +16,7 @@ export async function ensureInitialDataSeeded(): Promise<void> {
       ],
     });
 
-    // 2. Ensure initial rooms exist
+    // 2. Ensure initial rooms exist with Table and Chairs
     const roomCount = await Room.countDocuments();
     if (roomCount === 0) {
       await Room.insertMany([
@@ -24,49 +24,54 @@ export async function ensureInitialDataSeeded(): Promise<void> {
           name: 'Conference Room',
           roomNumber: 'CR-101',
           capacity: 15,
-          facilities: ['Projector', 'Large Whiteboard', 'Video Conference Audio', 'AC'],
+          facilities: ['Table and Chairs'],
           status: 'available',
           location: 'Third floor — large discussion hall',
-          notes: 'Suited for presentations and larger group forums.',
+          notes: 'Discussion room equipped with tables and chairs.',
         },
         {
           name: 'Discussion Room A',
           roomNumber: 'DR-A',
           capacity: 8,
-          facilities: ['Whiteboard', 'HD Projector', 'Ergonomic Seating'],
+          facilities: ['Table and Chairs'],
           status: 'available',
-          location: 'Ground floor — whiteboard & projector',
-          notes: 'Collaborative group study.',
+          location: 'Ground floor — collaborative study area',
+          notes: 'Discussion room equipped with tables and chairs.',
         },
         {
           name: 'Discussion Room B',
           roomNumber: 'DR-B',
           capacity: 6,
-          facilities: ['4K Smart Display', 'Wireless Screen Casting', 'Whiteboard'],
+          facilities: ['Table and Chairs'],
           status: 'available',
           location: 'Second floor — quiet study wing',
-          notes: 'Screen share and group assignments.',
+          notes: 'Discussion room equipped with tables and chairs.',
         },
         {
           name: 'Discussion Room C',
           roomNumber: 'DR-C',
           capacity: 4,
-          facilities: ['Whiteboard', 'Power Hub', 'High-Speed LAN'],
+          facilities: ['Table and Chairs'],
           status: 'available',
           location: 'Second floor — corner consultation booth',
-          notes: 'Ideal for tutoring and 2-4 person meetings.',
+          notes: 'Discussion room equipped with tables and chairs.',
         },
         {
           name: 'Discussion Room D',
           roomNumber: 'DR-D',
           capacity: 10,
-          facilities: ['Smart Board', 'Conference Speakerphone', 'HDMI Hub'],
+          facilities: ['Table and Chairs'],
           status: 'available',
           location: 'Third floor — multimedia lab area',
-          notes: 'Multimedia and presentation practice.',
+          notes: 'Discussion room equipped with tables and chairs.',
         },
       ]);
       console.log('MongoDB Seed: Inserted 5 initial discussion rooms.');
+    } else {
+      // Ensure all discussion rooms strictly reflect only Table and Chairs as requested
+      await Room.updateMany({}, {
+        $set: { facilities: ['Table and Chairs'] }
+      });
     }
 
     // 3. Ensure initial laptop borrowing inventory exists
