@@ -139,11 +139,68 @@ export default function LoginView() {
   };
 
   return (
-    <div className="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden flex flex-col lg:flex-row bg-slate-900 font-sans selection:bg-[#8B1515] selection:text-white">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-slate-900 font-sans selection:bg-[#8B1515] selection:text-white">
       {/* ============================================================== */}
-      {/* LEFT PANE: Centered Text & Atmospheric Campus Showcase */}
+      {/* MOBILE HEADER BANNER: Clean, Compact School Branding (< lg)   */}
       {/* ============================================================== */}
-      <div className="relative lg:w-1/2 xl:w-7/12 flex flex-col justify-between p-6 sm:p-10 lg:p-10 xl:p-12 overflow-hidden text-white lg:h-full shrink-0">
+      <div className="lg:hidden relative text-white px-4 sm:px-6 py-4 overflow-hidden shrink-0 border-b border-red-950/40 shadow-md">
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <img
+            src="/cjc-campus.jpg"
+            alt="Cor Jesu College Norbert Building"
+            className="w-full h-full object-cover object-[center_35%] filter brightness-95 contrast-105"
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `
+                linear-gradient(
+                  145deg,
+                  rgba(139, 21, 21, 0.94) 0%,
+                  rgba(110, 15, 15, 0.90) 50%,
+                  rgba(26, 6, 6, 0.96) 100%
+                )
+              `,
+            }}
+          />
+        </div>
+
+        <div className="relative z-10 flex items-center justify-between gap-3 max-w-md mx-auto">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white p-1 border border-white/20 shadow-md flex items-center justify-center shrink-0">
+              <img
+                src="/cjc-logo.png"
+                alt="Cor Jesu College Official Seal"
+                width={40}
+                height={40}
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <div className="font-serif font-bold text-sm text-white tracking-tight leading-tight flex items-center gap-1.5">
+                COR JESU COLLEGE
+                <span className="text-[9px] font-sans font-bold bg-white/20 text-rose-100 px-1.5 py-0.5 rounded-full uppercase">
+                  LIRC
+                </span>
+              </div>
+              <div className="text-[11px] text-rose-100/80 font-medium">
+                Library Booking System
+              </div>
+            </div>
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-xs border border-white/15 text-[11px] text-rose-100 font-semibold shrink-0">
+            <PortalIcon className="w-3.5 h-3.5 text-rose-200" />
+            <span className="hidden sm:inline">{portalDetails.name}</span>
+            <span className="sm:hidden">{portalDetails.badge}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================================== */}
+      {/* DESKTOP/LAPTOP LEFT PANE: Centered Typography & Showcase (>= lg)*/}
+      {/* ============================================================== */}
+      <div className="hidden lg:flex relative lg:w-1/2 xl:w-7/12 flex-col justify-between p-8 xl:p-12 overflow-hidden text-white lg:min-h-screen shrink-0">
         {/* Full Campus Background Image with Cor Jesu Crimson Gradient */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <img
@@ -267,9 +324,9 @@ export default function LoginView() {
       </div>
 
       {/* ============================================================== */}
-      {/* RIGHT PANE: Clean Pure White Background Sign In Console */}
+      {/* RIGHT PANE: Clean Pure White Background Sign In Console       */}
       {/* ============================================================== */}
-      <div className="lg:w-1/2 xl:w-5/12 bg-white flex flex-col justify-between p-6 sm:p-10 lg:p-10 xl:p-14 shadow-2xl relative z-10 lg:h-full overflow-y-auto lg:overflow-hidden">
+      <div className="flex-1 lg:w-1/2 xl:w-5/12 bg-white flex flex-col justify-between p-5 sm:p-8 lg:p-8 xl:p-12 shadow-2xl relative z-10 lg:min-h-screen overflow-y-auto">
         {/* Top Bar: Return to Portal Selection */}
         <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-100 shrink-0">
           <Link

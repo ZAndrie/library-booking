@@ -103,21 +103,40 @@ export default function RegisterView() {
   ];
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 sm:p-6"
-      style={{
-        backgroundColor: '#8B1515',
-        backgroundImage: `
-          radial-gradient(circle at center, rgba(139, 21, 21, 0.95), rgba(80, 10, 10, 1)),
-          radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 0)
-        `,
-        backgroundSize: '100% 100%, 22px 22px',
-      }}
-    >
-      <div className="w-full max-w-[520px] bg-white rounded-3xl p-8 sm:p-10 shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden bg-slate-900 font-sans selection:bg-[#8B1515] selection:text-white">
+      {/* Full Campus Background Image with Cor Jesu Crimson Gradient */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <img
+          src="/cjc-campus.jpg"
+          alt="Cor Jesu College Norbert Building"
+          className="w-full h-full object-cover object-[center_35%] filter brightness-95 contrast-105"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              linear-gradient(
+                145deg,
+                rgba(139, 21, 21, 0.94) 0%,
+                rgba(110, 15, 15, 0.90) 50%,
+                rgba(26, 6, 6, 0.96) 100%
+              )
+            `,
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 0)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+      </div>
+
+      <div className="w-full max-w-lg bg-white rounded-3xl p-5 sm:p-8 md:p-10 shadow-2xl relative z-10 my-4 sm:my-8 border border-white/20">
         {/* Card Header */}
         <div className="text-center mb-6">
-          <div className="w-20 h-20 mx-auto mb-3 bg-white rounded-2xl p-2 flex items-center justify-center shadow-lg shadow-red-950/15 border border-slate-100">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 bg-white rounded-2xl p-2 flex items-center justify-center shadow-lg shadow-red-950/15 border border-slate-100">
             <img
               src="/cjc-logo.png"
               alt="Cor Jesu College Logo"
@@ -129,7 +148,7 @@ export default function RegisterView() {
           <div className="text-xs font-bold uppercase tracking-widest text-[#8B1515] mb-1">
             Cor Jesu College
           </div>
-          <h1 className="font-serif text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Library Booking System
           </h1>
           <p className="text-[11px] uppercase tracking-wider text-slate-400 mt-1 font-semibold">
@@ -139,8 +158,8 @@ export default function RegisterView() {
 
         {error && (
           <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-600 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <div className="leading-relaxed">{error}</div>
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#8B1515]" />
+            <div className="leading-relaxed font-medium">{error}</div>
           </div>
         )}
 
@@ -150,7 +169,7 @@ export default function RegisterView() {
             <label className="block text-[11px] font-bold tracking-wider text-slate-700 uppercase mb-1.5">
               AUTHORIZATION ROLE *
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {roleOptions.map((opt) => {
                 const Icon = opt.icon;
                 const isSelected = formData.role === opt.id;
@@ -159,14 +178,14 @@ export default function RegisterView() {
                     key={opt.id}
                     type="button"
                     onClick={() => setFormData({ ...formData, role: opt.id })}
-                    className={`text-left p-2.5 rounded-xl border transition-all ${
+                    className={`text-left p-3 rounded-xl border transition-all cursor-pointer ${
                       isSelected
                         ? 'border-[#8B1515] bg-red-50 ring-2 ring-[#8B1515]/30 text-[#8B1515]'
-                        : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
+                        : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
-                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      <Icon className="w-4 h-4 shrink-0" />
                       <span className="font-bold text-xs">{opt.title}</span>
                     </div>
                     <p className="text-[10px] leading-tight text-slate-500">

@@ -727,7 +727,7 @@ export default function DashboardView() {
             </div>
 
             <form onSubmit={handleQuickBookSubmit} className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Borrower / Student Name *</label>
                   <input
@@ -752,7 +752,7 @@ export default function DashboardView() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Date</label>
                   <input
@@ -785,7 +785,7 @@ export default function DashboardView() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Purpose of Session</label>
                   <input
@@ -874,7 +874,7 @@ export default function DashboardView() {
             </div>
 
             <form onSubmit={handleQuickCheckoutSubmit} className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Borrower / Student Name *</label>
                   <input
@@ -899,7 +899,7 @@ export default function DashboardView() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Contact Email</label>
                   <input
