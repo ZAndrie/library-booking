@@ -92,157 +92,50 @@ export default function AppShell({ children }: AppShellProps) {
     const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
     const isSuperAdmin = user?.role === 'super_admin';
 
-    const adminSection: NavSection = {
-      label: 'ADMINISTRATION',
-      items: [
-        { label: 'Staff Accounts', href: '/admin/users', icon: Users },
-        { label: 'Audit Logs & Reports', href: '/admin/audit', icon: FileText },
-        ...(isSuperAdmin
-          ? [{ label: 'System Policies', href: '/admin/settings', icon: Sliders }]
-          : []),
-      ],
-    };
-
-    if (isRoomsPortal) {
-      const sections: NavSection[] = [
-        {
-          label: 'PORTAL SELECTION',
-          items: [
-            { label: 'Switch Counter Desk', href: '/portal', icon: Layers },
-          ],
-        },
-        {
-          label: 'DISCUSSION ROOMS',
-          items: [
-            { label: 'Room Desk Console', href: '/rooms', icon: DoorOpen },
-            { label: 'New Reservation', href: '/rooms?action=new', icon: CalendarPlus },
-          ],
-        },
-        {
-          label: 'SUPERVISORY',
-          items: [
-            { label: 'Operations Dashboard', href: '/dashboard', icon: LayoutDashboard },
-          ],
-        },
-      ];
-
-      if (isAdmin) {
-        sections.push(adminSection);
-      }
-
-      sections.push({
-        label: 'ACCOUNT',
-        items: [
-          { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
-        ],
-      });
-
-      return sections;
-    }
-
-    if (isLaptopsPortal) {
-      const sections: NavSection[] = [
-        {
-          label: 'PORTAL SELECTION',
-          items: [
-            { label: 'Switch Counter Desk', href: '/portal', icon: Layers },
-          ],
-        },
-        {
-          label: 'LAPTOP CIRCULATION',
-          items: [
-            { label: 'Laptop Lending Desk', href: '/laptops', icon: Laptop },
-            { label: 'New Device Checkout', href: '/laptops?action=checkout', icon: MonitorCheck },
-          ],
-        },
-        {
-          label: 'SUPERVISORY',
-          items: [
-            { label: 'Operations Dashboard', href: '/dashboard', icon: LayoutDashboard },
-          ],
-        },
-      ];
-
-      if (isAdmin) {
-        sections.push(adminSection);
-      }
-
-      sections.push({
-        label: 'ACCOUNT',
-        items: [
-          { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
-        ],
-      });
-
-      return sections;
-    }
-
-    if (isAdminPortal) {
-      return [
-        {
-          label: 'PORTAL SELECTION',
-          items: [
-            { label: 'Switch Counter Desk', href: '/portal', icon: Layers },
-          ],
-        },
-        adminSection,
-        {
-          label: 'OPERATIONAL DESKS',
-          items: [
-            { label: 'Discussion Rooms Portal', href: '/rooms', icon: DoorOpen },
-            { label: 'Laptop Borrowing Desk', href: '/laptops', icon: Laptop },
-          ],
-        },
-        {
-          label: 'SUPERVISORY',
-          items: [
-            { label: 'Operations Dashboard', href: '/dashboard', icon: LayoutDashboard },
-          ],
-        },
-        {
-          label: 'ACCOUNT',
-          items: [
-            { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
-          ],
-        },
-      ];
-    }
-
-    // Default: Dashboard / Command Center
-    const defaultSections: NavSection[] = [
+    const sections: NavSection[] = [
       {
-        label: 'PORTAL SELECTION',
+        label: 'OPERATIONS',
         items: [
-          { label: 'Switch Counter Desk', href: '/portal', icon: Layers },
+          { label: 'Operations Dashboard', href: '/dashboard', icon: LayoutDashboard },
         ],
       },
       {
-        label: 'OPERATIONS COMMAND',
+        label: 'SERVICE DESKS',
         items: [
-          { label: 'Master Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        ],
-      },
-      {
-        label: 'COUNTER ACCESS',
-        items: [
-          { label: 'Discussion Rooms Portal', href: '/rooms', icon: DoorOpen },
-          { label: 'Laptop Borrowing Desk', href: '/laptops', icon: Laptop },
+          { label: 'Discussion Rooms', href: '/rooms', icon: DoorOpen },
+          { label: 'Laptop Borrowing', href: '/laptops', icon: Laptop },
         ],
       },
     ];
 
     if (isAdmin) {
-      defaultSections.push(adminSection);
+      sections.push({
+        label: 'ADMINISTRATION',
+        items: [
+          { label: 'Staff Accounts', href: '/admin/users', icon: Users },
+          { label: 'Audit Logs & Reports', href: '/admin/audit', icon: FileText },
+          ...(isSuperAdmin
+            ? [{ label: 'System Policies', href: '/admin/settings', icon: Sliders }]
+            : []),
+        ],
+      });
     }
 
-    defaultSections.push({
+    sections.push({
+      label: 'PORTAL GATEWAY',
+      items: [
+        { label: 'Switch Counter Desk', href: '/portal', icon: Layers },
+      ],
+    });
+
+    sections.push({
       label: 'ACCOUNT',
       items: [
         { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
       ],
     });
 
-    return defaultSections;
+    return sections;
   };
 
   const navSections = getNavSections();
@@ -325,8 +218,12 @@ export default function AppShell({ children }: AppShellProps) {
                       isCurrent = false;
                     } else if (item.href === '/portal') {
                       isCurrent = pathname === '/portal';
-                    } else if (item.href.includes('?action=')) {
-                      isCurrent = false;
+                    } else if (item.href === '/dashboard') {
+                      isCurrent = pathname === '/dashboard';
+                    } else if (item.href === '/rooms') {
+                      isCurrent = pathname.startsWith('/rooms');
+                    } else if (item.href === '/laptops') {
+                      isCurrent = pathname.startsWith('/laptops');
                     } else {
                       isCurrent = pathname === itemPath;
                     }
@@ -339,7 +236,7 @@ export default function AppShell({ children }: AppShellProps) {
                             setMobileMenuOpen(false);
                             item.onClick?.();
                           }}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-rose-100 hover:bg-red-900/70 hover:text-white transition-colors group"
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm text-rose-100/80 hover:bg-red-900/50 hover:text-white transition-colors group border-l-4 border-transparent text-left cursor-pointer"
                         >
                           <Icon className="w-4 h-4 text-rose-300 group-hover:text-white transition-colors" />
                           <span className="font-medium">{item.label}</span>
@@ -352,10 +249,10 @@ export default function AppShell({ children }: AppShellProps) {
                         key={item.label}
                         href={item.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all group ${
+                        className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors border-l-4 group ${
                           isCurrent
-                            ? 'bg-red-900/90 text-white font-semibold shadow-inner border-l-4 border-rose-300'
-                            : 'text-rose-100/90 hover:bg-red-900/60 hover:text-white'
+                            ? 'bg-red-950/70 text-white font-semibold shadow-xs border-rose-300'
+                            : 'border-transparent text-rose-100/80 hover:bg-red-900/50 hover:text-white'
                         }`}
                       >
                         <div className="flex items-center gap-3">
