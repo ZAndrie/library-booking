@@ -94,7 +94,7 @@ export default function LoginView() {
             'Discussion Space Reservations',
             'Laptop Lending Circulation',
             'Verified Staff Access Only',
-            '256-Bit SSL Encrypted',
+            'Authorized Desk Access',
           ],
         };
     }
@@ -259,13 +259,10 @@ export default function LoginView() {
           </div>
         </div>
 
-        {/* Bottom: Institutional Security Status & Heritage */}
+        {/* Bottom: Institutional Heritage */}
         <div className="relative z-10 pt-3 border-t border-white/15 flex items-center justify-between text-xs text-rose-200/80 font-medium w-full">
           <div>Cor Jesu College • Founded 1959</div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <span>256-Bit SSL Encrypted Session</span>
-          </div>
+          <div>Digos City, Davao del Sur</div>
         </div>
       </div>
 
@@ -377,8 +374,8 @@ export default function LoginView() {
               </div>
             </div>
 
-            {/* REMEMBER ME & INSTITUTIONAL NOTE */}
-            <div className="flex items-center justify-between text-xs text-slate-500 pt-0.5">
+            {/* REMEMBER ME */}
+            <div className="flex items-center text-xs text-slate-500 pt-0.5">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -388,7 +385,6 @@ export default function LoginView() {
                 />
                 <span>Remember session</span>
               </label>
-              <span className="text-[11px] text-slate-400">Institutional SSL</span>
             </div>
 
             {/* SUBMIT BUTTON */}
