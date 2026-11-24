@@ -27,7 +27,7 @@ export async function handleLogin(req: NextRequest) {
 
     if (!identifier || !password) {
       return NextResponse.json(
-        { error: 'Username or email, and password are required' },
+        { error: 'Email and password are required' },
         { status: 400 }
       );
     }
@@ -52,7 +52,7 @@ export async function handleLogin(req: NextRequest) {
 
       if (!user) {
         return NextResponse.json(
-          { error: 'Invalid username/email or password' },
+          { error: 'Invalid email or password' },
           { status: 401 }
         );
       }
@@ -67,7 +67,7 @@ export async function handleLogin(req: NextRequest) {
       const isMatch = await comparePassword(password, user.passwordHash);
       if (!isMatch) {
         return NextResponse.json(
-          { error: 'Invalid username/email or password' },
+          { error: 'Invalid email or password' },
           { status: 401 }
         );
       }

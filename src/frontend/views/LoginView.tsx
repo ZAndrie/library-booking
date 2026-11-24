@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  User,
+  Mail,
   Lock,
   ArrowLeft,
   DoorOpen,
@@ -27,7 +27,7 @@ export default function LoginView() {
   const isRegistered = searchParams.get('registered') === 'true';
   const portal = searchParams.get('portal'); // 'rooms' | 'laptops' | 'dashboard'
 
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -112,7 +112,7 @@ export default function LoginView() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
@@ -323,24 +323,24 @@ export default function LoginView() {
 
           {/* Form with Clean White Input Fields */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* USERNAME / EMAIL */}
+            {/* EMAIL ADDRESS */}
             <div>
               <label className="block text-xs font-bold tracking-wider text-slate-700 uppercase mb-1.5">
-                Username or Email
+                Email Address
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <User className="w-4 h-4" />
+                  <Mail className="w-4 h-4" />
                 </div>
                 <input
-                  type="text"
+                  type="email"
                   required
                   autoFocus
                   autoCapitalize="none"
                   spellCheck="false"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username or email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email address"
                   className="w-full pl-10 pr-3.5 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515] transition-all shadow-xs"
                 />
               </div>
