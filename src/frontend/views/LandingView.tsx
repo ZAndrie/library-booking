@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -95,11 +95,12 @@ export default function LandingView() {
   const [counts, setCounts] = useState<AvailabilityCounts | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const logoClickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const logoClickCountRef = useRef(0);
-
   // Discreet Staff Hotkey: Press Alt + S or Ctrl + Shift + L from anywhere on the page
   useEffect(() => {
+    // Prefetch portal and login routes for instant transition
+    router.prefetch('/portal');
+    router.prefetch('/login');
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
         (e.altKey && (e.key === 's' || e.key === 'S')) ||
@@ -112,22 +113,6 @@ export default function LandingView() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [router]);
-
-  // Subtle Logo Access: 3 clicks on the CJC Seal within 1.5s opens Staff Portal
-  const handleLogoClick = () => {
-    logoClickCountRef.current += 1;
-    if (logoClickTimeoutRef.current) clearTimeout(logoClickTimeoutRef.current);
-
-    if (logoClickCountRef.current >= 3) {
-      logoClickCountRef.current = 0;
-      router.push('/portal');
-      return;
-    }
-
-    logoClickTimeoutRef.current = setTimeout(() => {
-      logoClickCountRef.current = 0;
-    }, 1500);
-  };
 
   useEffect(() => {
     let isMounted = true;
@@ -164,29 +149,33 @@ export default function LandingView() {
       {/* Sticky Institutional Top Navigation */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          {/* Logo & School Branding (Triple click on seal provides discreet staff access) */}
+          {/* Logo & School Branding (Discreet, instant Staff Portal access on click) */}
           <div className="flex items-center gap-3.5">
-            <button
-              type="button"
-              onClick={handleLogoClick}
-              title="Cor Jesu College Official Seal"
-              className="w-12 h-12 rounded-2xl bg-white p-1 border border-slate-200 shadow-xs flex items-center justify-center shrink-0 cursor-default select-none focus:outline-none"
+            <Link
+              href="/portal"
+              prefetch={true}
+              title="Cor Jesu College LIRC"
+              className="w-12 h-12 rounded-2xl bg-white p-1 border border-slate-200 shadow-xs flex items-center justify-center shrink-0 cursor-pointer select-none hover:border-[#8B1515]/40 hover:shadow-md active:scale-95 transition-all group"
             >
               <img
                 src="/cjc-logo.png"
                 alt="Cor Jesu College Official Seal"
                 width={48}
                 height={48}
-                className="w-full h-full object-contain pointer-events-none"
+                className="w-full h-full object-contain transition-transform group-hover:scale-105"
               />
-            </button>
+            </Link>
             <div>
-              <div className="font-serif font-bold text-lg text-[#8B1515] tracking-tight leading-tight flex items-center gap-2">
+              <Link
+                href="/portal"
+                prefetch={true}
+                className="font-serif font-bold text-lg text-[#8B1515] tracking-tight leading-tight flex items-center gap-2 hover:opacity-90 transition-opacity"
+              >
                 COR JESU COLLEGE
                 <span className="hidden sm:inline-block text-[10px] font-sans font-bold bg-red-100 text-[#8B1515] px-2 py-0.5 rounded-full uppercase tracking-wider">
                   LIRC Desk
                 </span>
-              </div>
+              </Link>
               <div className="text-xs text-slate-500 font-medium hidden sm:block">
                 Learning Information and Resource Center • Library Booking System
               </div>
