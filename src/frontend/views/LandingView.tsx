@@ -23,6 +23,7 @@ import {
   Building,
   MapPin,
   Lock,
+  ArrowRight,
 } from 'lucide-react';
 
 interface AvailabilityRoom {
@@ -193,10 +194,22 @@ export default function LandingView() {
             <a href="#guidelines" className="hover:text-[#8B1515] transition-colors">Operating Guidelines</a>
           </nav>
 
-          {/* Desk Operating Status Badge for Patrons */}
-          <div className="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Counter Desk: Mon–Fri 8:00 AM – 5:00 PM</span>
+          {/* Right Header Navigation: Desk Hours + Visible Staff Portal Gateway Button */}
+          <div className="hidden sm:flex items-center gap-3">
+            <div className="hidden lg:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Desk: Mon–Fri 8:00 AM – 5:00 PM</span>
+            </div>
+
+            <Link
+              href="/portal"
+              prefetch={true}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white rounded-xl text-xs font-bold shadow-sm hover:shadow-md active:scale-95 transition-all"
+            >
+              <Layers className="w-3.5 h-3.5 text-rose-200" />
+              <span>Staff Portal</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -242,6 +255,18 @@ export default function LandingView() {
             <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>Operating Hours:</span>
               <span className="font-semibold text-slate-700">Mon–Fri 8:00 AM – 5:00 PM</span>
+            </div>
+            <div className="pt-2">
+              <Link
+                href="/portal"
+                prefetch={true}
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#8B1515] hover:bg-[#721111] text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+              >
+                <Layers className="w-4 h-4 text-rose-200" />
+                <span>Enter Staff Portal</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
         )}
@@ -292,6 +317,25 @@ export default function LandingView() {
             <p className="mt-5 text-sm sm:text-base lg:text-lg text-rose-50 leading-relaxed font-medium max-w-2xl mx-auto drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
               A unified administrative counter desk uniting <strong>Discussion Room Bookings</strong> and <strong>Laptop Borrowing Services</strong> in one seamless, conflict-free platform.
             </p>
+
+            {/* Direct Gateway Access Buttons */}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
+              <Link
+                href="/portal"
+                prefetch={true}
+                className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#8B1515] hover:bg-[#721111] text-white font-bold text-sm rounded-xl shadow-lg shadow-red-950/40 border border-red-400/30 active:scale-95 transition-all"
+              >
+                <Layers className="w-4 h-4 text-rose-200" />
+                <span>Enter Operations Portal</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <a
+                href="#rooms"
+                className="inline-flex items-center gap-2 px-5 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm rounded-xl backdrop-blur-md border border-white/20 transition-all"
+              >
+                <span>View Live Availability</span>
+              </a>
+            </div>
           </div>
 
           {/* 4 Pillars Highlight Row */}
