@@ -11,7 +11,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(portalUrl);
   }
 
-  // Allow public landing page, portal gateway, auth routes, public availability API, and static assets
+  // Allow public landing page, portal gateway, auth routes, public availability & catalog APIs, and static assets
   if (
     pathname === '/' ||
     pathname === '/portal' ||
@@ -21,13 +21,22 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/favicon.ico') ||
     pathname.startsWith('/api/auth') ||
     pathname.startsWith('/api/availability') ||
+    (request.method === 'GET' && (pathname === '/api/rooms' || pathname === '/api/laptops')) ||
     pathname.includes('.') // Any static asset file (e.g. .png, .jpg, .ico, .svg, .webp)
   ) {
     return NextResponse.next();
   }
 
-  // If no auth token on protected routes (/dashboard, /rooms, /laptops, /api/*), redirect to login with portal context
+  // If no auth token on protected routes (/dashboard, /rooms, /laptops, /api/*)
   if (!token) {
+    // Return 401 JSON for unauthenticated API requests instead of an HTML redirect
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Staff authentication required.' },
+        { status: 401 }
+      );
+    }
+
     let portalParam = '';
     if (pathname.startsWith('/rooms')) portalParam = '?portal=rooms';
     else if (pathname.startsWith('/laptops')) portalParam = '?portal=laptops';
