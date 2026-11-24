@@ -104,11 +104,18 @@ export async function createRoomBooking(req: NextRequest) {
       );
     }
 
-    if (attendeesCount && (Number(attendeesCount) < 3 || Number(attendeesCount) > 15)) {
-      return NextResponse.json(
-        { error: `Requested attendees (${attendeesCount}) is invalid. Discussion rooms require a minimum of 3 students and a maximum of 15 students.` },
-        { status: 400 }
-      );
+    const hasCapacityViolation = attendeesCount && (Number(attendeesCount) < 3 || Number(attendeesCount) > 15);
+    let isCapacityOverridden = false;
+
+    if (hasCapacityViolation) {
+      if (body.adminOverride && (user.role === 'admin' || user.role === 'super_admin')) {
+        isCapacityOverridden = true;
+      } else {
+        return NextResponse.json(
+          { error: `Requested attendees (${attendeesCount}) is outside standard capacity (3 to 15 students). An Administrator can apply an administrative override if authorized.` },
+          { status: 400 }
+        );
+      }
     }
 
     // Overlap conflict check: (ExistingStart < NewEnd) AND (ExistingEnd > NewStart) AND status == 'active'
@@ -134,15 +141,17 @@ export async function createRoomBooking(req: NextRequest) {
       roomId: room._id,
       borrowerName: borrowerName.trim(),
       borrowerId: borrowerId.toUpperCase().trim(),
-      borrowerEmail: borrowerEmail ? borrowerEmail.trim() : undefined,
-      borrowerContact: borrowerContact ? borrowerContact.trim() : undefined,
+      borrowerEmail: borrowerEmail ? borrowerEmail.trim() : '',
+      borrowerContact: borrowerContact ? borrowerContact.trim() : '',
       startTime: start,
       endTime: end,
       purpose: purpose.trim(),
-      attendeesCount: attendeesCount ? Number(attendeesCount) : 1,
-      notes: notes || '',
-      status: 'active',
+      attendeesCount: attendeesCount ? Number(attendeesCount) : 3,
       bookedByStaffId: user.id,
+      notes: isCapacityOverridden
+        ? `${notes ? notes + ' | ' : ''}[ADMIN OVERRIDE: Capacity bypassed by ${user.name}]`
+        : notes || '',
+      status: 'active',
     });
 
     const populated = await RoomBooking.findById(booking._id)

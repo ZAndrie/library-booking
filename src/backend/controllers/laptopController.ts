@@ -46,6 +46,12 @@ export async function createLaptop(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (user.role !== 'admin' && user.role !== 'super_admin') {
+      return NextResponse.json(
+        { error: 'Access denied: Registering new laptop fleet inventory requires Administrator privileges.' },
+        { status: 403 }
+      );
+    }
 
     const body = await req.json();
     const {
@@ -137,6 +143,16 @@ export async function updateLaptop(id: string, req: NextRequest) {
     }
 
     const body = await req.json();
+
+    // If updating hardware specs or tags (more than status/condition), require admin
+    const isOnlyStatusOrCondition = Object.keys(body).every(k => k === 'status' || k === 'condition' || k === 'notes');
+    if (!isOnlyStatusOrCondition && user.role !== 'admin' && user.role !== 'super_admin') {
+      return NextResponse.json(
+        { error: 'Access denied: Modifying hardware asset tags, specifications, or serial numbers requires Administrator privileges.' },
+        { status: 403 }
+      );
+    }
+
     await connectToDatabase();
 
     const laptop = await Laptop.findByIdAndUpdate(id, body, {
@@ -157,8 +173,11 @@ export async function updateLaptop(id: string, req: NextRequest) {
 export async function deleteLaptop(id: string) {
   try {
     const user = await getCurrentUser();
-    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
-      return NextResponse.json({ error: 'Only administrators or super administrators can delete inventory devices' }, { status: 403 });
+    if (!user || user.role !== 'super_admin') {
+      return NextResponse.json(
+        { error: 'Access denied: Decommissioning and permanently deleting laptops from inventory is restricted to Super Administrators only.' },
+        { status: 403 }
+      );
     }
 
     await connectToDatabase();

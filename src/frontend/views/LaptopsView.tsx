@@ -15,6 +15,7 @@ import {
   X,
   Send,
   Check,
+  Trash2,
 } from 'lucide-react';
 
 interface LaptopItem {
@@ -52,12 +53,18 @@ interface LaptopLoan {
 }
 
 export default function LaptopsView() {
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'desk' | 'overdue' | 'inventory'>('desk');
   const [laptops, setLaptops] = useState<LaptopItem[]>([]);
   const [loans, setLoans] = useState<LaptopLoan[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => d.user && setCurrentUser(d.user))
+      .catch(console.error);
+
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
@@ -144,6 +151,27 @@ export default function LaptopsView() {
       console.error('Failed to load loans:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteLaptop = async (id: string, assetTag: string) => {
+    if (
+      !confirm(
+        `Are you sure you want to permanently decommission and remove laptop ${assetTag}? This action is restricted to Super Administrators.`
+      )
+    ) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/laptops/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Failed to delete laptop');
+        return;
+      }
+      await fetchLaptops();
+    } catch (err: any) {
+      alert(err.message || 'Error deleting laptop');
     }
   };
 
@@ -327,13 +355,15 @@ export default function LaptopsView() {
               <Send className="w-4 h-4 text-emerald-300" />
               Checkout Laptop
             </button>
-            <button
-              onClick={() => setShowAddLaptopModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-all shadow-sm"
-            >
-              <Plus className="w-4 h-4 text-slate-500" />
-              Add Laptop to Inventory
-            </button>
+            {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
+              <button
+                onClick={() => setShowAddLaptopModal(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-all shadow-sm"
+              >
+                <Plus className="w-4 h-4 text-slate-500" />
+                Add Laptop to Inventory
+              </button>
+            )}
           </div>
         </div>
 
@@ -634,12 +664,14 @@ export default function LaptopsView() {
                   <p className="text-slate-500 max-w-sm mt-1">
                     Add laptop hardware to track asset tags, monitor checkout loans, and audit returns.
                   </p>
-                  <button
-                    onClick={() => setShowAddLaptopModal(true)}
-                    className="mt-4 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-sm text-xs transition-colors cursor-pointer"
-                  >
-                    + Add Laptop to Inventory
-                  </button>
+                  {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
+                    <button
+                      onClick={() => setShowAddLaptopModal(true)}
+                      className="mt-4 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-sm text-xs transition-colors cursor-pointer"
+                    >
+                      + Add Laptop to Inventory
+                    </button>
+                  )}
                 </div>
               ) : (
                 filteredInventory.map((item) => (
@@ -697,6 +729,16 @@ export default function LaptopsView() {
                         <span className="text-[11px] text-slate-500 font-medium">
                           {item.status === 'borrowed' ? 'Out on active loan' : 'In repair'}
                         </span>
+                      )}
+
+                      {currentUser?.role === 'super_admin' && (
+                        <button
+                          onClick={() => handleDeleteLaptop(item._id, item.assetTag)}
+                          className="p-1.5 text-rose-500 hover:text-white hover:bg-rose-600 rounded-lg transition-colors ml-2"
+                          title="Permanently Delete Hardware (Super Admin Only)"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       )}
                     </div>
                   </div>

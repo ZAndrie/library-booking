@@ -30,6 +30,12 @@ export async function createRoom(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (user.role !== 'admin' && user.role !== 'super_admin') {
+      return NextResponse.json(
+        { error: 'Access denied: Adding discussion rooms requires Administrator or Super Administrator privileges.' },
+        { status: 403 }
+      );
+    }
 
     const body = await req.json();
     const { name, roomNumber, capacity, facilities, location, notes, status } = body;
@@ -92,6 +98,16 @@ export async function updateRoom(id: string, req: NextRequest) {
     }
 
     const body = await req.json();
+
+    // If updating room specs/details (more than just status toggle), require admin/super_admin
+    const isOnlyStatusChange = Object.keys(body).length === 1 && body.status !== undefined;
+    if (!isOnlyStatusChange && user.role !== 'admin' && user.role !== 'super_admin') {
+      return NextResponse.json(
+        { error: 'Access denied: Modifying room specifications, capacity, or amenities requires Administrator privileges.' },
+        { status: 403 }
+      );
+    }
+
     await connectToDatabase();
 
     const room = await Room.findByIdAndUpdate(id, body, {
@@ -112,8 +128,11 @@ export async function updateRoom(id: string, req: NextRequest) {
 export async function deleteRoom(id: string) {
   try {
     const user = await getCurrentUser();
-    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
-      return NextResponse.json({ error: 'Only administrators or super administrators can delete rooms' }, { status: 403 });
+    if (!user || user.role !== 'super_admin') {
+      return NextResponse.json(
+        { error: 'Access denied: Permanently deleting discussion rooms is restricted to Super Administrators only.' },
+        { status: 403 }
+      );
     }
 
     await connectToDatabase();

@@ -22,6 +22,9 @@ import {
   User,
   ShieldCheck,
   Layers,
+  Users,
+  FileText,
+  Sliders,
 } from 'lucide-react';
 
 interface AppShellProps {
@@ -57,6 +60,7 @@ export default function AppShell({ children }: AppShellProps) {
 
   const isRoomsPortal = pathname.startsWith('/rooms');
   const isLaptopsPortal = pathname.startsWith('/laptops');
+  const isAdminPortal = pathname.startsWith('/admin');
 
   useEffect(() => {
     async function loadUser() {
@@ -85,8 +89,22 @@ export default function AppShell({ children }: AppShellProps) {
   };
 
   const getNavSections = (): NavSection[] => {
+    const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+    const isSuperAdmin = user?.role === 'super_admin';
+
+    const adminSection: NavSection = {
+      label: 'ADMINISTRATION',
+      items: [
+        { label: 'Staff Accounts', href: '/admin/users', icon: Users },
+        { label: 'Audit Logs & Reports', href: '/admin/audit', icon: FileText },
+        ...(isSuperAdmin
+          ? [{ label: 'System Policies', href: '/admin/settings', icon: Sliders }]
+          : []),
+      ],
+    };
+
     if (isRoomsPortal) {
-      return [
+      const sections: NavSection[] = [
         {
           label: 'PORTAL SELECTION',
           items: [
@@ -106,17 +124,24 @@ export default function AppShell({ children }: AppShellProps) {
             { label: 'Operations Dashboard', href: '/dashboard', icon: LayoutDashboard },
           ],
         },
-        {
-          label: 'ACCOUNT',
-          items: [
-            { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
-          ],
-        },
       ];
+
+      if (isAdmin) {
+        sections.push(adminSection);
+      }
+
+      sections.push({
+        label: 'ACCOUNT',
+        items: [
+          { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
+        ],
+      });
+
+      return sections;
     }
 
     if (isLaptopsPortal) {
-      return [
+      const sections: NavSection[] = [
         {
           label: 'PORTAL SELECTION',
           items: [
@@ -136,6 +161,44 @@ export default function AppShell({ children }: AppShellProps) {
             { label: 'Operations Dashboard', href: '/dashboard', icon: LayoutDashboard },
           ],
         },
+      ];
+
+      if (isAdmin) {
+        sections.push(adminSection);
+      }
+
+      sections.push({
+        label: 'ACCOUNT',
+        items: [
+          { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
+        ],
+      });
+
+      return sections;
+    }
+
+    if (isAdminPortal) {
+      return [
+        {
+          label: 'PORTAL SELECTION',
+          items: [
+            { label: 'Switch Counter Desk', href: '/portal', icon: Layers },
+          ],
+        },
+        adminSection,
+        {
+          label: 'OPERATIONAL DESKS',
+          items: [
+            { label: 'Discussion Rooms Portal', href: '/rooms', icon: DoorOpen },
+            { label: 'Laptop Borrowing Desk', href: '/laptops', icon: Laptop },
+          ],
+        },
+        {
+          label: 'SUPERVISORY',
+          items: [
+            { label: 'Operations Dashboard', href: '/dashboard', icon: LayoutDashboard },
+          ],
+        },
         {
           label: 'ACCOUNT',
           items: [
@@ -146,7 +209,7 @@ export default function AppShell({ children }: AppShellProps) {
     }
 
     // Default: Dashboard / Command Center
-    return [
+    const defaultSections: NavSection[] = [
       {
         label: 'PORTAL SELECTION',
         items: [
@@ -166,13 +229,20 @@ export default function AppShell({ children }: AppShellProps) {
           { label: 'Laptop Borrowing Desk', href: '/laptops', icon: Laptop },
         ],
       },
-      {
-        label: 'ACCOUNT',
-        items: [
-          { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
-        ],
-      },
     ];
+
+    if (isAdmin) {
+      defaultSections.push(adminSection);
+    }
+
+    defaultSections.push({
+      label: 'ACCOUNT',
+      items: [
+        { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
+      ],
+    });
+
+    return defaultSections;
   };
 
   const navSections = getNavSections();
@@ -231,6 +301,8 @@ export default function AppShell({ children }: AppShellProps) {
                   ? 'Discussion Rooms Desk'
                   : isLaptopsPortal
                   ? 'Laptop Services Desk'
+                  : isAdminPortal
+                  ? 'Administration Console'
                   : 'Operations Command'}
               </p>
             </div>
@@ -356,7 +428,13 @@ export default function AppShell({ children }: AppShellProps) {
               <div className="font-serif font-bold text-base text-[#8B1515] tracking-tight leading-tight flex items-center gap-2">
                 COR JESU COLLEGE
                 <span className="text-[10px] font-sans font-bold bg-red-100 text-[#8B1515] px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  {isRoomsPortal ? 'Discussion Rooms Portal' : isLaptopsPortal ? 'Laptop Services Desk' : 'Operations Command'}
+                  {isRoomsPortal
+                    ? 'Discussion Rooms Portal'
+                    : isLaptopsPortal
+                    ? 'Laptop Services Desk'
+                    : isAdminPortal
+                    ? 'Administration Console'
+                    : 'Operations Command'}
                 </span>
               </div>
               <div className="text-[11px] text-slate-500 font-medium">
@@ -364,6 +442,8 @@ export default function AppShell({ children }: AppShellProps) {
                   ? 'Discussion Space Management • Norbert Building 2nd Floor'
                   : isLaptopsPortal
                   ? 'Laptop Hardware Circulation & Lending Desk • Shelf A'
+                  : isAdminPortal
+                  ? 'Staff Management, Activity Audit Logs & System Policy Configuration'
                   : 'Library Booking System • Consolidated Administrative Dashboard'}
               </div>
             </div>

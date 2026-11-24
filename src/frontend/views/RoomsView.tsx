@@ -45,12 +45,18 @@ interface RoomBooking {
 }
 
 export default function RoomsView() {
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'schedule' | 'rooms'>('schedule');
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<RoomBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => d.user && setCurrentUser(d.user))
+      .catch(console.error);
+
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
@@ -87,8 +93,9 @@ export default function RoomsView() {
     startTime: '10:00',
     endTime: '12:00',
     purpose: '',
-    attendeesCount: 2,
+    attendeesCount: 3,
     notes: '',
+    adminOverride: false,
   });
   const [bookingError, setBookingError] = useState('');
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
@@ -194,6 +201,7 @@ export default function RoomsView() {
           purpose: '',
           attendeesCount: 2,
           notes: '',
+          adminOverride: false,
         });
         fetchBookings();
       }
@@ -360,13 +368,15 @@ export default function RoomsView() {
               <Plus className="w-4 h-4" />
               New Room Reservation
             </button>
-            <button
-              onClick={() => setShowRoomModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-all shadow-sm"
-            >
-              <PlusCircle className="w-4 h-4 text-slate-500" />
-              Add Room
-            </button>
+            {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
+              <button
+                onClick={() => setShowRoomModal(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-all shadow-sm"
+              >
+                <PlusCircle className="w-4 h-4 text-slate-500" />
+                Add Room
+              </button>
+            )}
           </div>
         </div>
 
@@ -603,12 +613,18 @@ export default function RoomsView() {
                 <p className="text-slate-500 max-w-sm mt-1">
                   Add your first discussion room to enable online reservations and group study scheduling.
                 </p>
-                <button
-                  onClick={() => setShowRoomModal(true)}
-                  className="mt-4 px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white font-bold rounded-xl shadow-sm text-xs transition-colors cursor-pointer"
-                >
-                  + Add Discussion Room
-                </button>
+                {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') ? (
+                  <button
+                    onClick={() => setShowRoomModal(true)}
+                    className="mt-4 px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white font-bold rounded-xl shadow-sm text-xs transition-colors cursor-pointer"
+                  >
+                    + Add Discussion Room
+                  </button>
+                ) : (
+                  <p className="mt-3 text-slate-400 italic text-[11px]">
+                    Contact your Library Administrator or Super Admin to configure discussion spaces.
+                  </p>
+                )}
               </div>
             ) : (
               rooms.map((room) => (
@@ -674,13 +690,15 @@ export default function RoomsView() {
                       {room.status === 'available' ? 'Set Maintenance' : 'Set Available'}
                     </button>
 
-                    <button
-                      onClick={() => handleDeleteRoom(room._id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded transition-colors"
-                      title="Delete Room"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {currentUser?.role === 'super_admin' && (
+                      <button
+                        onClick={() => handleDeleteRoom(room._id)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded transition-colors"
+                        title="Delete Room Permanently (Super Admin Only)"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))
@@ -894,6 +912,25 @@ export default function RoomsView() {
                     className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                   />
                 </div>
+
+                {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
+                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs">
+                    <label className="flex items-center gap-2 cursor-pointer font-bold text-amber-900">
+                      <input
+                        type="checkbox"
+                        checked={bookingFormData.adminOverride}
+                        onChange={(e) =>
+                          setBookingFormData({ ...bookingFormData, adminOverride: e.target.checked })
+                        }
+                        className="w-4 h-4 rounded text-[#8B1515] focus:ring-[#8B1515]"
+                      />
+                      <span>Administrative Override: Bypass 3 to 15 Student Rule</span>
+                    </label>
+                    <p className="text-[10px] text-amber-700 mt-1 ml-6">
+                      Bypasses student capacity threshold for faculty sessions, individual research, or thesis exams.
+                    </p>
+                  </div>
+                )}
 
                 <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
                   <button
