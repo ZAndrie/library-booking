@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   DoorOpen,
   Laptop,
@@ -11,7 +12,6 @@ import {
   Users,
   Monitor,
   CalendarDays,
-  LogIn,
   Sparkles,
   Shield,
   Layers,
@@ -22,6 +22,7 @@ import {
   X,
   Building,
   MapPin,
+  Lock,
 } from 'lucide-react';
 
 interface AvailabilityRoom {
@@ -86,12 +87,47 @@ function getConditionBadge(condition: string) {
 }
 
 export default function LandingView() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'rooms' | 'laptops'>('rooms');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [rooms, setRooms] = useState<AvailabilityRoom[]>([]);
   const [laptops, setLaptops] = useState<AvailabilityLaptop[]>([]);
   const [counts, setCounts] = useState<AvailabilityCounts | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const logoClickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const logoClickCountRef = useRef(0);
+
+  // Discreet Staff Hotkey: Press Alt + S or Ctrl + Shift + L from anywhere on the page
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.altKey && (e.key === 's' || e.key === 'S')) ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'l' || e.key === 'L'))
+      ) {
+        e.preventDefault();
+        router.push('/portal');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [router]);
+
+  // Subtle Logo Access: 3 clicks on the CJC Seal within 1.5s opens Staff Portal
+  const handleLogoClick = () => {
+    logoClickCountRef.current += 1;
+    if (logoClickTimeoutRef.current) clearTimeout(logoClickTimeoutRef.current);
+
+    if (logoClickCountRef.current >= 3) {
+      logoClickCountRef.current = 0;
+      router.push('/portal');
+      return;
+    }
+
+    logoClickTimeoutRef.current = setTimeout(() => {
+      logoClickCountRef.current = 0;
+    }, 1500);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -128,17 +164,22 @@ export default function LandingView() {
       {/* Sticky Institutional Top Navigation */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          {/* Logo & School Branding */}
+          {/* Logo & School Branding (Triple click on seal provides discreet staff access) */}
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-white p-1 border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
+            <button
+              type="button"
+              onClick={handleLogoClick}
+              title="Cor Jesu College Official Seal"
+              className="w-12 h-12 rounded-2xl bg-white p-1 border border-slate-200 shadow-xs flex items-center justify-center shrink-0 cursor-default select-none focus:outline-none"
+            >
               <img
                 src="/cjc-logo.png"
                 alt="Cor Jesu College Official Seal"
                 width={48}
                 height={48}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain pointer-events-none"
               />
-            </div>
+            </button>
             <div>
               <div className="font-serif font-bold text-lg text-[#8B1515] tracking-tight leading-tight flex items-center gap-2">
                 COR JESU COLLEGE
@@ -163,21 +204,10 @@ export default function LandingView() {
             <a href="#guidelines" className="hover:text-[#8B1515] transition-colors">Operating Guidelines</a>
           </nav>
 
-          {/* Action Buttons */}
-          <div className="hidden sm:flex items-center gap-3">
-            <Link
-              href="/register"
-              className="px-4 py-2 text-xs font-bold text-slate-700 hover:text-[#8B1515] hover:bg-slate-100 rounded-lg transition-all"
-            >
-              Register
-            </Link>
-            <Link
-              href="/portal"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg text-xs font-bold shadow-md shadow-red-950/20 transition-all transform hover:-translate-y-0.5"
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              Staff Sign In
-            </Link>
+          {/* Desk Operating Status Badge for Patrons */}
+          <div className="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Counter Desk: Mon–Fri 8:00 AM – 5:00 PM</span>
           </div>
 
           {/* Mobile Menu Button */}
@@ -220,19 +250,9 @@ export default function LandingView() {
             >
               Operating Guidelines
             </a>
-            <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
-              <Link
-                href="/portal"
-                className="w-full text-center py-2.5 bg-[#8B1515] text-white text-xs font-bold rounded-lg shadow-sm"
-              >
-                Staff Sign In
-              </Link>
-              <Link
-                href="/register"
-                className="w-full text-center py-2.5 bg-slate-100 text-slate-800 text-xs font-bold rounded-lg"
-              >
-                Register Officer Account
-              </Link>
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span>Operating Hours:</span>
+              <span className="font-semibold text-slate-700">Mon–Fri 8:00 AM – 5:00 PM</span>
             </div>
           </div>
         )}
@@ -411,16 +431,14 @@ export default function LandingView() {
               {rooms.length === 0 ? (
                 <div className="col-span-full bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-xs text-slate-500 shadow-xs flex flex-col items-center justify-center">
                   <DoorOpen className="w-12 h-12 text-slate-400 mb-3 opacity-60" />
-                  <h4 className="font-serif text-lg font-bold text-slate-800">No Discussion Spaces Listed</h4>
+                  <h4 className="font-serif text-lg font-bold text-slate-800">Discussion Spaces Updating</h4>
                   <p className="text-slate-500 max-w-md mt-1 leading-relaxed">
-                    Discussion rooms have not been added yet. Authorized staff can configure discussion rooms in the Staff Operations Portal.
+                    Discussion rooms are currently being prepared for the academic term. Please visit the 2nd Floor Norbert Building LIRC Counter for scheduling assistance.
                   </p>
-                  <Link
-                    href="/portal"
-                    className="mt-4 px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white font-bold rounded-xl text-xs transition-colors shadow-xs"
-                  >
-                    Open Staff Portal Gateway
-                  </Link>
+                  <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
+                    <MapPin className="w-3.5 h-3.5 text-[#8B1515]" />
+                    <span>2nd Floor Left Wing, Norbert Building (Inside Library)</span>
+                  </div>
                 </div>
               ) : (
                 rooms.map((room) => {
@@ -555,16 +573,14 @@ export default function LandingView() {
               {laptops.length === 0 ? (
                 <div className="col-span-full bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center text-xs text-slate-500 shadow-xs flex flex-col items-center justify-center">
                   <Laptop className="w-12 h-12 text-slate-400 mb-3 opacity-60" />
-                  <h4 className="font-serif text-lg font-bold text-slate-800">No Laptop Devices Listed</h4>
+                  <h4 className="font-serif text-lg font-bold text-slate-800">Laptop Units Updating</h4>
                   <p className="text-slate-500 max-w-md mt-1 leading-relaxed">
-                    Laptops have not been registered in circulation yet. Authorized staff can add laptop devices from the Staff Operations Portal.
+                    Hardware circulation fleet is currently being cataloged. Please visit the LIRC Circulation Counter to inquire about borrowing and device status.
                   </p>
-                  <Link
-                    href="/portal"
-                    className="mt-4 px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white font-bold rounded-xl text-xs transition-colors shadow-xs"
-                  >
-                    Open Staff Portal Gateway
-                  </Link>
+                  <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
+                    <Laptop className="w-3.5 h-3.5 text-[#8B1515]" />
+                    <span>LIRC Circulation Counter • Hardware Shelf A</span>
+                  </div>
                 </div>
               ) : (
                 laptops.map((lap) => (
@@ -723,8 +739,6 @@ export default function LandingView() {
               <a href="#rooms" className="hover:text-white transition-colors">Discussion Rooms</a>
               <a href="#laptops" className="hover:text-white transition-colors">Laptop Borrowing</a>
               <a href="#guidelines" className="hover:text-white transition-colors">Guidelines</a>
-              <Link href="/portal" className="text-rose-400 hover:text-rose-300 font-bold transition-colors">Staff Login</Link>
-              <Link href="/register" className="hover:text-white transition-colors">Register</Link>
             </div>
           </div>
 
@@ -732,8 +746,17 @@ export default function LandingView() {
             <div>
               © 1959–2026 Cor Jesu College, Inc. • Learning Information and Resource Center (LIRC). All rights reserved.
             </div>
-            <div>
-              Unified Discussion Room Booking & Laptop Borrowing Platform • Node.js + MongoDB Atlas + Next.js
+            <div className="flex items-center gap-4">
+              <span>Digos City, Davao del Sur</span>
+              {/* Discreet Staff Desk Access: Subtle, low-contrast link in bottom bar */}
+              <Link
+                href="/portal"
+                title="LIRC Staff Operations Console"
+                className="text-slate-600 hover:text-slate-400 transition-colors inline-flex items-center gap-1 text-[11px]"
+              >
+                <Lock className="w-3 h-3" />
+                <span>Staff Desk</span>
+              </Link>
             </div>
           </div>
         </div>
