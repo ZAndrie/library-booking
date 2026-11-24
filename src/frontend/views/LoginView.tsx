@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   User,
   Lock,
-  LogIn,
   AlertCircle,
   CheckCircle2,
   ArrowLeft,
@@ -142,11 +141,11 @@ export default function LoginView() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-slate-900 font-sans selection:bg-[#8B1515] selection:text-white">
+    <div className="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden flex flex-col lg:flex-row bg-slate-900 font-sans selection:bg-[#8B1515] selection:text-white">
       {/* ============================================================== */}
       {/* LEFT PANE: Institutional Campus Showcase & Dynamic Portal Context */}
       {/* ============================================================== */}
-      <div className="relative lg:w-1/2 xl:w-7/12 flex flex-col justify-between p-8 sm:p-12 lg:p-14 overflow-hidden text-white min-h-[380px] lg:min-h-screen">
+      <div className="relative lg:w-1/2 xl:w-7/12 flex flex-col justify-between p-6 sm:p-8 lg:p-8 xl:p-12 overflow-hidden text-white lg:h-full shrink-0">
         {/* Full Campus Background Image with Deep Crimson-and-Navy Gradient */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <img
@@ -178,76 +177,76 @@ export default function LoginView() {
         </div>
 
         {/* Top: Institutional Brand & Seal */}
-        <div className="relative z-10 flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-white p-1 border border-white/20 shadow-lg flex items-center justify-center shrink-0">
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-10 h-10 xl:w-11 xl:h-11 rounded-xl bg-white p-1 border border-white/20 shadow-md flex items-center justify-center shrink-0">
             <img
               src="/cjc-logo.png"
               alt="Cor Jesu College Official Seal"
-              width={48}
-              height={48}
+              width={40}
+              height={40}
               className="w-full h-full object-contain"
             />
           </div>
           <div>
-            <div className="font-serif font-bold text-lg sm:text-xl text-white tracking-tight leading-tight flex items-center gap-2">
+            <div className="font-serif font-bold text-base xl:text-lg text-white tracking-tight leading-tight flex items-center gap-2">
               COR JESU COLLEGE
-              <span className="text-[10px] font-sans font-bold bg-white/20 text-rose-100 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs">
+              <span className="text-[9px] font-sans font-bold bg-white/20 text-rose-100 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs">
                 LIRC
               </span>
             </div>
-            <div className="text-xs text-rose-100/80 font-medium">
+            <div className="text-[11px] xl:text-xs text-rose-100/80 font-medium">
               Learning Information & Resource Center • Digos City, Davao del Sur
             </div>
           </div>
         </div>
 
         {/* Center: Hero Headline & Dynamic Glassmorphism Portal Card */}
-        <div className="relative z-10 my-8 lg:my-auto max-w-xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/80 border border-red-300/30 text-rose-100 text-xs font-semibold mb-4 backdrop-blur-md shadow-sm">
+        <div className="relative z-10 my-auto py-2 xl:py-4 max-w-xl">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-950/80 border border-red-300/30 text-rose-100 text-[11px] font-semibold mb-2 xl:mb-3 backdrop-blur-md shadow-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             Administrative Operations Gateway
           </div>
 
-          <h1 className="font-serif text-3xl sm:text-4xl xl:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] mb-3">
+          <h1 className="font-serif text-2xl sm:text-3xl xl:text-4xl font-bold tracking-tight text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] mb-2">
             Institutional Desk Authentication
           </h1>
 
-          <p className="text-sm sm:text-base text-rose-100/90 leading-relaxed font-normal mb-8 max-w-lg">
-            Cor Jesu College administrative portal uniting collaborative discussion rooms and hardware borrowing into a synchronized, conflict-free system.
+          <p className="text-xs xl:text-sm text-rose-100/90 leading-relaxed font-normal mb-4 xl:mb-5 max-w-lg">
+            Cor Jesu College administrative portal uniting collaborative discussion spaces and hardware lending into a synchronized, conflict-free desk.
           </p>
 
           {/* Dynamic Active Portal Showcase Card */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 sm:p-6 shadow-2xl shadow-black/30 text-white">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 shadow-inner">
-                <PortalIcon className="w-6 h-6 text-white" />
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl xl:rounded-2xl p-4 xl:p-5 shadow-xl shadow-black/25 text-white">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 xl:w-11 xl:h-11 rounded-lg xl:rounded-xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 shadow-inner">
+                <PortalIcon className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${portalInfo.accent}`}>
+                <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                  <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${portalInfo.accent}`}>
                     {portalInfo.badge}
                   </span>
-                  <span className="text-[11px] text-emerald-300 font-semibold flex items-center gap-1">
+                  <span className="text-[10px] text-emerald-300 font-semibold flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                     Target Counter Selected
                   </span>
                 </div>
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-white tracking-tight">
+                <h2 className="font-serif text-base xl:text-lg font-bold text-white tracking-tight">
                   {portalInfo.title}
                 </h2>
-                <p className="text-xs text-rose-100/80 mt-1 leading-relaxed">
+                <p className="text-[11px] xl:text-xs text-rose-100/80 mt-0.5 leading-relaxed line-clamp-2">
                   {portalInfo.summary}
                 </p>
-                <div className="mt-2 text-[11px] text-rose-200/90 flex items-center gap-1.5 font-medium">
+                <div className="mt-1.5 text-[10px] xl:text-[11px] text-rose-200/90 flex items-center gap-1.5 font-medium">
                   <span>📍 {portalInfo.location}</span>
                 </div>
               </div>
             </div>
 
             {/* Feature Highlights Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 pt-4 border-t border-white/15 text-xs text-rose-100">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mt-3 pt-3 border-t border-white/15 text-[11px] xl:text-xs text-rose-100">
               {portalInfo.highlights.map((item, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div key={index} className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   <span className="truncate">{item}</span>
                 </div>
@@ -257,9 +256,9 @@ export default function LoginView() {
         </div>
 
         {/* Bottom: Institutional Security Status & Heritage */}
-        <div className="relative z-10 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-rose-200/80 font-medium">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+        <div className="relative z-10 pt-2 xl:pt-3 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px] xl:text-xs text-rose-200/80 font-medium">
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
             <span>256-Bit SSL Encrypted Staff Operations Session</span>
           </div>
           <div>
@@ -269,53 +268,53 @@ export default function LoginView() {
       </div>
 
       {/* ============================================================== */}
-      {/* RIGHT PANE: Modern High-End Authentication Card */}
+      {/* RIGHT PANE: Modern High-End Authentication Card (Auto-Fits Viewport) */}
       {/* ============================================================== */}
-      <div className="lg:w-1/2 xl:w-5/12 bg-white flex flex-col justify-between p-6 sm:p-10 lg:p-14 shadow-2xl relative z-10">
+      <div className="lg:w-1/2 xl:w-5/12 bg-white flex flex-col justify-between p-6 sm:p-8 lg:p-8 xl:p-12 shadow-2xl relative z-10 lg:h-full overflow-y-auto lg:overflow-hidden">
         {/* Top Bar: Return to Portal Selection */}
-        <div className="flex items-center justify-between pb-6 border-b border-slate-100">
+        <div className="flex items-center justify-between pb-3 xl:pb-4 border-b border-slate-100 shrink-0">
           <Link
             href="/portal"
-            className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#8B1515] transition-colors group px-3 py-1.5 rounded-lg hover:bg-slate-50"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-[#8B1515] transition-colors group px-2.5 py-1 rounded-lg hover:bg-slate-50"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1 text-[#8B1515]" />
             <span>Return to Portal Gateway</span>
           </Link>
 
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">
+          <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
             Staff Desk Access
           </span>
         </div>
 
-        {/* Center: Auth Form Container */}
-        <div className="max-w-md w-full mx-auto my-auto py-8">
+        {/* Center: Auth Form Container (Compact & Auto-Sized to fit screen) */}
+        <div className="max-w-md w-full mx-auto my-auto py-2 xl:py-4">
           {/* Header */}
-          <div className="mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-[#8B1515] text-xs font-bold mb-3">
+          <div className="mb-4 xl:mb-5">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-50 border border-red-200 text-[#8B1515] text-[11px] font-bold mb-2">
               <PortalIcon className="w-3.5 h-3.5" />
               <span>Unlocking: {portalInfo.title}</span>
             </div>
-            <h2 className="font-serif text-3xl font-bold text-slate-900 tracking-tight">
+            <h2 className="font-serif text-2xl xl:text-3xl font-bold text-slate-900 tracking-tight">
               Staff Sign In
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
               Authenticate with your verified employee credentials to open the {portalInfo.title.toLowerCase()}.
             </p>
           </div>
 
           {/* Registration Success Alert */}
           {isRegistered && !error && (
-            <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-3 text-emerald-800 text-xs shadow-xs animate-in fade-in">
+            <div className="mb-3.5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2.5 text-emerald-800 text-xs shadow-xs animate-in fade-in">
               <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
               <div className="leading-relaxed font-medium">
-                <strong>Registration successful!</strong> Your staff account is created. Please enter your credentials below to proceed.
+                <strong>Registration successful!</strong> Your staff account is created. Sign in below to proceed.
               </div>
             </div>
           )}
 
           {/* Error Alert */}
           {error && (
-            <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3 text-red-700 text-xs shadow-xs animate-in fade-in">
+            <div className="mb-3.5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-700 text-xs shadow-xs animate-in fade-in">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#8B1515]" />
               <div className="leading-relaxed font-medium">
                 {error}
@@ -324,15 +323,15 @@ export default function LoginView() {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3 xl:space-y-3.5">
             {/* USERNAME / EMPLOYEE ID */}
             <div>
-              <label className="block text-xs font-bold tracking-wider text-slate-700 uppercase mb-1.5 flex items-center justify-between">
+              <label className="block text-[11px] font-bold tracking-wider text-slate-700 uppercase mb-1 flex items-center justify-between">
                 <span>Username or Email</span>
-                <span className="text-[10px] font-medium text-slate-400 lowercase">e.g. staff.desk@cjc.edu.ph</span>
+                <span className="text-[10px] font-normal text-slate-400 lowercase">staff.desk@cjc.edu.ph</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                   <User className="w-4 h-4" />
                 </div>
                 <input
@@ -344,19 +343,19 @@ export default function LoginView() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter employee username or email"
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515] transition-all shadow-xs"
+                  className="w-full pl-9 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515] transition-all shadow-2xs"
                 />
               </div>
             </div>
 
             {/* PASSWORD WITH VISIBILITY TOGGLE */}
             <div>
-              <label className="block text-xs font-bold tracking-wider text-slate-700 uppercase mb-1.5 flex items-center justify-between">
+              <label className="block text-[11px] font-bold tracking-wider text-slate-700 uppercase mb-1 flex items-center justify-between">
                 <span>Password</span>
-                <span className="text-[10px] font-medium text-slate-400">Secured</span>
+                <span className="text-[10px] font-normal text-slate-400">Confidential</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
@@ -365,12 +364,12 @@ export default function LoginView() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your confidential password"
-                  className="w-full pl-10 pr-11 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515] transition-all shadow-xs"
+                  className="w-full pl-9 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515] transition-all shadow-2xs"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
                   title={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -382,7 +381,7 @@ export default function LoginView() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3.5 px-5 bg-[#8B1515] hover:bg-[#721111] text-white font-bold text-sm rounded-xl shadow-lg shadow-red-950/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2.5 disabled:opacity-60 cursor-pointer"
+              className="w-full mt-1.5 py-3 px-4 bg-[#8B1515] hover:bg-[#721111] text-white font-bold text-sm rounded-xl shadow-md shadow-red-950/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
             >
               {loading ? (
                 <>
@@ -399,7 +398,7 @@ export default function LoginView() {
           </form>
 
           {/* New Staff Registration Link */}
-          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+          <div className="mt-4 pt-3.5 border-t border-slate-100 text-center">
             <p className="text-xs text-slate-600">
               Need staff desk authorization?{' '}
               <Link
@@ -412,18 +411,18 @@ export default function LoginView() {
           </div>
 
           {/* Security Notice Box */}
-          <div className="mt-5 p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-2.5 text-[11px] text-slate-500">
-            <ShieldCheck className="w-4 h-4 text-[#8B1515] shrink-0" />
-            <span>Authorized Cor Jesu College library personnel only. Access sessions are audited for accountability.</span>
+          <div className="mt-3 p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center gap-2 text-[10px] xl:text-[11px] text-slate-500">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#8B1515] shrink-0" />
+            <span>Authorized Cor Jesu College library personnel only. Sessions are audited for security.</span>
           </div>
         </div>
 
         {/* Bottom Institutional Disclaimer */}
-        <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-400">
+        <div className="pt-2 xl:pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[10px] xl:text-[11px] text-slate-400 shrink-0">
           <div>
             © 1959–2026 Cor Jesu College, Inc. LIRC
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <Link href="/" className="hover:text-slate-600 transition-colors">
               Public Home
             </Link>
