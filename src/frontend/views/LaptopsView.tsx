@@ -14,6 +14,7 @@ import {
   Boxes,
   X,
   Send,
+  Check,
 } from 'lucide-react';
 
 interface LaptopItem {
@@ -458,9 +459,10 @@ export default function LaptopsView() {
                               {loan.checkoutAccessories.map((acc, i) => (
                                 <span
                                   key={i}
-                                  className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded"
+                                  className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded inline-flex items-center gap-1"
                                 >
-                                  ✓ {acc}
+                                  <Check className="w-2.5 h-2.5 text-emerald-600 shrink-0" />
+                                  <span>{acc}</span>
                                 </span>
                               ))}
                             </div>

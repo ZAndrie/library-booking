@@ -18,6 +18,7 @@ import {
   Building2,
   ShieldCheck,
   KeyRound,
+  MapPin,
 } from 'lucide-react';
 
 export default function LoginView() {
@@ -241,8 +242,9 @@ export default function LoginView() {
               </span>
             </div>
 
-            <p className="text-xs text-rose-100/85 mb-3 text-center sm:text-left font-medium">
-              📍 {portalDetails.location}
+            <p className="text-xs text-rose-100/85 mb-3 text-center sm:text-left font-medium flex items-center justify-center sm:justify-start gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-rose-300 shrink-0" />
+              <span>{portalDetails.location}</span>
             </p>
 
             {/* 4 Clean Feature Chips */}

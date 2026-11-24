@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Menu,
   X,
+  MapPin,
 } from 'lucide-react';
 
 interface UserProfile {
@@ -265,8 +266,9 @@ export default function PortalGatewayView() {
                     <h2 className="font-serif text-2xl font-bold text-slate-900 group-hover:text-[#8B1515] transition-colors leading-tight">
                       Discussion Rooms Portal
                     </h2>
-                    <p className="text-xs text-slate-500 font-medium mt-1">
-                      📍 2nd Floor Left Wing, Norbert Building (Inside Library)
+                    <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>2nd Floor Left Wing, Norbert Building (Inside Library)</span>
                     </p>
                   </div>
                 </div>
@@ -354,8 +356,9 @@ export default function PortalGatewayView() {
                     <h2 className="font-serif text-2xl font-bold text-slate-900 group-hover:text-[#8B1515] transition-colors leading-tight">
                       Laptop Borrowing Portal
                     </h2>
-                    <p className="text-xs text-slate-500 font-medium mt-1">
-                      📍 LIRC Circulation Counter • Hardware Shelf A
+                    <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>LIRC Circulation Counter • Hardware Shelf A</span>
                     </p>
                   </div>
                 </div>

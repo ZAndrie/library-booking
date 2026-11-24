@@ -21,6 +21,7 @@ import {
   Menu,
   X,
   Building,
+  MapPin,
 } from 'lucide-react';
 
 interface AvailabilityRoom {
@@ -568,8 +569,9 @@ export default function LandingView() {
                       </div>
 
                       <h4 className="font-serif text-xl font-bold text-slate-900">{room.name}</h4>
-                      <p className="text-xs text-slate-500 font-medium mt-1">
-                        {room.location || '2nd Floor Left Wing, Norbert Building (Inside Library)'}
+                      <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{room.location || '2nd Floor Left Wing, Norbert Building (Inside Library)'}</span>
                       </p>
 
                       <div className="mt-4 pt-4 border-t border-slate-100">
