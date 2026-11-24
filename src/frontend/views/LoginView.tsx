@@ -18,6 +18,8 @@ import {
   Loader2,
   Building2,
   KeyRound,
+  Clock,
+  Sparkles,
 } from 'lucide-react';
 
 export default function LoginView() {
@@ -143,9 +145,9 @@ export default function LoginView() {
   return (
     <div className="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden flex flex-col lg:flex-row bg-slate-900 font-sans selection:bg-[#8B1515] selection:text-white">
       {/* ============================================================== */}
-      {/* LEFT PANE: Institutional Campus Showcase & Dynamic Portal Context */}
+      {/* LEFT PANE: Full-Width Utilized Campus Showcase & Two-Card Deck */}
       {/* ============================================================== */}
-      <div className="relative lg:w-1/2 xl:w-7/12 flex flex-col justify-between p-6 sm:p-10 lg:p-10 xl:p-14 overflow-hidden text-white lg:h-full shrink-0">
+      <div className="relative lg:w-1/2 xl:w-7/12 flex flex-col justify-between p-6 sm:p-8 lg:p-8 xl:p-12 overflow-hidden text-white lg:h-full shrink-0">
         {/* Full Campus Background Image with Deep Crimson-and-Navy Gradient */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <img
@@ -176,81 +178,155 @@ export default function LoginView() {
           />
         </div>
 
-        {/* Top: Institutional Brand & Seal */}
-        <div className="relative z-10 flex items-center gap-3.5">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white p-1 border border-white/20 shadow-md flex items-center justify-center shrink-0">
-            <img
-              src="/cjc-logo.png"
-              alt="Cor Jesu College Official Seal"
-              width={44}
-              height={44}
-              className="w-full h-full object-contain"
-            />
+        {/* Top: Institutional Brand & Seal + Counter Schedule Pill */}
+        <div className="relative z-10 flex items-center justify-between gap-4 w-full">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white p-1 border border-white/20 shadow-md flex items-center justify-center shrink-0">
+              <img
+                src="/cjc-logo.png"
+                alt="Cor Jesu College Official Seal"
+                width={44}
+                height={44}
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <div className="font-serif font-bold text-base sm:text-lg xl:text-xl text-white tracking-tight leading-tight flex items-center gap-2">
+                COR JESU COLLEGE
+                <span className="text-[10px] font-sans font-bold bg-white/20 text-rose-100 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs">
+                  LIRC
+                </span>
+              </div>
+              <div className="text-xs text-rose-100/80 font-medium">
+                Learning Information & Resource Center • Digos City, Davao del Sur
+              </div>
+            </div>
           </div>
-          <div>
-            <div className="font-serif font-bold text-base sm:text-lg xl:text-xl text-white tracking-tight leading-tight flex items-center gap-2">
-              COR JESU COLLEGE
-              <span className="text-[10px] font-sans font-bold bg-white/20 text-rose-100 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs">
-                LIRC
-              </span>
-            </div>
-            <div className="text-xs text-rose-100/80 font-medium">
-              Learning Information & Resource Center • Digos City, Davao del Sur
-            </div>
+
+          <div className="hidden sm:flex items-center gap-2 text-xs text-rose-200/90 bg-white/10 backdrop-blur-xs px-3.5 py-1.5 rounded-full border border-white/15 shadow-2xs">
+            <Clock className="w-3.5 h-3.5 text-amber-300" />
+            <span>Counter: Mon–Fri 8:00 AM – 5:00 PM</span>
           </div>
         </div>
 
-        {/* Center: Hero Headline & Dynamic Glassmorphism Portal Card */}
-        <div className="relative z-10 my-auto py-4 max-w-xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/80 border border-red-300/30 text-rose-100 text-xs font-semibold mb-3 backdrop-blur-md shadow-xs">
+        {/* Center: Full-Width Headings & Two-Card Side-by-Side Deck */}
+        <div className="relative z-10 my-auto py-3 w-full">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/80 border border-red-300/30 text-rose-100 text-xs font-semibold mb-2.5 backdrop-blur-md shadow-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             Administrative Operations Gateway
           </div>
 
-          <h1 className="font-serif text-3xl sm:text-4xl xl:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] mb-3">
+          <h1 className="font-serif text-3xl sm:text-4xl xl:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] mb-2">
             Institutional Desk Authentication
           </h1>
 
-          <p className="text-sm sm:text-base text-rose-100/90 leading-relaxed font-normal mb-5 max-w-lg">
+          <p className="text-sm sm:text-base text-rose-100/90 leading-relaxed font-normal mb-5 max-w-2xl">
             Cor Jesu College administrative portal uniting collaborative discussion spaces and hardware lending into a synchronized, conflict-free desk.
           </p>
 
-          {/* Dynamic Active Portal Showcase Card */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 sm:p-6 shadow-xl shadow-black/25 text-white">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 shadow-inner">
-                <PortalIcon className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${portalInfo.accent}`}>
+          {/* Fully Utilized Two-Card Side-by-Side Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 xl:gap-5 w-full">
+            {/* Card 1: Active Target Counter Card */}
+            <div className="bg-white/10 backdrop-blur-md border border-white/25 rounded-2xl p-5 shadow-xl text-white flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${portalInfo.accent}`}>
                     {portalInfo.badge}
                   </span>
                   <span className="text-xs text-emerald-300 font-semibold flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    Target Counter Selected
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Target Active
                   </span>
                 </div>
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-white tracking-tight">
-                  {portalInfo.title}
-                </h2>
-                <p className="text-xs sm:text-sm text-rose-100/80 mt-1 leading-relaxed">
+
+                <div className="flex items-center gap-3 mb-2.5">
+                  <div className="w-11 h-11 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 shadow-inner">
+                    <PortalIcon className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="font-serif text-lg font-bold text-white tracking-tight leading-tight">
+                      {portalInfo.title}
+                    </h2>
+                    <p className="text-[11px] text-rose-200/90 mt-0.5">
+                      📍 {portalInfo.location}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-rose-100/85 leading-relaxed mb-3">
                   {portalInfo.summary}
                 </p>
-                <div className="mt-2 text-xs text-rose-200/90 flex items-center gap-1.5 font-medium">
-                  <span>📍 {portalInfo.location}</span>
+
+                <div className="space-y-1.5 pt-2.5 border-t border-white/15 text-xs text-rose-100">
+                  {portalInfo.highlights.map((item, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
                 </div>
+              </div>
+
+              <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-rose-200/80">
+                <span>Counter Desk Ready</span>
+                <span className="text-emerald-300 font-semibold">● Collision Engine Active</span>
               </div>
             </div>
 
-            {/* Feature Highlights Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 pt-4 border-t border-white/15 text-xs text-rose-100">
-              {portalInfo.highlights.map((item, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="truncate">{item}</span>
+            {/* Card 2: Operating Standards & Counter Guidelines */}
+            <div className="bg-black/25 backdrop-blur-md border border-white/15 rounded-2xl p-5 shadow-xl text-white flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-white/20 bg-white/10 text-rose-100">
+                    Desk Guidelines
+                  </span>
+                  <span className="text-xs text-rose-200 font-medium">
+                    LIRC Policy
+                  </span>
                 </div>
-              ))}
+
+                <div className="flex items-center gap-3 mb-2.5">
+                  <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-5 h-5 text-emerald-300" />
+                  </div>
+                  <div>
+                    <h2 className="font-serif text-lg font-bold text-white tracking-tight leading-tight">
+                      Operating Standards
+                    </h2>
+                    <p className="text-[11px] text-rose-200/80 mt-0.5">
+                      Official Library Booking Policies
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-rose-100/85 leading-relaxed mb-3">
+                  All room bookings and hardware borrowings are governed under official LIRC counter policies:
+                </p>
+
+                <div className="space-y-1.5 pt-2.5 border-t border-white/15 text-xs text-rose-100">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                    <span>Patron Verification: Active CJC Student ID</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                    <span>Discussion Space: Strictly 3 to 15 Students</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                    <span>Amenities: Table & Chairs collaborative space</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                    <span>Hardware Custody: Inspected before and on return</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-rose-200/80">
+                <span>Standard Max Slot: 2 Hours</span>
+                <span className="text-rose-200/90 font-medium">Inside Norbert Building</span>
+              </div>
             </div>
           </div>
         </div>
@@ -268,7 +344,7 @@ export default function LoginView() {
       </div>
 
       {/* ============================================================== */}
-      {/* RIGHT PANE: Modern High-End Authentication Card (Centered & Well-Proportioned) */}
+      {/* RIGHT PANE: Modern High-End Authentication Card (Centered) */}
       {/* ============================================================== */}
       <div className="lg:w-1/2 xl:w-5/12 bg-white flex flex-col justify-between p-6 sm:p-10 lg:p-10 xl:p-14 shadow-2xl relative z-10 lg:h-full overflow-y-auto lg:overflow-hidden">
         {/* Top Bar: Return to Portal Selection */}
@@ -286,7 +362,7 @@ export default function LoginView() {
           </span>
         </div>
 
-        {/* Center: Auth Form Container (Properly Centered with Comfortable Sizing) */}
+        {/* Center: Auth Form Container (Centered & Well-Proportioned) */}
         <div className="max-w-md w-full mx-auto my-auto py-4 sm:py-6">
           {/* Centered Header */}
           <div className="text-center mb-6">
