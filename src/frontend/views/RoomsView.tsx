@@ -50,6 +50,24 @@ export default function RoomsView() {
   const [bookings, setBookings] = useState<RoomBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      const actionParam = params.get('action');
+
+      if (tabParam === 'rooms') {
+        setActiveTab('rooms');
+      } else if (tabParam === 'schedule') {
+        setActiveTab('schedule');
+      }
+
+      if (actionParam === 'new') {
+        setShowBookingModal(true);
+      }
+    }
+  }, []);
+
   // Filters
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]

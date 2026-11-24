@@ -57,6 +57,26 @@ export default function LaptopsView() {
   const [loans, setLoans] = useState<LaptopLoan[]>([]);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      const actionParam = params.get('action');
+
+      if (tabParam === 'overdue') {
+        setActiveTab('overdue');
+      } else if (tabParam === 'inventory') {
+        setActiveTab('inventory');
+      } else if (tabParam === 'desk') {
+        setActiveTab('desk');
+      }
+
+      if (actionParam === 'checkout') {
+        setShowCheckoutModal(true);
+      }
+    }
+  }, []);
+
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [inventoryStatusFilter, setInventoryStatusFilter] = useState('all');

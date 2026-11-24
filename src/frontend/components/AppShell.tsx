@@ -55,6 +55,9 @@ export default function AppShell({ children }: AppShellProps) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const isRoomsPortal = pathname.startsWith('/rooms');
+  const isLaptopsPortal = pathname.startsWith('/laptops');
+
   useEffect(() => {
     async function loadUser() {
       try {
@@ -81,47 +84,98 @@ export default function AppShell({ children }: AppShellProps) {
     }
   };
 
-  const navSections: NavSection[] = [
-    {
-      label: 'PORTAL',
-      items: [
-        { label: 'Switch Portal', href: '/portal', icon: Layers },
-      ],
-    },
-    {
-      label: 'MAIN',
-      items: [
-        { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        { label: 'Rooms', href: '/rooms', icon: DoorOpen },
-      ],
-    },
-    {
-      label: 'BOOKINGS',
-      items: [
-        { label: 'Add Booking', href: '/rooms?action=new', icon: CalendarPlus },
-        { label: 'All Bookings', href: '/rooms', icon: CalendarDays },
-        { label: 'Pending', href: '/rooms?filter=pending', icon: Clock, badge: '0' },
-        { label: 'Ledger', href: '/rooms?tab=ledger', icon: BookOpen },
-        { label: 'Time Plotter', href: '/rooms?tab=plotter', icon: BarChart3 },
-        { label: 'Analytics', href: '/rooms?tab=analytics', icon: TrendingUp },
-      ],
-    },
-    {
-      label: 'LAPTOP BORROWING',
-      items: [
-        { label: 'Checkout Desk', href: '/laptops?action=checkout', icon: Laptop },
-        { label: 'Active Loans', href: '/laptops?filter=active', icon: MonitorCheck },
-        { label: 'Overdue Tracker', href: '/laptops?filter=overdue', icon: AlertTriangle },
-        { label: 'Laptop Inventory', href: '/laptops', icon: HardDrive },
-      ],
-    },
-    {
-      label: 'ACCOUNT',
-      items: [
-        { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
-      ],
-    },
-  ];
+  const getNavSections = (): NavSection[] => {
+    if (isRoomsPortal) {
+      return [
+        {
+          label: 'PORTAL SELECTION',
+          items: [
+            { label: 'Switch Counter Desk', href: '/portal', icon: Layers },
+          ],
+        },
+        {
+          label: 'DISCUSSION ROOMS',
+          items: [
+            { label: 'Room Desk Console', href: '/rooms', icon: DoorOpen },
+            { label: 'New Reservation', href: '/rooms?action=new', icon: CalendarPlus },
+          ],
+        },
+        {
+          label: 'SUPERVISORY',
+          items: [
+            { label: 'Operations Dashboard', href: '/dashboard', icon: LayoutDashboard },
+          ],
+        },
+        {
+          label: 'ACCOUNT',
+          items: [
+            { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
+          ],
+        },
+      ];
+    }
+
+    if (isLaptopsPortal) {
+      return [
+        {
+          label: 'PORTAL SELECTION',
+          items: [
+            { label: 'Switch Counter Desk', href: '/portal', icon: Layers },
+          ],
+        },
+        {
+          label: 'LAPTOP CIRCULATION',
+          items: [
+            { label: 'Laptop Lending Desk', href: '/laptops', icon: Laptop },
+            { label: 'New Device Checkout', href: '/laptops?action=checkout', icon: MonitorCheck },
+          ],
+        },
+        {
+          label: 'SUPERVISORY',
+          items: [
+            { label: 'Operations Dashboard', href: '/dashboard', icon: LayoutDashboard },
+          ],
+        },
+        {
+          label: 'ACCOUNT',
+          items: [
+            { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
+          ],
+        },
+      ];
+    }
+
+    // Default: Dashboard / Command Center
+    return [
+      {
+        label: 'PORTAL SELECTION',
+        items: [
+          { label: 'Switch Counter Desk', href: '/portal', icon: Layers },
+        ],
+      },
+      {
+        label: 'OPERATIONS COMMAND',
+        items: [
+          { label: 'Master Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        ],
+      },
+      {
+        label: 'COUNTER ACCESS',
+        items: [
+          { label: 'Discussion Rooms Portal', href: '/rooms', icon: DoorOpen },
+          { label: 'Laptop Borrowing Desk', href: '/laptops', icon: Laptop },
+        ],
+      },
+      {
+        label: 'ACCOUNT',
+        items: [
+          { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
+        ],
+      },
+    ];
+  };
+
+  const navSections = getNavSections();
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col md:flex-row font-sans">
@@ -150,13 +204,13 @@ export default function AppShell({ children }: AppShellProps) {
         </button>
       </div>
 
-      {/* Crimson Left Sidebar */}
+      {/* Crimson Left Sidebar with zero overflow / no gray scrollbar */}
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-[#8B1515] text-white flex flex-col justify-between z-40 shadow-xl transition-transform duration-300 ${
+        className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-[#8B1515] text-white flex flex-col justify-between z-40 shadow-xl transition-transform duration-300 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
-        <div className="flex-1 overflow-y-auto py-5 px-4 space-y-6">
+        <div className="flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-5 px-4 space-y-6">
           {/* Brand Emblem */}
           <div className="flex items-center gap-3 px-2 pb-4 border-b border-red-700/60">
             <div className="w-11 h-11 rounded-xl bg-white p-1 border border-red-400/30 flex items-center justify-center shadow-md shrink-0">
@@ -173,7 +227,11 @@ export default function AppShell({ children }: AppShellProps) {
                 Cor Jesu College
               </h1>
               <p className="text-[10px] uppercase tracking-wider text-rose-200/90 font-medium">
-                Library Booking System
+                {isRoomsPortal
+                  ? 'Discussion Rooms Desk'
+                  : isLaptopsPortal
+                  ? 'Laptop Services Desk'
+                  : 'Operations Command'}
               </p>
             </div>
           </div>
@@ -188,10 +246,18 @@ export default function AppShell({ children }: AppShellProps) {
                 <div className="space-y-0.5">
                   {section.items.map((item) => {
                     const Icon = item.icon;
-                    const isCurrent =
-                      item.href === '/dashboard'
-                        ? pathname === '/dashboard'
-                        : !item.href.startsWith('#') && pathname.startsWith(item.href.split('?')[0]);
+                    const itemPath = item.href.split('?')[0];
+
+                    let isCurrent = false;
+                    if (item.href === '#logout') {
+                      isCurrent = false;
+                    } else if (item.href === '/portal') {
+                      isCurrent = pathname === '/portal';
+                    } else if (item.href.includes('?action=')) {
+                      isCurrent = false;
+                    } else {
+                      isCurrent = pathname === itemPath;
+                    }
 
                     if (item.onClick) {
                       return (
@@ -290,11 +356,15 @@ export default function AppShell({ children }: AppShellProps) {
               <div className="font-serif font-bold text-base text-[#8B1515] tracking-tight leading-tight flex items-center gap-2">
                 COR JESU COLLEGE
                 <span className="text-[10px] font-sans font-bold bg-red-100 text-[#8B1515] px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  LIRC Desk
+                  {isRoomsPortal ? 'Discussion Rooms Portal' : isLaptopsPortal ? 'Laptop Services Desk' : 'Operations Command'}
                 </span>
               </div>
               <div className="text-[11px] text-slate-500 font-medium">
-                Library Booking System • Discussion Rooms & Laptop Borrowing Services
+                {isRoomsPortal
+                  ? 'Discussion Space Management • Norbert Building 2nd Floor'
+                  : isLaptopsPortal
+                  ? 'Laptop Hardware Circulation & Lending Desk • Shelf A'
+                  : 'Library Booking System • Consolidated Administrative Dashboard'}
               </div>
             </div>
           </div>
