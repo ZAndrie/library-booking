@@ -432,7 +432,22 @@ export default function DashboardView() {
 
           {/* Room Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {rooms.map((room) => {
+            {rooms.length === 0 ? (
+              <div className="col-span-full bg-white border border-dashed border-slate-300 rounded-xl p-8 text-center text-xs text-slate-500 shadow-sm flex flex-col items-center justify-center">
+                <DoorOpen className="w-8 h-8 text-slate-400 mb-2 opacity-50" />
+                <p className="font-semibold text-slate-700 text-sm">No discussion spaces configured</p>
+                <p className="text-slate-500 max-w-sm mt-1">
+                  Add rooms to schedule group reservations and monitor space occupancy.
+                </p>
+                <Link
+                  href="/rooms"
+                  className="mt-3 px-3.5 py-1.5 bg-[#8B1515] hover:bg-[#721111] text-white font-bold rounded-lg text-xs transition-colors"
+                >
+                  Configure Rooms
+                </Link>
+              </div>
+            ) : (
+              rooms.map((room) => {
               const isAvailable = room.status === 'available';
               return (
                 <div
@@ -520,8 +535,9 @@ export default function DashboardView() {
                   </div>
                 </div>
               );
-            })}
-          </div>
+            })
+          )}
+        </div>
         </div>
 
         {/* SECTION 2: Laptop Borrowing Desk Cards (System 2) */}
@@ -542,7 +558,22 @@ export default function DashboardView() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {laptops.slice(0, 3).map((lap) => {
+            {laptops.length === 0 ? (
+              <div className="col-span-full bg-white border border-dashed border-slate-300 rounded-xl p-8 text-center text-xs text-slate-500 shadow-sm flex flex-col items-center justify-center">
+                <Laptop className="w-8 h-8 text-slate-400 mb-2 opacity-50" />
+                <p className="font-semibold text-slate-700 text-sm">No laptop devices in circulation</p>
+                <p className="text-slate-500 max-w-sm mt-1">
+                  Add laptop assets to manage counter checkout loans and return custody.
+                </p>
+                <Link
+                  href="/laptops"
+                  className="mt-3 px-3.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-xs transition-colors"
+                >
+                  Manage Laptops
+                </Link>
+              </div>
+            ) : (
+              laptops.slice(0, 3).map((lap) => {
               const isAvailable = lap.status === 'available';
               return (
                 <div
@@ -605,8 +636,9 @@ export default function DashboardView() {
                   </div>
                 </div>
               );
-            })}
-          </div>
+            })
+          )}
+        </div>
         </div>
 
         {/* SECTION 3: Recent Activity Ledger & Active Sessions */}

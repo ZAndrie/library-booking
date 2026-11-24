@@ -3,7 +3,6 @@ import connectToDatabase from '@/backend/database/db';
 import Room from '@/backend/models/Room';
 import RoomBooking from '@/backend/models/RoomBooking';
 import Laptop from '@/backend/models/Laptop';
-import { ensureInitialDataSeeded } from '@/backend/database/seedMongo';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -11,7 +10,6 @@ export const revalidate = 0;
 export async function GET() {
   try {
     await connectToDatabase();
-    await ensureInitialDataSeeded();
 
     const now = new Date();
 
@@ -52,15 +50,17 @@ export async function GET() {
         isAvailable = false;
       }
 
+      const roomCap = room.capacity || 15;
+
       return {
         _id: room._id.toString(),
         name: room.name,
         roomNumber: room.roomNumber,
-        capacity: 15,
+        capacity: roomCap,
         minCapacity: 3,
-        maxCapacity: 15,
-        capacityText: 'Min. 3 to Max. 15 Students',
-        facilities: ['Table and Chairs'], // Strictly table and chairs as required
+        maxCapacity: roomCap,
+        capacityText: `Min. 3 to Max. ${roomCap} Students`,
+        facilities: Array.isArray(room.facilities) && room.facilities.length > 0 ? room.facilities : ['Table and Chairs'],
         location: room.location || '2nd Floor Left Wing, Norbert Building (Inside Library)',
         notes: room.notes || '',
         status: room.status,

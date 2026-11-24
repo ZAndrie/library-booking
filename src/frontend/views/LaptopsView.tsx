@@ -607,65 +607,81 @@ export default function LaptopsView() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredInventory.map((item) => (
-                <div
-                  key={item._id}
-                  className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="bg-slate-800 text-white p-3.5 flex items-start justify-between">
-                      <div>
-                        <div className="font-mono font-bold text-sm text-white">{item.assetTag}</div>
-                        <div className="text-xs text-slate-300">{item.brand} {item.model}</div>
+              {filteredInventory.length === 0 ? (
+                <div className="col-span-full bg-white border border-dashed border-slate-300 rounded-2xl py-12 px-4 text-center text-xs text-slate-500 shadow-sm flex flex-col items-center justify-center">
+                  <Laptop className="w-10 h-10 text-slate-400 mb-2 opacity-50" />
+                  <p className="font-semibold text-slate-700 text-sm">No laptops registered in inventory</p>
+                  <p className="text-slate-500 max-w-sm mt-1">
+                    Add laptop hardware to track asset tags, monitor checkout loans, and audit returns.
+                  </p>
+                  <button
+                    onClick={() => setShowAddLaptopModal(true)}
+                    className="mt-4 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-sm text-xs transition-colors cursor-pointer"
+                  >
+                    + Add Laptop to Inventory
+                  </button>
+                </div>
+              ) : (
+                filteredInventory.map((item) => (
+                  <div
+                    key={item._id}
+                    className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="bg-slate-800 text-white p-3.5 flex items-start justify-between">
+                        <div>
+                          <div className="font-mono font-bold text-sm text-white">{item.assetTag}</div>
+                          <div className="text-xs text-slate-300">{item.brand} {item.model}</div>
+                        </div>
+
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            item.status === 'available'
+                              ? 'bg-emerald-900/80 text-emerald-300 border border-emerald-500/30'
+                              : 'bg-blue-900/80 text-blue-300 border border-blue-500/30'
+                          }`}
+                        >
+                          {item.status.replace('_', ' ').toUpperCase()}
+                        </span>
                       </div>
 
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          item.status === 'available'
-                            ? 'bg-emerald-900/80 text-emerald-300 border border-emerald-500/30'
-                            : 'bg-blue-900/80 text-blue-300 border border-blue-500/30'
-                        }`}
-                      >
-                        {item.status.replace('_', ' ').toUpperCase()}
-                      </span>
+                      <div className="p-4 space-y-2 text-xs text-slate-600">
+                        <p>
+                          <strong className="text-slate-700">Specs:</strong> {item.specs}
+                        </p>
+                        <p>
+                          <strong className="text-slate-700">Shelf Location:</strong> {item.location}
+                        </p>
+                        <p>
+                          <strong className="text-slate-700">Condition:</strong>{' '}
+                          <span className="capitalize font-semibold text-emerald-700">{item.condition}</span>
+                        </p>
+                        {item.notes && (
+                          <p className="text-slate-500 italic text-[11px]">{item.notes}</p>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="p-4 space-y-2 text-xs text-slate-600">
-                      <p>
-                        <strong className="text-slate-700">Specs:</strong> {item.specs}
-                      </p>
-                      <p>
-                        <strong className="text-slate-700">Shelf Location:</strong> {item.location}
-                      </p>
-                      <p>
-                        <strong className="text-slate-700">Condition:</strong>{' '}
-                        <span className="capitalize font-semibold text-emerald-700">{item.condition}</span>
-                      </p>
-                      {item.notes && (
-                        <p className="text-slate-500 italic text-[11px]">{item.notes}</p>
+                    <div className="p-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs bg-slate-50/50">
+                      {item.status === 'available' ? (
+                        <button
+                          onClick={() => {
+                            setCheckoutData({ ...checkoutData, laptopId: item._id });
+                            setShowCheckoutModal(true);
+                          }}
+                          className="px-3 py-1.5 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
+                        >
+                          Direct Checkout
+                        </button>
+                      ) : (
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          {item.status === 'borrowed' ? 'Out on active loan' : 'In repair'}
+                        </span>
                       )}
                     </div>
                   </div>
-
-                  <div className="p-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs bg-slate-50/50">
-                    {item.status === 'available' ? (
-                      <button
-                        onClick={() => {
-                          setCheckoutData({ ...checkoutData, laptopId: item._id });
-                          setShowCheckoutModal(true);
-                        }}
-                        className="px-3 py-1.5 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
-                      >
-                        Direct Checkout
-                      </button>
-                    ) : (
-                      <span className="text-[11px] text-slate-500 font-medium">
-                        {item.status === 'borrowed' ? 'Out on active loan' : 'In repair'}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}

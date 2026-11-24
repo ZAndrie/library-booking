@@ -578,79 +578,95 @@ export default function RoomsView() {
         {/* TAB 2: ROOM INVENTORY & CONFIG */}
         {activeTab === 'rooms' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {rooms.map((room) => (
-              <div
-                key={room._id}
-                className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-200 flex flex-col justify-between"
-              >
-                <div>
-                  {/* Crimson Top Header */}
-                  <div className="bg-[#8B1515] text-white p-4 flex items-start justify-between">
-                    <div>
-                      <h3 className="font-serif font-bold text-base text-white">{room.name}</h3>
-                      <p className="text-xs text-rose-200">Room {room.roomNumber}</p>
-                    </div>
-                    <span
-                      className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
-                        room.status === 'available'
-                          ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
-                          : 'bg-amber-950/80 text-amber-300 border border-amber-500/40'
-                      }`}
-                    >
-                      {room.status}
-                    </span>
-                  </div>
-
-                  <div className="p-4 space-y-3">
-                    <div className="text-xs text-slate-600 space-y-1">
-                      <p>
-                        <strong>Location:</strong> {room.location}
-                      </p>
-                      <p className="flex items-center gap-1">
-                        <Users className="w-3.5 h-3.5 text-slate-500" />
-                        <strong>Capacity:</strong> Min. 3 to Max. 15 students
-                      </p>
-                      {room.notes && (
-                        <p className="text-slate-500 italic text-[11px]">{room.notes}</p>
-                      )}
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5">
-                      {room.facilities.map((fac, idx) => (
-                        <span
-                          key={idx}
-                          className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium"
-                        >
-                          {fac}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs bg-slate-50/50">
-                  <button
-                    onClick={() =>
-                      handleToggleRoomStatus(
-                        room._id,
-                        room.status === 'available' ? 'maintenance' : 'available'
-                      )
-                    }
-                    className="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-semibold transition-colors"
-                  >
-                    {room.status === 'available' ? 'Set Maintenance' : 'Set Available'}
-                  </button>
-
-                  <button
-                    onClick={() => handleDeleteRoom(room._id)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded transition-colors"
-                    title="Delete Room"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+            {rooms.length === 0 ? (
+              <div className="col-span-full bg-white border border-dashed border-slate-300 rounded-2xl py-12 px-4 text-center text-xs text-slate-500 shadow-sm flex flex-col items-center justify-center">
+                <DoorOpen className="w-10 h-10 text-slate-400 mb-2 opacity-50" />
+                <p className="font-semibold text-slate-700 text-sm">No discussion rooms configured yet</p>
+                <p className="text-slate-500 max-w-sm mt-1">
+                  Add your first discussion room to enable online reservations and group study scheduling.
+                </p>
+                <button
+                  onClick={() => setShowRoomModal(true)}
+                  className="mt-4 px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white font-bold rounded-xl shadow-sm text-xs transition-colors cursor-pointer"
+                >
+                  + Add Discussion Room
+                </button>
               </div>
-            ))}
+            ) : (
+              rooms.map((room) => (
+                <div
+                  key={room._id}
+                  className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-200 flex flex-col justify-between"
+                >
+                  <div>
+                    {/* Crimson Top Header */}
+                    <div className="bg-[#8B1515] text-white p-4 flex items-start justify-between">
+                      <div>
+                        <h3 className="font-serif font-bold text-base text-white">{room.name}</h3>
+                        <p className="text-xs text-rose-200">Room {room.roomNumber}</p>
+                      </div>
+                      <span
+                        className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                          room.status === 'available'
+                            ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40'
+                            : 'bg-amber-950/80 text-amber-300 border border-amber-500/40'
+                        }`}
+                      >
+                        {room.status}
+                      </span>
+                    </div>
+
+                    <div className="p-4 space-y-3">
+                      <div className="text-xs text-slate-600 space-y-1">
+                        <p>
+                          <strong>Location:</strong> {room.location}
+                        </p>
+                        <p className="flex items-center gap-1">
+                          <Users className="w-3.5 h-3.5 text-slate-500" />
+                          <strong>Capacity:</strong> Min. 3 to Max. 15 students
+                        </p>
+                        {room.notes && (
+                          <p className="text-slate-500 italic text-[11px]">{room.notes}</p>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap gap-1.5">
+                        {room.facilities.map((fac, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium"
+                          >
+                            {fac}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs bg-slate-50/50">
+                    <button
+                      onClick={() =>
+                        handleToggleRoomStatus(
+                          room._id,
+                          room.status === 'available' ? 'maintenance' : 'available'
+                        )
+                      }
+                      className="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-semibold transition-colors"
+                    >
+                      {room.status === 'available' ? 'Set Maintenance' : 'Set Available'}
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteRoom(room._id)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded transition-colors"
+                      title="Delete Room"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 

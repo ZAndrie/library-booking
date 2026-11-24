@@ -253,7 +253,7 @@ export default function PortalGatewayView() {
                   </span>
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    {counts ? `${counts.availableRooms} of 5 Spaces Ready` : '5 Discussion Spaces'}
+                    {counts ? `${counts.availableRooms} of ${counts.totalRooms} Spaces Available` : 'Discussion Spaces'}
                   </span>
                 </div>
 
@@ -282,7 +282,7 @@ export default function PortalGatewayView() {
                 <div className="space-y-2.5 pt-4 border-t border-slate-100 mb-6 text-xs sm:text-sm text-slate-700">
                   <div className="flex items-center gap-2.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>5 Dedicated Discussion Spaces (DR-A to DR-E)</span>
+                    <span>{counts && counts.totalRooms > 0 ? `${counts.totalRooms} Registered Discussion Space${counts.totalRooms === 1 ? '' : 's'}` : 'Dedicated Discussion Spaces'}</span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -343,7 +343,7 @@ export default function PortalGatewayView() {
                   </span>
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    {counts ? `${counts.availableLaptops} Laptops on Shelf` : 'Counter Ready'}
+                    {counts ? `${counts.availableLaptops} of ${counts.totalLaptops} Laptops on Shelf` : 'Counter Ready'}
                   </span>
                 </div>
 

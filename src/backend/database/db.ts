@@ -37,10 +37,6 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
 
   try {
     cached!.conn = await cached!.promise;
-    // Auto-seed initial admin, rooms, and laptops if collection is newly created
-    import('@/backend/database/seedMongo').then(({ ensureInitialDataSeeded }) => {
-      ensureInitialDataSeeded().catch((err) => console.warn('Auto-seed background note:', err));
-    }).catch(() => {});
   } catch (e: any) {
     cached!.promise = null;
     const isLocalhost = MONGODB_URI.includes('localhost') || MONGODB_URI.includes('127.0.0.1');
