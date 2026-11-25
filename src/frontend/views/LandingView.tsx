@@ -148,15 +148,15 @@ export default function LandingView() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-[#8B1515] selection:text-white">
       {/* Sticky Institutional Top Navigation */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
           {/* Logo & School Branding (Discreet, instant Staff Portal access on click) */}
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3 shrink-0">
             <Link
               href="/portal"
               prefetch={true}
               title="Cor Jesu College LIRC"
-              className="w-12 h-12 rounded-2xl bg-white p-1 border border-slate-200 shadow-xs flex items-center justify-center shrink-0 cursor-pointer select-none hover:border-[#8B1515]/40 hover:shadow-md active:scale-95 transition-all group"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white p-1 border border-slate-200 shadow-xs flex items-center justify-center shrink-0 cursor-pointer select-none hover:border-[#8B1515]/40 hover:shadow-md active:scale-95 transition-all group"
             >
               <img
                 src="/cjc-logo.png"
@@ -166,64 +166,60 @@ export default function LandingView() {
                 className="w-full h-full object-contain transition-transform group-hover:scale-105"
               />
             </Link>
-            <div>
+            <div className="min-w-0">
               <Link
                 href="/portal"
                 prefetch={true}
-                className="font-serif font-bold text-lg text-[#8B1515] tracking-tight leading-tight flex items-center gap-2 hover:opacity-90 transition-opacity"
+                className="font-serif font-bold text-base sm:text-lg text-[#8B1515] tracking-tight leading-tight flex items-center gap-2 whitespace-nowrap hover:opacity-90 transition-opacity"
               >
-                COR JESU COLLEGE
+                <span>COR JESU COLLEGE</span>
                 <span className="hidden sm:inline-block text-[10px] font-sans font-bold bg-red-100 text-[#8B1515] px-2 py-0.5 rounded-full uppercase tracking-wider">
                   LIRC Desk
                 </span>
               </Link>
-              <div className="text-xs text-slate-500 font-medium hidden sm:block">
-                Learning Information and Resource Center • Library Booking System
+              <div className="text-[11px] text-slate-500 font-medium whitespace-nowrap hidden sm:block">
+                LIRC • Library Booking System
               </div>
-              <div className="text-[11px] text-slate-500 font-medium sm:hidden">
+              <div className="text-[11px] text-slate-500 font-medium whitespace-nowrap sm:hidden">
                 Library Booking System
               </div>
             </div>
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-600">
-            <a href="#overview" className="hover:text-[#8B1515] transition-colors">Overview</a>
-            <a href="#rooms" className="hover:text-[#8B1515] transition-colors">Discussion Rooms</a>
-            <a href="#laptops" className="hover:text-[#8B1515] transition-colors">Laptop Borrowing</a>
-            <a href="#guidelines" className="hover:text-[#8B1515] transition-colors">Operating Guidelines</a>
+          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-xs font-semibold text-slate-600 whitespace-nowrap">
+            <a href="#overview" className="hover:text-[#8B1515] transition-colors py-1">Overview</a>
+            <a href="#rooms" className="hover:text-[#8B1515] transition-colors py-1">Discussion Rooms</a>
+            <a href="#laptops" className="hover:text-[#8B1515] transition-colors py-1">Laptop Borrowing</a>
+            <a href="#guidelines" className="hover:text-[#8B1515] transition-colors py-1">Operating Guidelines</a>
           </nav>
 
-          {/* Right Header Navigation: Desk Hours + Visible Staff Portal Gateway Button */}
-          <div className="hidden sm:flex items-center gap-3">
-            <div className="hidden lg:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Desk: Mon–Fri 8:00 AM – 5:00 PM</span>
-            </div>
-
+          {/* Right Header Action: Redesigned Sleek Staff Portal Pill + Mobile Menu Toggle */}
+          <div className="flex items-center gap-2.5 shrink-0">
             <Link
               href="/portal"
               prefetch={true}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white rounded-xl text-xs font-bold shadow-sm hover:shadow-md active:scale-95 transition-all"
+              className="hidden sm:inline-flex items-center gap-2.5 px-4 py-2.5 bg-gradient-to-r from-[#8B1515] to-[#6E1010] hover:from-[#721111] hover:to-[#590C0C] text-white rounded-full text-xs font-bold tracking-wide shadow-sm shadow-red-950/20 ring-1 ring-[#8B1515]/20 hover:shadow-md active:scale-95 transition-all whitespace-nowrap group"
             >
-              <Layers className="w-3.5 h-3.5 text-rose-200" />
+              <ShieldCheck className="w-4 h-4 text-rose-200 shrink-0" />
               <span>Staff Portal</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5 text-rose-200 shrink-0 transition-transform group-hover:translate-x-0.5" />
             </Link>
-          </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-b border-slate-200 px-4 py-4 space-y-3">
+          <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-4 space-y-3">
             <a
               href="#overview"
               onClick={() => setMobileMenuOpen(false)}
@@ -256,16 +252,16 @@ export default function LandingView() {
               <span>Operating Hours:</span>
               <span className="font-semibold text-slate-700">Mon–Fri 8:00 AM – 5:00 PM</span>
             </div>
-            <div className="pt-2">
+            <div className="pt-2 sm:hidden">
               <Link
                 href="/portal"
                 prefetch={true}
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#8B1515] hover:bg-[#721111] text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-[#8B1515] to-[#6E1010] hover:from-[#721111] hover:to-[#590C0C] text-white text-xs font-bold rounded-full shadow-sm transition-all"
               >
-                <Layers className="w-4 h-4 text-rose-200" />
-                <span>Enter Staff Portal</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ShieldCheck className="w-4 h-4 text-rose-200" />
+                <span>Staff Portal</span>
+                <ArrowRight className="w-3.5 h-3.5 text-rose-200" />
               </Link>
             </div>
           </div>
@@ -317,25 +313,6 @@ export default function LandingView() {
             <p className="mt-5 text-sm sm:text-base lg:text-lg text-rose-50 leading-relaxed font-medium max-w-2xl mx-auto drop-shadow-[0_1px_6px_rgba(0,0,0,0.6)]">
               A unified administrative counter desk uniting <strong>Discussion Room Bookings</strong> and <strong>Laptop Borrowing Services</strong> in one seamless, conflict-free platform.
             </p>
-
-            {/* Direct Gateway Access Buttons */}
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
-              <Link
-                href="/portal"
-                prefetch={true}
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#8B1515] hover:bg-[#721111] text-white font-bold text-sm rounded-xl shadow-lg shadow-red-950/40 border border-red-400/30 active:scale-95 transition-all"
-              >
-                <Layers className="w-4 h-4 text-rose-200" />
-                <span>Enter Operations Portal</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <a
-                href="#rooms"
-                className="inline-flex items-center gap-2 px-5 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm rounded-xl backdrop-blur-md border border-white/20 transition-all"
-              >
-                <span>View Live Availability</span>
-              </a>
-            </div>
           </div>
 
           {/* 4 Pillars Highlight Row */}
