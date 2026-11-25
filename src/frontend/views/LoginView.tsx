@@ -24,7 +24,6 @@ import {
 export default function LoginView() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isRegistered = searchParams.get('registered') === 'true';
   const portal = searchParams.get('portal'); // 'rooms' | 'laptops' | 'dashboard'
 
   const [email, setEmail] = useState('');
@@ -358,16 +357,6 @@ export default function LoginView() {
             </p>
           </div>
 
-          {/* Registration Success Alert */}
-          {isRegistered && !error && (
-            <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2.5 text-emerald-800 text-xs shadow-xs">
-              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
-              <div className="leading-relaxed font-medium">
-                Registration successful! Sign in below with your credentials.
-              </div>
-            </div>
-          )}
-
           {/* Error Alert */}
           {error && (
             <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-700 text-xs shadow-xs">
@@ -464,16 +453,10 @@ export default function LoginView() {
             </button>
           </form>
 
-          {/* Register Link */}
+          {/* Account Provisioning Notice */}
           <div className="mt-5 pt-4 border-t border-slate-100 text-center">
-            <p className="text-xs sm:text-sm text-slate-600">
-              Need a staff account?{' '}
-              <Link
-                href="/register"
-                className="font-bold text-[#8B1515] hover:underline transition-colors"
-              >
-                Register here
-              </Link>
+            <p className="text-xs text-slate-500">
+              Authorized staff only. Accounts are provisioned by Library Administrators.
             </p>
           </div>
         </div>

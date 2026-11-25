@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import {
   Users,
   ShieldCheck,
@@ -16,6 +15,9 @@ import {
   UserX,
   UserCheck,
   ShieldAlert,
+  X,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 interface StaffUser {
@@ -46,6 +48,19 @@ export default function AdminUsersView() {
   // Delete modal state
   const [deleteTargetUser, setDeleteTargetUser] = useState<StaffUser | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Create account modal state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    email: '',
+    employeeId: '',
+    password: '',
+    role: 'staff' as 'staff' | 'admin' | 'super_admin',
+  });
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -84,6 +99,37 @@ export default function AdminUsersView() {
   const showNotification = (msg: string) => {
     setSuccessMsg(msg);
     setTimeout(() => setSuccessMsg(''), 4000);
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateError('');
+    setCreateLoading(true);
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(createForm),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create account');
+
+      setShowCreateModal(false);
+      setCreateForm({
+        name: '',
+        email: '',
+        employeeId: '',
+        password: '',
+        role: 'staff',
+      });
+      setShowCreatePassword(false);
+      showNotification(`Account created for ${data.user?.name || 'new staff member'}.`);
+      fetchUsers();
+    } catch (err: any) {
+      setCreateError(err.message);
+    } finally {
+      setCreateLoading(false);
+    }
   };
 
   const handleRoleChange = async (userId: string, newRole: string) => {
@@ -203,13 +249,17 @@ export default function AdminUsersView() {
             </p>
           </div>
 
-          <Link
-            href="/register"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg text-xs font-bold shadow-sm transition-all"
+          <button
+            type="button"
+            onClick={() => {
+              setCreateError('');
+              setShowCreateModal(true);
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg text-xs font-bold shadow-sm transition-all cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
-            <span>Register New Officer</span>
-          </Link>
+            <span>Create Staff Account</span>
+          </button>
         </div>
 
         {/* Success Alert */}
@@ -522,6 +572,159 @@ export default function AdminUsersView() {
                   <span>Confirm Delete</span>
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal 3: Create Staff Account (Admin & Super Admin Only) */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-100 text-[#8B1515] flex items-center justify-center font-bold">
+                    <UserPlus className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-serif font-bold text-lg text-slate-900">Create Staff Account</h3>
+                    <p className="text-xs text-slate-500">
+                      Provision credentials for an authorized LIRC officer.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {createError && (
+                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#8B1515]" />
+                  <span>{createError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleCreateUser} className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={createForm.name}
+                    onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                    placeholder="e.g., Maria Santos"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Institutional Email
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                    placeholder="e.g., maria.santos@cjc.edu.ph"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                      Employee / Staff ID
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={createForm.employeeId}
+                      onChange={(e) => setCreateForm({ ...createForm, employeeId: e.target.value })}
+                      placeholder="e.g., LIRC-2026-002"
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 uppercase focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                      Account Role
+                    </label>
+                    <select
+                      value={createForm.role}
+                      onChange={(e) =>
+                        setCreateForm({
+                          ...createForm,
+                          role: e.target.value as 'staff' | 'admin' | 'super_admin',
+                        })
+                      }
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515]"
+                    >
+                      <option value="staff">Staff Desk</option>
+                      {currentUser?.role === 'super_admin' && (
+                        <>
+                          <option value="admin">Library Admin</option>
+                          <option value="super_admin">Super Admin</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                {currentUser?.role !== 'super_admin' && (
+                  <p className="text-[11px] text-slate-500">
+                    Note: Only Super Administrators can provision Admin or Super Admin accounts.
+                  </p>
+                )}
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Initial Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showCreatePassword ? 'text' : 'password'}
+                      required
+                      minLength={6}
+                      value={createForm.password}
+                      onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                      placeholder="Minimum 6 characters..."
+                      className="w-full px-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCreatePassword(!showCreatePassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                    >
+                      {showCreatePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={createLoading}
+                    className="px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm disabled:opacity-60 cursor-pointer"
+                  >
+                    {createLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
+                    <span>Create Account</span>
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

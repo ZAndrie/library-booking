@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/backend/database/db';
-import User from '@/backend/models/User';
+import User, { UserRole } from '@/backend/models/User';
 import RoomBooking from '@/backend/models/RoomBooking';
 import LaptopLoan from '@/backend/models/LaptopLoan';
 import Setting from '@/backend/models/Setting';
@@ -22,6 +22,107 @@ export async function getStaffUsers() {
     return NextResponse.json({ success: true, users });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Failed to fetch staff directory' }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/admin/users
+ * Creates a new staff or administrator account (Admin & Super Admin only)
+ */
+export async function createStaffUser(req: NextRequest) {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'super_admin')) {
+      return NextResponse.json(
+        { error: 'Access denied: Only Administrators can create staff accounts.' },
+        { status: 403 }
+      );
+    }
+
+    const body = await req.json();
+    const { name, email, employeeId, password, role = 'staff' } = body;
+
+    if (!name || !email || !employeeId || !password) {
+      return NextResponse.json(
+        { error: 'Full name, email, staff/employee ID, and password are required.' },
+        { status: 400 }
+      );
+    }
+
+    const validRoles: UserRole[] = ['staff', 'admin', 'super_admin'];
+    if (!validRoles.includes(role)) {
+      return NextResponse.json(
+        { error: `Invalid role selected. Must be one of: ${validRoles.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
+    if (role !== 'staff' && currentUser.role !== 'super_admin') {
+      return NextResponse.json(
+        { error: 'Only Super Administrators can create Administrator or Super Administrator accounts.' },
+        { status: 403 }
+      );
+    }
+
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: 'Password must be at least 6 characters long.' },
+        { status: 400 }
+      );
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedEmpId = employeeId.toUpperCase().trim();
+
+    await connectToDatabase();
+
+    const existingEmail = await User.findOne({ email: normalizedEmail });
+    if (existingEmail) {
+      return NextResponse.json(
+        { error: `An account with email ${normalizedEmail} already exists.` },
+        { status: 400 }
+      );
+    }
+
+    const existingEmpId = await User.findOne({ employeeId: normalizedEmpId });
+    if (existingEmpId) {
+      return NextResponse.json(
+        { error: `An account with Staff/Employee ID ${normalizedEmpId} already exists.` },
+        { status: 400 }
+      );
+    }
+
+    const passwordHash = await hashPassword(password);
+    const newUser = await User.create({
+      name: name.trim(),
+      email: normalizedEmail,
+      employeeId: normalizedEmpId,
+      role: role as UserRole,
+      passwordHash,
+      isActive: true,
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Staff account created successfully.',
+        user: {
+          _id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          employeeId: newUser.employeeId,
+          role: newUser.role,
+          isActive: newUser.isActive,
+          createdAt: newUser.createdAt,
+        },
+      },
+      { status: 201 }
+    );
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || 'Failed to create staff account' },
+      { status: 500 }
+    );
   }
 }
 

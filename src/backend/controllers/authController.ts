@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/backend/database/db';
 import User, { UserRole } from '@/backend/models/User';
-import {
-  findDevUserByIdentifier,
-  findDevUserByEmail,
-  findDevUserByEmployeeId,
-  createDevUser,
-} from '@/backend/database/devStore';
-import { comparePassword, hashPassword, signToken, getCurrentUser } from '@/backend/auth/jwt';
+import { findDevUserByIdentifier } from '@/backend/database/devStore';
+import { comparePassword, signToken, getCurrentUser } from '@/backend/auth/jwt';
 
 async function tryConnectDb(): Promise<boolean> {
   try {
@@ -94,7 +89,7 @@ export async function handleLogin(req: NextRequest) {
         return NextResponse.json(
           {
             error:
-              'No account found with this username or email. Please click "Register here" to create your account.',
+              'No account found with this email. Contact a Library Administrator to provision your account.',
           },
           { status: 401 }
         );
@@ -138,140 +133,6 @@ export async function handleLogin(req: NextRequest) {
     console.error('Login error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function handleRegister(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const { name, email, employeeId, password, role } = body;
-
-    if (!name || !email || !employeeId || !password || !role) {
-      return NextResponse.json(
-        { error: 'Full name, email, staff/employee ID, password, and role are required.' },
-        { status: 400 }
-      );
-    }
-
-    const validRoles: UserRole[] = ['staff', 'admin', 'super_admin'];
-    if (!validRoles.includes(role)) {
-      return NextResponse.json(
-        { error: `Invalid role selected. Must be one of: ${validRoles.join(', ')}` },
-        { status: 400 }
-      );
-    }
-
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: 'Password must be at least 6 characters long.' },
-        { status: 400 }
-      );
-    }
-
-    const normalizedEmail = email.toLowerCase().trim();
-    const normalizedEmpId = employeeId.toUpperCase().trim();
-    const passwordHash = await hashPassword(password);
-
-    const hasDb = await tryConnectDb();
-    let sessionUser: {
-      id: string;
-      name: string;
-      email: string;
-      role: UserRole;
-      employeeId: string;
-    };
-
-    if (hasDb) {
-      const existingEmail = await User.findOne({ email: normalizedEmail });
-      if (existingEmail) {
-        return NextResponse.json(
-          { error: `An account with email ${normalizedEmail} is already registered.` },
-          { status: 400 }
-        );
-      }
-
-      const existingEmpId = await User.findOne({ employeeId: normalizedEmpId });
-      if (existingEmpId) {
-        return NextResponse.json(
-          { error: `An account with Staff/Employee ID ${normalizedEmpId} already exists.` },
-          { status: 400 }
-        );
-      }
-
-      const newUser = await User.create({
-        name: name.trim(),
-        email: normalizedEmail,
-        employeeId: normalizedEmpId,
-        role: role as UserRole,
-        passwordHash,
-        isActive: true,
-      });
-
-      sessionUser = {
-        id: newUser._id.toString(),
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role as UserRole,
-        employeeId: newUser.employeeId,
-      };
-    } else {
-      if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-        return NextResponse.json(
-          { error: 'Database is temporarily unreachable. Please ensure MongoDB Atlas Network Access allows IP 0.0.0.0/0.' },
-          { status: 503 }
-        );
-      }
-
-      // Local Dev Store Fallback
-      console.log('MongoDB is offline. Saving registered user to local dev store...');
-      const existingEmail = findDevUserByEmail(normalizedEmail);
-      if (existingEmail) {
-        return NextResponse.json(
-          { error: `An account with email ${normalizedEmail} is already registered.` },
-          { status: 400 }
-        );
-      }
-
-      const existingEmpId = findDevUserByEmployeeId(normalizedEmpId);
-      if (existingEmpId) {
-        return NextResponse.json(
-          { error: `An account with Staff/Employee ID ${normalizedEmpId} already exists.` },
-          { status: 400 }
-        );
-      }
-
-      const devUser = createDevUser({
-        name,
-        email: normalizedEmail,
-        employeeId: normalizedEmpId,
-        role,
-        passwordHash,
-      });
-
-      sessionUser = {
-        id: devUser.id,
-        name: devUser.name,
-        email: devUser.email,
-        role: devUser.role,
-        employeeId: devUser.employeeId,
-      };
-    }
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Account registered successfully. Please sign in with your credentials.',
-        user: sessionUser,
-        storageMode: hasDb ? 'mongodb' : 'local_dev_store',
-      },
-      { status: 201 }
-    );
-  } catch (error: any) {
-    console.error('Registration error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Registration failed' },
       { status: 500 }
     );
   }

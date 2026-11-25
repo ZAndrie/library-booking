@@ -16,7 +16,6 @@ export function middleware(request: NextRequest) {
     pathname === '/' ||
     pathname === '/portal' ||
     pathname === '/login' ||
-    pathname === '/register' ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon.ico') ||
     pathname.startsWith('/api/auth') ||
