@@ -747,9 +747,9 @@ export default function DashboardView() {
 
       {/* QUICK BOOKING MODAL */}
       {showBookModal && selectedRoomForBooking && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-5 shadow-2xl border border-slate-200 space-y-3 max-h-[95vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-red-100 text-[#8B1515] flex items-center justify-center">
                   <CalendarPlus className="w-5 h-5" />
@@ -777,7 +777,7 @@ export default function DashboardView() {
               </div>
             )}
 
-            <form onSubmit={handleQuickBookSubmit} className="space-y-4 text-xs">
+            <form onSubmit={handleQuickBookSubmit} className="space-y-3 text-xs">
               <RoomBookingFormFields
                 formData={bookingFormData}
                 setFormData={setBookingFormData}
@@ -786,7 +786,7 @@ export default function DashboardView() {
                 }
               />
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowBookModal(false)}

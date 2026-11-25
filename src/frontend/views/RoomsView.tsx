@@ -709,9 +709,9 @@ export default function RoomsView() {
 
         {/* MODAL: NEW ROOM BOOKING */}
         {showBookingModal && (
-          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-            <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+            <div className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-5 shadow-2xl border border-slate-200 space-y-3 max-h-[95vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <h3 className="font-serif font-bold text-lg text-slate-900 flex items-center gap-2">
                   <DoorOpen className="w-5 h-5 text-[#8B1515]" />
                   New Discussion Room Reservation
@@ -731,7 +731,7 @@ export default function RoomsView() {
                 </div>
               )}
 
-              <form onSubmit={handleCreateBooking} className="space-y-4 text-xs">
+              <form onSubmit={handleCreateBooking} className="space-y-3 text-xs">
                 <RoomBookingFormFields
                   formData={bookingFormData}
                   setFormData={setBookingFormData}
@@ -741,7 +741,7 @@ export default function RoomsView() {
                   }
                 />
 
-                <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                <div className="pt-2.5 border-t border-slate-100 flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setShowBookingModal(false)}

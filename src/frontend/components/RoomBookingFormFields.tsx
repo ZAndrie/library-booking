@@ -154,109 +154,179 @@ export default function RoomBookingFormFields({
   };
 
   return (
-    <div className="space-y-3.5 text-xs">
-      {rooms && (
-        <div>
-          <label className="block font-semibold text-slate-700 mb-1">
-            Discussion Room *
-          </label>
-          <select
-            required
-            value={formData.roomId}
-            onChange={(e) => setFormData({ ...formData, roomId: e.target.value })}
-            className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-          >
-            <option value="">-- Choose an available room --</option>
-            {rooms
-              .filter((r) => r.status === 'available')
-              .map((r) => (
-                <option key={r._id} value={r._id}>
-                  {r.name} ({r.roomNumber}) - Cap: {r.capacity} users
-                </option>
-              ))}
-          </select>
+    <div className="space-y-2.5 text-xs">
+      {/* Row 1 & 2: Room (when selectable), Name, Course & Year, Date, No. of Users */}
+      {rooms ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Discussion Room *
+              </label>
+              <select
+                required
+                value={formData.roomId}
+                onChange={(e) => setFormData({ ...formData, roomId: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+              >
+                <option value="">-- Choose an available room --</option>
+                {rooms
+                  .filter((r) => r.status === 'available')
+                  .map((r) => (
+                    <option key={r._id} value={r._id}>
+                      {r.name} ({r.roomNumber}) - Cap: {r.capacity}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Name *
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Juan Dela Cruz"
+                value={formData.borrowerName}
+                onChange={(e) => setFormData({ ...formData, borrowerName: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Course and Year *
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. BSIT - 3rd Year"
+                value={formData.courseAndYear}
+                onChange={(e) => setFormData({ ...formData, courseAndYear: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="font-semibold text-slate-700">Date *</label>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, date: getLocalDateString() })}
+                  className="text-[10px] font-bold text-[#8B1515] hover:underline cursor-pointer"
+                >
+                  Today
+                </button>
+              </div>
+              <input
+                type="date"
+                required
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="font-semibold text-slate-700">No. of Users *</label>
+                <span className="text-[10px] text-slate-400">3–15 policy</span>
+              </div>
+              <input
+                type="number"
+                required
+                min={formData.adminOverride ? 1 : 3}
+                max={formData.adminOverride ? 50 : 15}
+                value={formData.attendeesCount}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    attendeesCount: Number(e.target.value),
+                  })
+                }
+                className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+              />
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Name *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Juan Dela Cruz"
+              value={formData.borrowerName}
+              onChange={(e) => setFormData({ ...formData, borrowerName: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold text-slate-700 mb-1">
+              Course and Year *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. BSIT - 3rd Year"
+              value={formData.courseAndYear}
+              onChange={(e) => setFormData({ ...formData, courseAndYear: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="font-semibold text-slate-700">Date *</label>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, date: getLocalDateString() })}
+                className="text-[10px] font-bold text-[#8B1515] hover:underline cursor-pointer"
+              >
+                Today
+              </button>
+            </div>
+            <input
+              type="date"
+              required
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="font-semibold text-slate-700">No. of Users *</label>
+              <span className="text-[10px] text-slate-400">3–15 policy</span>
+            </div>
+            <input
+              type="number"
+              required
+              min={formData.adminOverride ? 1 : 3}
+              max={formData.adminOverride ? 50 : 15}
+              value={formData.attendeesCount}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  attendeesCount: Number(e.target.value),
+                })
+              }
+              className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+            />
+          </div>
         </div>
       )}
 
-      {/* Name & Course and Year */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="block font-semibold text-slate-700 mb-1">
-            Name *
-          </label>
-          <input
-            type="text"
-            required
-            placeholder="e.g. Juan Dela Cruz"
-            value={formData.borrowerName}
-            onChange={(e) => setFormData({ ...formData, borrowerName: e.target.value })}
-            className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block font-semibold text-slate-700 mb-1">
-            Course and Year *
-          </label>
-          <input
-            type="text"
-            required
-            placeholder="e.g. BSIT - 3rd Year"
-            value={formData.courseAndYear}
-            onChange={(e) => setFormData({ ...formData, courseAndYear: e.target.value })}
-            className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-          />
-        </div>
-      </div>
-
-      {/* Date (Dynamic) & No. of Users */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="font-semibold text-slate-700">Date *</label>
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, date: getLocalDateString() })}
-              className="text-[10px] font-bold text-[#8B1515] hover:underline cursor-pointer"
-            >
-              Today
-            </button>
-          </div>
-          <input
-            type="date"
-            required
-            value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block font-semibold text-slate-700 mb-1">
-            No. of Users *
-          </label>
-          <input
-            type="number"
-            required
-            min={formData.adminOverride ? 1 : 3}
-            max={formData.adminOverride ? 50 : 15}
-            value={formData.attendeesCount}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                attendeesCount: Number(e.target.value),
-              })
-            }
-            className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-          />
-          <span className="text-[10px] text-slate-500 mt-0.5 block">
-            Standard group size: 3 to 15 users
-          </span>
-        </div>
-      </div>
-
       {/* Time of Use (Dynamic) */}
-      <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <label className="font-semibold text-slate-700 flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-[#8B1515]" />
@@ -300,7 +370,7 @@ export default function RoomBookingFormFields({
 
         <div className="grid grid-cols-2 gap-2.5">
           <div>
-            <span className="block text-[10px] font-semibold text-slate-500 mb-1">Start Time</span>
+            <span className="block text-[10px] font-semibold text-slate-500 mb-0.5">Start Time</span>
             <input
               type="time"
               required
@@ -313,38 +383,37 @@ export default function RoomBookingFormFields({
                   endTime: addMinutesToTime(nextStart, 120),
                 }));
               }}
-              className="w-full bg-white border border-slate-300 rounded-lg p-2 text-slate-800 focus:ring-1 focus:ring-[#8B1515] outline-none"
+              className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 focus:ring-1 focus:ring-[#8B1515] outline-none"
             />
           </div>
           <div>
-            <span className="block text-[10px] font-semibold text-slate-500 mb-1">End Time</span>
+            <span className="block text-[10px] font-semibold text-slate-500 mb-0.5">End Time</span>
             <input
               type="time"
               required
               value={formData.endTime}
               onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-              className="w-full bg-white border border-slate-300 rounded-lg p-2 text-slate-800 focus:ring-1 focus:ring-[#8B1515] outline-none"
+              className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 focus:ring-1 focus:ring-[#8B1515] outline-none"
             />
           </div>
         </div>
       </div>
 
       {/* Purpose Checklist */}
-      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
         <label className="block font-semibold text-slate-700">
           Purpose * <span className="text-[10px] font-normal text-slate-500">(Check all that apply)</span>
         </label>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
           {ROOM_PURPOSE_CHECKLIST.map((item) => {
             const checked = formData.selectedPurposes.includes(item);
-            const isFullWidth =
-              item === 'Group Study for Subject Assignment, Report, etc.' || item === 'Others';
+            const isGroupStudy = item === 'Group Study for Subject Assignment, Report, etc.';
             return (
               <label
                 key={item}
-                className={`flex items-start gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
-                  isFullWidth ? 'sm:col-span-2' : ''
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border cursor-pointer transition-colors ${
+                  isGroupStudy ? 'col-span-2' : ''
                 } ${
                   checked
                     ? 'bg-red-50/70 border-[#8B1515]/40 text-slate-900 font-semibold'
@@ -355,9 +424,9 @@ export default function RoomBookingFormFields({
                   type="checkbox"
                   checked={checked}
                   onChange={() => togglePurpose(item)}
-                  className="mt-0.5 w-3.5 h-3.5 rounded text-[#8B1515] focus:ring-[#8B1515] border-slate-300 shrink-0"
+                  className="w-3.5 h-3.5 rounded text-[#8B1515] focus:ring-[#8B1515] border-slate-300 shrink-0"
                 />
-                <span className="leading-snug">{item}</span>
+                <span className="leading-tight text-[11px]">{item}</span>
               </label>
             );
           })}
@@ -371,7 +440,7 @@ export default function RoomBookingFormFields({
               placeholder="Please specify other purpose..."
               value={formData.otherPurpose}
               onChange={(e) => setFormData({ ...formData, otherPurpose: e.target.value })}
-              className="w-full bg-white border border-[#8B1515]/40 rounded-lg p-2.5 text-slate-800 focus:ring-1 focus:ring-[#8B1515] outline-none"
+              className="w-full bg-white border border-[#8B1515]/40 rounded-lg px-2.5 py-1.5 text-slate-800 focus:ring-1 focus:ring-[#8B1515] outline-none"
             />
           </div>
         )}
@@ -379,7 +448,7 @@ export default function RoomBookingFormFields({
 
       {/* Administrative Override (Admin & Super Admin Only) */}
       {isAdmin && (
-        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs">
+        <div className="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs">
           <label className="flex items-center gap-2 cursor-pointer font-bold text-amber-900">
             <input
               type="checkbox"
@@ -387,13 +456,10 @@ export default function RoomBookingFormFields({
               onChange={(e) =>
                 setFormData({ ...formData, adminOverride: e.target.checked })
               }
-              className="w-4 h-4 rounded text-[#8B1515] focus:ring-[#8B1515]"
+              className="w-3.5 h-3.5 rounded text-[#8B1515] focus:ring-[#8B1515]"
             />
             <span>Administrative Override: Bypass 3 to 15 Student Rule</span>
           </label>
-          <p className="text-[10px] text-amber-700 mt-1 ml-6">
-            Bypasses user count limits for faculty sessions, individual research, or thesis exams.
-          </p>
         </div>
       )}
     </div>
