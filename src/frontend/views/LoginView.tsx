@@ -14,11 +14,8 @@ import {
   EyeOff,
   Loader2,
   AlertCircle,
-  CheckCircle2,
   Building2,
-  ShieldCheck,
   KeyRound,
-  MapPin,
 } from 'lucide-react';
 
 export default function LoginView() {
@@ -40,61 +37,25 @@ export default function LoginView() {
         return {
           name: 'Discussion Rooms Portal',
           subtitle: 'Collaborative Space Reservations',
-          location: '2nd Floor Left Wing, Norbert Building (Inside Library)',
           icon: DoorOpen,
-          badge: 'Discussion Space Desk',
-          status: 'Active Management Console',
-          chips: [
-            'Collaborative Space Reservations',
-            'Enforces 3 to 15 Student Capacity',
-            'Equipped with Table & Chairs',
-            'Collision-Free Scheduler',
-          ],
         };
       case 'laptops':
         return {
           name: 'Laptop Borrowing Services',
           subtitle: 'Circulation & Hardware Custody Desk',
-          location: 'LIRC Circulation Counter • Hardware Shelf A',
           icon: Laptop,
-          badge: 'Laptop Services Desk',
-          status: 'Circulation Counter Ready',
-          chips: [
-            'Hardware Fleet & Device Checkouts',
-            'Real-Time Overdue Timers',
-            'Return Condition Audits',
-            'Hardware Custody Logs',
-          ],
         };
       case 'dashboard':
         return {
           name: 'Unified Operations Dashboard',
-          subtitle: 'Consolidated Administrative Command',
-          location: 'LIRC Administrative Operations Hub',
+          subtitle: 'Administrative Operations Hub',
           icon: LayoutDashboard,
-          badge: 'Master Supervisory Desk',
-          status: 'All Systems Online',
-          chips: [
-            'Simultaneous Multi-Desk View',
-            'Unified Booking & Loan Ledgers',
-            'Staff Activity Audit Trails',
-            'Real-Time Facility Analytics',
-          ],
         };
       default:
         return {
-          name: 'Operations Portal',
-          subtitle: 'LIRC Counter Administration Desk',
-          location: 'Learning Information & Resource Center (LIRC)',
+          name: 'Staff Portal',
+          subtitle: 'Learning Information & Resource Center',
           icon: Building2,
-          badge: 'Central Desk Gateway',
-          status: 'Ready for Authentication',
-          chips: [
-            'Discussion Space Reservations',
-            'Laptop Lending Circulation',
-            'Verified Staff Access Only',
-            'Authorized Desk Access',
-          ],
         };
     }
   };
@@ -194,8 +155,7 @@ export default function LoginView() {
 
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-xs border border-white/15 text-[11px] text-rose-100 font-semibold shrink-0">
             <PortalIcon className="w-3.5 h-3.5 text-rose-200" />
-            <span className="hidden sm:inline">{portalDetails.name}</span>
-            <span className="sm:hidden">{portalDetails.badge}</span>
+            <span>{portalDetails.name}</span>
           </div>
         </div>
       </div>
@@ -234,94 +194,45 @@ export default function LoginView() {
         </div>
 
         {/* Top: School Brand & Seal */}
-        <div className="relative z-10 flex items-center justify-between gap-4 w-full">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white p-1 border border-white/20 shadow-md flex items-center justify-center shrink-0">
-              <img
-                src="/cjc-logo.png"
-                alt="Cor Jesu College Official Seal"
-                width={44}
-                height={44}
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div>
-              <div className="font-serif font-bold text-base sm:text-lg xl:text-xl text-white tracking-tight leading-tight flex items-center gap-2">
-                COR JESU COLLEGE
-                <span className="text-[10px] font-sans font-bold bg-white/20 text-rose-100 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs">
-                  LIRC
-                </span>
-              </div>
-              <div className="text-xs text-rose-100/80 font-medium">
-                Learning Information & Resource Center • Digos City, Davao del Sur
-              </div>
-            </div>
+        <div className="relative z-10 flex items-center gap-3.5 w-full">
+          <div className="w-11 h-11 rounded-2xl bg-white p-1 border border-white/20 shadow-md flex items-center justify-center shrink-0">
+            <img
+              src="/cjc-logo.png"
+              alt="Cor Jesu College Official Seal"
+              width={44}
+              height={44}
+              className="w-full h-full object-contain"
+            />
           </div>
-
-          <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-xs border border-white/15 text-xs text-rose-100/90 font-medium">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Staff Portal</span>
+          <div>
+            <div className="font-serif font-bold text-base sm:text-lg text-white tracking-tight leading-tight flex items-center gap-2">
+              COR JESU COLLEGE
+              <span className="text-[10px] font-sans font-bold bg-white/20 text-rose-100 px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs">
+                LIRC
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Center: Centered Text & Centered Frosted Card */}
-        <div className="relative z-10 my-auto py-4 max-w-xl w-full mx-auto text-center flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/80 border border-red-300/30 text-rose-100 text-xs font-semibold mb-3 backdrop-blur-md shadow-xs mx-auto">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Administrative Operations Gateway
+        {/* Center: Clean Minimal Showcase */}
+        <div className="relative z-10 my-auto py-4 max-w-lg w-full mx-auto text-center flex flex-col items-center">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 border border-white/25 text-rose-100 text-xs font-semibold mb-4 backdrop-blur-md">
+            <PortalIcon className="w-3.5 h-3.5 text-rose-200" />
+            <span>{portalDetails.name}</span>
           </div>
 
-          <h1 className="font-serif text-3xl sm:text-4xl xl:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] mb-2.5 text-center">
+          <h1 className="font-serif text-4xl xl:text-5xl font-bold tracking-tight text-white leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] mb-2.5 text-center">
             Library Booking System
           </h1>
 
-          <p className="text-sm sm:text-base text-rose-100/90 leading-relaxed font-normal mb-6 max-w-lg mx-auto text-center">
-            Unified administrative desk for Discussion Room Bookings & Laptop Borrowing Services.
+          <p className="text-sm sm:text-base text-rose-100/90 font-medium text-center">
+            {portalDetails.subtitle}
           </p>
-
-          {/* Centered Frosted Glassmorphism Feature Card */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 sm:p-6 shadow-2xl text-white w-full max-w-lg mx-auto">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-3 text-center sm:text-left">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 shadow-inner">
-                  <PortalIcon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase font-bold tracking-wider text-rose-200">
-                    {portalDetails.badge}
-                  </div>
-                  <h2 className="font-serif text-lg font-bold text-white tracking-tight">
-                    {portalDetails.name}
-                  </h2>
-                </div>
-              </div>
-
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-400/40 text-emerald-300 text-xs font-semibold shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                {portalDetails.status}
-              </span>
-            </div>
-
-            <p className="text-xs text-rose-100/85 mb-3 text-center sm:text-left font-medium flex items-center justify-center sm:justify-start gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-rose-300 shrink-0" />
-              <span>{portalDetails.location}</span>
-            </p>
-
-            {/* 4 Clean Feature Chips */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-3 border-t border-white/15 text-xs text-rose-100 text-left">
-              {portalDetails.chips.map((chip, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>{chip}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
-        {/* Bottom: Institutional Heritage */}
+        {/* Bottom */}
         <div className="relative z-10 pt-3 border-t border-white/15 flex items-center justify-between text-xs text-rose-200/80 font-medium w-full">
-          <div>Cor Jesu College • Founded 1959</div>
+          <div>Cor Jesu College • LIRC</div>
           <div>Digos City, Davao del Sur</div>
         </div>
       </div>
@@ -331,18 +242,14 @@ export default function LoginView() {
       {/* ============================================================== */}
       <div className="flex-1 lg:w-1/2 xl:w-5/12 bg-white flex flex-col justify-between p-5 sm:p-8 lg:p-8 xl:p-12 shadow-2xl relative z-10 lg:min-h-screen overflow-y-auto">
         {/* Top Bar: Return to Portal Selection */}
-        <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-100 shrink-0">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
           <Link
             href="/portal"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-[#8B1515] transition-colors group px-2.5 py-1 rounded-lg hover:bg-slate-50"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1 text-[#8B1515]" />
-            <span>Return to Portal Gateway</span>
+            <span>Back to Portal</span>
           </Link>
-
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">
-            Staff Authentication
-          </span>
         </div>
 
         {/* Center: Clean Sign In Form (Pure White Background) */}
@@ -356,9 +263,6 @@ export default function LoginView() {
             <h2 className="font-serif text-3xl font-bold text-slate-900 tracking-tight">
               Staff Sign In
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
-              Enter your verified credentials to access the desk.
-            </p>
           </div>
 
           {/* Error Alert */}
@@ -456,18 +360,11 @@ export default function LoginView() {
               )}
             </button>
           </form>
-
-          {/* Account Provisioning Notice */}
-          <div className="mt-5 pt-4 border-t border-slate-100 text-center">
-            <p className="text-xs text-slate-500">
-              Authorized staff only. Accounts are provisioned by Library Administrators.
-            </p>
-          </div>
         </div>
 
-        {/* Bottom Disclaimer */}
+        {/* Bottom Footer */}
         <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400 shrink-0">
-          <div>© 1959–2026 Cor Jesu College, Inc. LIRC</div>
+          <div>© 2026 Cor Jesu College • LIRC</div>
           <Link href="/" className="hover:text-slate-600 transition-colors">
             Public Home
           </Link>
