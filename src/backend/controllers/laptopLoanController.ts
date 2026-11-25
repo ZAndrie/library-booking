@@ -239,7 +239,7 @@ export async function returnLaptopLoan(id: string, req: NextRequest) {
       laptop.condition = returnCondition;
       if (returnCondition === 'damaged') {
         laptop.status = 'under_maintenance';
-        laptop.notes = `${laptop.notes ? laptop.notes + ' | ' : ''}Damaged upon return by ${loan.borrowerName} (${new Date().toLocaleDateString()}): ${returnNotes || 'No notes'}`;
+        laptop.notes = `${laptop.notes ? laptop.notes + ' | ' : ''}Damaged upon return by ${loan.borrowerName} (${new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Manila' })}): ${returnNotes || 'No notes'}`;
       } else {
         laptop.status = 'available';
       }

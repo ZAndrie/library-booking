@@ -6,6 +6,7 @@ import Laptop from '@/backend/models/Laptop';
 import LaptopLoan from '@/backend/models/LaptopLoan';
 import { getCurrentUser } from '@/backend/auth/jwt';
 import { getEffectiveSystemSettings } from '@/backend/models/Setting';
+import { getManilaDayBounds } from '@/lib/policyUtils';
 
 export async function getDashboardStats() {
   try {
@@ -22,12 +23,7 @@ export async function getDashboardStats() {
 
     await connectToDatabase();
     const now = new Date();
-
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(now);
-    endOfDay.setHours(23, 59, 59, 999);
+    const { startOfDay, endOfDay } = getManilaDayBounds();
 
     const totalRooms = await Room.countDocuments();
     const availableRooms = await Room.countDocuments({ status: 'available' });

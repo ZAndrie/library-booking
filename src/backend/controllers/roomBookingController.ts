@@ -4,7 +4,7 @@ import RoomBooking from '@/backend/models/RoomBooking';
 import Room from '@/backend/models/Room';
 import { getCurrentUser, hasPortalAccess } from '@/backend/auth/jwt';
 import { getEffectiveSystemSettings } from '@/backend/models/Setting';
-import { formatTime12h, getManilaTimeHHMM } from '@/lib/policyUtils';
+import { formatTime12h, getManilaDayBounds, getManilaTimeHHMM } from '@/lib/policyUtils';
 
 export async function getRoomBookings(req: NextRequest) {
   try {
@@ -41,11 +41,7 @@ export async function getRoomBookings(req: NextRequest) {
     }
 
     if (dateStr) {
-      const startOfDay = new Date(dateStr);
-      startOfDay.setHours(0, 0, 0, 0);
-
-      const endOfDay = new Date(dateStr);
-      endOfDay.setHours(23, 59, 59, 999);
+      const { startOfDay, endOfDay } = getManilaDayBounds(dateStr);
 
       filter.startTime = { $lte: endOfDay };
       filter.endTime = { $gte: startOfDay };
@@ -194,12 +190,12 @@ export async function createRoomBooking(req: NextRequest) {
     });
 
     if (conflict) {
-      const conflictStart = new Date(conflict.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const conflictEnd = new Date(conflict.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const conflictStart = formatTime12h(getManilaTimeHHMM(new Date(conflict.startTime)));
+      const conflictEnd = formatTime12h(getManilaTimeHHMM(new Date(conflict.endTime)));
       const conflictAffiliation = conflict.courseAndYear || conflict.borrowerId;
       return NextResponse.json(
         {
-          error: `Time conflict! Room is already booked from ${conflictStart} to ${conflictEnd} by ${conflict.borrowerName}${conflictAffiliation ? ` (${conflictAffiliation})` : ''}.`,
+          error: `Time conflict! Room is already booked from ${conflictStart} to ${conflictEnd} by ${conflict.borrowerName}${conflictAffiliation ? ` (${conflictAffiliation})` : ''}. Earliest non-conflicting start time after this slot is ${conflictEnd}.`,
         },
         { status: 409 }
       );
@@ -337,9 +333,10 @@ export async function updateRoomBooking(id: string, req: NextRequest) {
       });
 
       if (conflict) {
+        const conflictStart = formatTime12h(getManilaTimeHHMM(new Date(conflict.startTime)));
         return NextResponse.json(
           {
-            error: `Cannot extend: Room is booked starting at ${new Date(conflict.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} by ${conflict.borrowerName}.`,
+            error: `Cannot extend: Room is booked starting at ${conflictStart} by ${conflict.borrowerName}.`,
           },
           { status: 409 }
         );

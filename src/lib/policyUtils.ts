@@ -32,5 +32,24 @@ export function getManilaTimeHHMM(date: Date): string {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
+    hourCycle: 'h23',
   }).format(date);
+}
+
+export function getManilaDateString(date: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+export function getManilaDayBounds(dateStr?: string): { startOfDay: Date; endOfDay: Date } {
+  const targetDate =
+    dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? dateStr : getManilaDateString();
+  return {
+    startOfDay: new Date(`${targetDate}T00:00:00+08:00`),
+    endOfDay: new Date(`${targetDate}T23:59:59.999+08:00`),
+  };
 }
