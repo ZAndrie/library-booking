@@ -4,6 +4,11 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
+  DEFAULT_SYSTEM_POLICIES,
+  SystemPolicyData,
+  formatTime12h,
+} from '@/lib/policyUtils';
+import {
   DoorOpen,
   Laptop,
   ShieldCheck,
@@ -94,6 +99,7 @@ export default function LandingView() {
   const [rooms, setRooms] = useState<AvailabilityRoom[]>([]);
   const [laptops, setLaptops] = useState<AvailabilityLaptop[]>([]);
   const [counts, setCounts] = useState<AvailabilityCounts | null>(null);
+  const [policies, setPolicies] = useState<SystemPolicyData>(DEFAULT_SYSTEM_POLICIES);
   const [loading, setLoading] = useState(true);
 
   // Discreet Staff Hotkey: Press Alt + S or Ctrl + Shift + L from anywhere on the page
@@ -128,6 +134,25 @@ export default function LandingView() {
           setLaptops(Array.isArray(json.data.laptops) ? json.data.laptops : []);
           if (json.data.counts) {
             setCounts(json.data.counts);
+          }
+          if (json.data.settings) {
+            setPolicies({
+              minRoomCapacity:
+                json.data.settings.minRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.minRoomCapacity,
+              maxRoomCapacity:
+                json.data.settings.maxRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.maxRoomCapacity,
+              maxSlotDurationHours:
+                json.data.settings.maxSlotDurationHours ??
+                DEFAULT_SYSTEM_POLICIES.maxSlotDurationHours,
+              operatingHoursStart:
+                json.data.settings.operatingHoursStart ||
+                DEFAULT_SYSTEM_POLICIES.operatingHoursStart,
+              operatingHoursEnd:
+                json.data.settings.operatingHoursEnd || DEFAULT_SYSTEM_POLICIES.operatingHoursEnd,
+              overdueGraceMinutes:
+                json.data.settings.overdueGraceMinutes ??
+                DEFAULT_SYSTEM_POLICIES.overdueGraceMinutes,
+            });
           }
         }
       } catch (err) {
@@ -250,7 +275,9 @@ export default function LandingView() {
             </a>
             <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>Operating Hours:</span>
-              <span className="font-semibold text-slate-700">Mon–Fri 8:00 AM – 5:00 PM</span>
+              <span className="font-semibold text-slate-700">
+                Mon–Fri {formatTime12h(policies.operatingHoursStart)} – {formatTime12h(policies.operatingHoursEnd)}
+              </span>
             </div>
             <div className="pt-2 sm:hidden">
               <Link
@@ -433,7 +460,7 @@ export default function LandingView() {
               </h3>
               <p className="text-slate-600 text-sm mt-2">
                 Real-time availability monitoring, collision prevention, and walk-in reservation desk managed by library staff.
-                All discussion rooms are located inside the <strong>2nd Floor Left Wing of Norbert Building</strong> (Capacity: <strong>Min. 3 to Max. 15 students</strong>).
+                All discussion rooms are located inside the <strong>2nd Floor Left Wing of Norbert Building</strong> (Capacity: <strong>Min. {policies.minRoomCapacity} to Max. {policies.maxRoomCapacity} students</strong>).
               </p>
             </div>
 
@@ -717,7 +744,11 @@ export default function LandingView() {
               </div>
               <h4 className="font-serif text-lg font-bold text-slate-900">Group Capacity & Collision Prevention</h4>
               <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                Discussion room reservations strictly require a minimum of 3 students and accommodate a maximum of 15 students. Schedule overlaps are automatically prevented.
+                Discussion room reservations strictly require a minimum of {policies.minRoomCapacity}{' '}
+                students and accommodate a maximum of {policies.maxRoomCapacity} students (up to{' '}
+                {policies.maxSlotDurationHours} hour
+                {policies.maxSlotDurationHours === 1 ? '' : 's'} per standard slot). Schedule
+                overlaps are automatically prevented.
               </p>
             </div>
           </div>

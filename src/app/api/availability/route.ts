@@ -3,6 +3,7 @@ import connectToDatabase from '@/backend/database/db';
 import Room from '@/backend/models/Room';
 import RoomBooking from '@/backend/models/RoomBooking';
 import Laptop from '@/backend/models/Laptop';
+import { getEffectiveSystemSettings } from '@/backend/models/Setting';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -12,6 +13,7 @@ export async function GET() {
     await connectToDatabase();
 
     const now = new Date();
+    const settings = await getEffectiveSystemSettings();
 
     // Query all rooms
     const rooms = await Room.find().sort({ roomNumber: 1 }).lean();
@@ -50,16 +52,16 @@ export async function GET() {
         isAvailable = false;
       }
 
-      const roomCap = room.capacity || 15;
+      const roomCap = room.capacity || settings.maxRoomCapacity;
 
       return {
         _id: room._id.toString(),
         name: room.name,
         roomNumber: room.roomNumber,
         capacity: roomCap,
-        minCapacity: 3,
+        minCapacity: settings.minRoomCapacity,
         maxCapacity: roomCap,
-        capacityText: `Min. 3 to Max. ${roomCap} Students`,
+        capacityText: `Min. ${settings.minRoomCapacity} to Max. ${roomCap} Students`,
         facilities: Array.isArray(room.facilities) && room.facilities.length > 0 ? room.facilities : ['Table and Chairs'],
         location: room.location || '2nd Floor Left Wing, Norbert Building (Inside Library)',
         notes: room.notes || '',
@@ -115,6 +117,7 @@ export async function GET() {
         rooms: mappedRooms,
         laptops: mappedLaptops,
         counts,
+        settings,
       },
     });
   } catch (error: any) {

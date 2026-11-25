@@ -25,7 +25,7 @@ export default function AdminSettingsView() {
     maxSlotDurationHours: '2',
     operatingHoursStart: '08:00',
     operatingHoursEnd: '17:00',
-    overdueGraceMinutes: 15,
+    overdueGraceMinutes: '15',
   });
 
   useEffect(() => {
@@ -41,12 +41,12 @@ export default function AdminSettingsView() {
       if (!res.ok) throw new Error(data.error || 'Failed to fetch policy settings');
       if (data.setting) {
         setFormData({
-          minRoomCapacity: String(data.setting.minRoomCapacity || 3),
-          maxRoomCapacity: String(data.setting.maxRoomCapacity || 15),
-          maxSlotDurationHours: String(data.setting.maxSlotDurationHours || 2),
+          minRoomCapacity: String(data.setting.minRoomCapacity ?? 3),
+          maxRoomCapacity: String(data.setting.maxRoomCapacity ?? 15),
+          maxSlotDurationHours: String(data.setting.maxSlotDurationHours ?? 2),
           operatingHoursStart: data.setting.operatingHoursStart || '08:00',
           operatingHoursEnd: data.setting.operatingHoursEnd || '17:00',
-          overdueGraceMinutes: data.setting.overdueGraceMinutes || 15,
+          overdueGraceMinutes: String(data.setting.overdueGraceMinutes ?? 15),
         });
       }
     } catch (err: any) {
@@ -65,15 +65,19 @@ export default function AdminSettingsView() {
       const minCap = Number(formData.minRoomCapacity);
       const maxCap = Number(formData.maxRoomCapacity);
       const maxHours = Number(formData.maxSlotDurationHours);
+      const graceMinutes =
+        formData.overdueGraceMinutes === '' ? NaN : Number(formData.overdueGraceMinutes);
       if (
         !minCap ||
         !maxCap ||
         !maxHours ||
+        Number.isNaN(graceMinutes) ||
         minCap < 1 ||
         maxCap <= minCap ||
-        maxHours < 1
+        maxHours < 1 ||
+        graceMinutes < 0
       ) {
-        throw new Error('Please enter valid capacity limits and slot duration hours.');
+        throw new Error('Please enter valid capacity limits, slot duration hours, and grace period.');
       }
       const res = await fetch('/api/admin/settings', {
         method: 'PATCH',
@@ -83,6 +87,7 @@ export default function AdminSettingsView() {
           minRoomCapacity: minCap,
           maxRoomCapacity: maxCap,
           maxSlotDurationHours: maxHours,
+          overdueGraceMinutes: graceMinutes,
         }),
       });
       const data = await res.json();
@@ -257,6 +262,26 @@ export default function AdminSettingsView() {
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515]"
                   />
                   <span className="text-[10px] text-slate-400 mt-1 block">Default: 05:00 PM</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Overdue Grace Period (Mins)
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    required
+                    value={formData.overdueGraceMinutes}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        overdueGraceMinutes: e.target.value.replace(/\D/g, ''),
+                      })
+                    }
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515]"
+                  />
+                  <span className="text-[10px] text-slate-400 mt-1 block">Default: 15 minutes</span>
                 </div>
               </div>
             </div>

@@ -1,4 +1,5 @@
 import mongoose, { Schema, Model } from 'mongoose';
+import { DEFAULT_SYSTEM_POLICIES, SystemPolicyData } from '@/lib/policyUtils';
 
 export interface ISetting {
   minRoomCapacity: number;
@@ -28,5 +29,22 @@ const SettingSchema = new Schema<ISetting>(
 
 const Setting: Model<ISetting> =
   mongoose.models.Setting || mongoose.model<ISetting>('Setting', SettingSchema);
+
+export async function getEffectiveSystemSettings(): Promise<SystemPolicyData> {
+  try {
+    const doc = await Setting.findOne().lean();
+    if (!doc) return { ...DEFAULT_SYSTEM_POLICIES };
+    return {
+      minRoomCapacity: Number(doc.minRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.minRoomCapacity),
+      maxRoomCapacity: Number(doc.maxRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.maxRoomCapacity),
+      maxSlotDurationHours: Number(doc.maxSlotDurationHours ?? DEFAULT_SYSTEM_POLICIES.maxSlotDurationHours),
+      operatingHoursStart: doc.operatingHoursStart || DEFAULT_SYSTEM_POLICIES.operatingHoursStart,
+      operatingHoursEnd: doc.operatingHoursEnd || DEFAULT_SYSTEM_POLICIES.operatingHoursEnd,
+      overdueGraceMinutes: Number(doc.overdueGraceMinutes ?? DEFAULT_SYSTEM_POLICIES.overdueGraceMinutes),
+    };
+  } catch {
+    return { ...DEFAULT_SYSTEM_POLICIES };
+  }
+}
 
 export default Setting;

@@ -3,6 +3,7 @@ import connectToDatabase from '@/backend/database/db';
 import LaptopLoan from '@/backend/models/LaptopLoan';
 import Laptop from '@/backend/models/Laptop';
 import { getCurrentUser, hasPortalAccess } from '@/backend/auth/jwt';
+import { getEffectiveSystemSettings } from '@/backend/models/Setting';
 
 export async function getLaptopLoans(req: NextRequest) {
   try {
@@ -25,10 +26,13 @@ export async function getLaptopLoans(req: NextRequest) {
 
     const filter: any = {};
     const now = new Date();
+    const settings = await getEffectiveSystemSettings();
+    const graceMs = (settings.overdueGraceMinutes ?? 0) * 60 * 1000;
+    const graceCutoff = new Date(now.getTime() - graceMs);
 
     if (status === 'overdue') {
       filter.status = 'active';
-      filter.dueAt = { $lt: now };
+      filter.dueAt = { $lt: graceCutoff };
     } else if (status && status !== 'all') {
       filter.status = status;
     }
@@ -48,7 +52,8 @@ export async function getLaptopLoans(req: NextRequest) {
       .sort({ borrowedAt: -1 });
 
     const enrichedLoans = loans.map((loan) => {
-      const isOverdue = loan.status === 'active' && new Date(loan.dueAt) < now;
+      const isOverdue =
+        loan.status === 'active' && new Date(loan.dueAt).getTime() + graceMs < now.getTime();
       return {
         ...loan.toObject(),
         isOverdue,

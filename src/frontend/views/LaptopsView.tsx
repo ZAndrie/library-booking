@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { DEFAULT_SYSTEM_POLICIES, SystemPolicyData } from '@/lib/policyUtils';
 import {
   Laptop,
   Search,
@@ -57,12 +58,38 @@ export default function LaptopsView() {
   const [activeTab, setActiveTab] = useState<'desk' | 'overdue' | 'inventory'>('desk');
   const [laptops, setLaptops] = useState<LaptopItem[]>([]);
   const [loans, setLoans] = useState<LaptopLoan[]>([]);
+  const [policies, setPolicies] = useState<SystemPolicyData>(DEFAULT_SYSTEM_POLICIES);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/auth/me')
       .then((r) => r.json())
       .then((d) => d.user && setCurrentUser(d.user))
+      .catch(console.error);
+
+    fetch('/api/admin/settings')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.setting) {
+          const nextPolicies: SystemPolicyData = {
+            minRoomCapacity: d.setting.minRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.minRoomCapacity,
+            maxRoomCapacity: d.setting.maxRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.maxRoomCapacity,
+            maxSlotDurationHours:
+              d.setting.maxSlotDurationHours ?? DEFAULT_SYSTEM_POLICIES.maxSlotDurationHours,
+            operatingHoursStart:
+              d.setting.operatingHoursStart || DEFAULT_SYSTEM_POLICIES.operatingHoursStart,
+            operatingHoursEnd:
+              d.setting.operatingHoursEnd || DEFAULT_SYSTEM_POLICIES.operatingHoursEnd,
+            overdueGraceMinutes:
+              d.setting.overdueGraceMinutes ?? DEFAULT_SYSTEM_POLICIES.overdueGraceMinutes,
+          };
+          setPolicies(nextPolicies);
+          setCheckoutData((prev) => ({
+            ...prev,
+            dueTime: nextPolicies.operatingHoursEnd,
+          }));
+        }
+      })
       .catch(console.error);
 
     if (typeof window !== 'undefined') {
@@ -97,7 +124,7 @@ export default function LaptopsView() {
     borrowerEmail: '',
     borrowerContact: '',
     dueDate: new Date().toISOString().split('T')[0],
-    dueTime: '18:00',
+    dueTime: DEFAULT_SYSTEM_POLICIES.operatingHoursEnd,
     checkoutAccessories: ['65W Charger', 'Padded Sleeve'],
     checkoutNotes: '',
   });
@@ -272,7 +299,7 @@ export default function LaptopsView() {
           borrowerEmail: '',
           borrowerContact: '',
           dueDate: new Date().toISOString().split('T')[0],
-          dueTime: '18:00',
+          dueTime: policies.operatingHoursEnd,
           checkoutAccessories: ['65W Charger', 'Padded Sleeve'],
           checkoutNotes: '',
         });

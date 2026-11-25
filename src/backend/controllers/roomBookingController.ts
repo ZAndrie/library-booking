@@ -3,6 +3,8 @@ import connectToDatabase from '@/backend/database/db';
 import RoomBooking from '@/backend/models/RoomBooking';
 import Room from '@/backend/models/Room';
 import { getCurrentUser, hasPortalAccess } from '@/backend/auth/jwt';
+import { getEffectiveSystemSettings } from '@/backend/models/Setting';
+import { formatTime12h, getManilaTimeHHMM } from '@/lib/policyUtils';
 
 export async function getRoomBookings(req: NextRequest) {
   try {
@@ -129,15 +131,55 @@ export async function createRoomBooking(req: NextRequest) {
       );
     }
 
-    const hasCapacityViolation = attendeesCount && (Number(attendeesCount) < 3 || Number(attendeesCount) > 15);
-    let isCapacityOverridden = false;
+    const settings = await getEffectiveSystemSettings();
 
-    if (hasCapacityViolation) {
+    const parsedAttendees =
+      attendeesCount !== undefined && attendeesCount !== null && String(attendeesCount).trim() !== ''
+        ? Number(attendeesCount)
+        : settings.minRoomCapacity;
+
+    const hasCapacityViolation =
+      parsedAttendees < settings.minRoomCapacity || parsedAttendees > settings.maxRoomCapacity;
+
+    const durationHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    const hasDurationViolation = durationHours > settings.maxSlotDurationHours;
+
+    const startHHMM = getManilaTimeHHMM(start);
+    const endHHMM = getManilaTimeHHMM(end);
+    const hasHoursViolation = Boolean(
+      settings.operatingHoursStart &&
+        settings.operatingHoursEnd &&
+        settings.operatingHoursStart < settings.operatingHoursEnd &&
+        (startHHMM < settings.operatingHoursStart || endHHMM > settings.operatingHoursEnd)
+    );
+
+    const hasPolicyViolation = hasCapacityViolation || hasDurationViolation || hasHoursViolation;
+    let isPolicyOverridden = false;
+
+    if (hasPolicyViolation) {
       if (body.adminOverride && (user.role === 'admin' || user.role === 'super_admin')) {
-        isCapacityOverridden = true;
+        isPolicyOverridden = true;
       } else {
+        if (hasCapacityViolation) {
+          return NextResponse.json(
+            {
+              error: `Requested attendees (${parsedAttendees}) is outside configured capacity (${settings.minRoomCapacity} to ${settings.maxRoomCapacity} students). An Administrator can apply an administrative override if authorized.`,
+            },
+            { status: 400 }
+          );
+        }
+        if (hasDurationViolation) {
+          return NextResponse.json(
+            {
+              error: `Booking duration (${Number(durationHours.toFixed(2))}h) exceeds the maximum allowed slot duration of ${settings.maxSlotDurationHours} hour(s). An Administrator can apply an administrative override if authorized.`,
+            },
+            { status: 400 }
+          );
+        }
         return NextResponse.json(
-          { error: `Requested attendees (${attendeesCount}) is outside standard capacity (3 to 15 students). An Administrator can apply an administrative override if authorized.` },
+          {
+            error: `Booking time (${formatTime12h(startHHMM)} – ${formatTime12h(endHHMM)}) falls outside library operating hours (${formatTime12h(settings.operatingHoursStart)} – ${formatTime12h(settings.operatingHoursEnd)}). An Administrator can apply an administrative override if authorized.`,
+          },
           { status: 400 }
         );
       }
@@ -174,10 +216,10 @@ export async function createRoomBooking(req: NextRequest) {
       endTime: end,
       purpose: resolvedPurpose,
       purposes: normalizedPurposes,
-      attendeesCount: attendeesCount ? Number(attendeesCount) : 3,
+      attendeesCount: parsedAttendees,
       bookedByStaffId: user.id,
-      notes: isCapacityOverridden
-        ? `${notes ? notes + ' | ' : ''}[ADMIN OVERRIDE: Capacity bypassed by ${user.name}]`
+      notes: isPolicyOverridden
+        ? `${notes ? notes + ' | ' : ''}[ADMIN OVERRIDE: Policy bypassed by ${user.name}]`
         : notes || '',
       status: 'active',
     });
@@ -257,6 +299,34 @@ export async function updateRoomBooking(id: string, req: NextRequest) {
 
       const currentEnd = new Date(booking.endTime);
       const newEnd = new Date(currentEnd.getTime() + Number(extendMinutes) * 60 * 1000);
+      const settings = await getEffectiveSystemSettings();
+      const totalExtendedHours = (newEnd.getTime() - new Date(booking.startTime).getTime()) / (1000 * 60 * 60);
+      const newEndHHMM = getManilaTimeHHMM(newEnd);
+      const canOverride = Boolean(body.adminOverride && (user.role === 'admin' || user.role === 'super_admin'));
+
+      if (!canOverride) {
+        if (totalExtendedHours > settings.maxSlotDurationHours) {
+          return NextResponse.json(
+            {
+              error: `Cannot extend: Total duration (${Number(totalExtendedHours.toFixed(2))}h) exceeds the configured maximum of ${settings.maxSlotDurationHours} hour(s).`,
+            },
+            { status: 400 }
+          );
+        }
+        if (
+          settings.operatingHoursStart &&
+          settings.operatingHoursEnd &&
+          settings.operatingHoursStart < settings.operatingHoursEnd &&
+          newEndHHMM > settings.operatingHoursEnd
+        ) {
+          return NextResponse.json(
+            {
+              error: `Cannot extend: Extended end time (${formatTime12h(newEndHHMM)}) goes past desk closing time (${formatTime12h(settings.operatingHoursEnd)}).`,
+            },
+            { status: 400 }
+          );
+        }
+      }
 
       const conflict = await RoomBooking.findOne({
         _id: { $ne: booking._id },

@@ -5,6 +5,7 @@ import RoomBooking from '@/backend/models/RoomBooking';
 import Laptop from '@/backend/models/Laptop';
 import LaptopLoan from '@/backend/models/LaptopLoan';
 import { getCurrentUser } from '@/backend/auth/jwt';
+import { getEffectiveSystemSettings } from '@/backend/models/Setting';
 
 export async function getDashboardStats() {
   try {
@@ -47,9 +48,12 @@ export async function getDashboardStats() {
     const borrowedLaptops = await Laptop.countDocuments({ status: 'borrowed' });
     const maintenanceLaptops = await Laptop.countDocuments({ status: 'under_maintenance' });
 
+    const settings = await getEffectiveSystemSettings();
+    const graceCutoff = new Date(now.getTime() - (settings.overdueGraceMinutes ?? 0) * 60 * 1000);
+
     const overdueLoansCount = await LaptopLoan.countDocuments({
       status: 'active',
-      dueAt: { $lt: now },
+      dueAt: { $lt: graceCutoff },
     });
 
     const recentRoomBookings = await RoomBooking.find()

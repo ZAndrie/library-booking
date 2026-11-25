@@ -7,6 +7,7 @@ import RoomBookingFormFields, {
   buildBookingPurpose,
   getLocalDateString,
 } from '@/frontend/components/RoomBookingFormFields';
+import { DEFAULT_SYSTEM_POLICIES, SystemPolicyData } from '@/lib/policyUtils';
 import {
   DoorOpen,
   Calendar,
@@ -56,6 +57,7 @@ export default function RoomsView() {
   const [activeTab, setActiveTab] = useState<'schedule' | 'rooms'>('schedule');
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<RoomBooking[]>([]);
+  const [policies, setPolicies] = useState<SystemPolicyData>(DEFAULT_SYSTEM_POLICIES);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export default function RoomsView() {
       .then((d) => d.user && setCurrentUser(d.user))
       .catch(console.error);
 
+    let actionNew = false;
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
@@ -76,10 +79,35 @@ export default function RoomsView() {
       }
 
       if (actionParam === 'new') {
+        actionNew = true;
         setBookingFormData(createDynamicBookingState());
         setShowBookingModal(true);
       }
     }
+
+    fetch('/api/admin/settings')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.setting) {
+          const nextPolicies: SystemPolicyData = {
+            minRoomCapacity: d.setting.minRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.minRoomCapacity,
+            maxRoomCapacity: d.setting.maxRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.maxRoomCapacity,
+            maxSlotDurationHours:
+              d.setting.maxSlotDurationHours ?? DEFAULT_SYSTEM_POLICIES.maxSlotDurationHours,
+            operatingHoursStart:
+              d.setting.operatingHoursStart || DEFAULT_SYSTEM_POLICIES.operatingHoursStart,
+            operatingHoursEnd:
+              d.setting.operatingHoursEnd || DEFAULT_SYSTEM_POLICIES.operatingHoursEnd,
+            overdueGraceMinutes:
+              d.setting.overdueGraceMinutes ?? DEFAULT_SYSTEM_POLICIES.overdueGraceMinutes,
+          };
+          setPolicies(nextPolicies);
+          if (actionNew) {
+            setBookingFormData(createDynamicBookingState('', nextPolicies.maxSlotDurationHours));
+          }
+        }
+      })
+      .catch(console.error);
   }, []);
 
   // Filters
@@ -98,7 +126,7 @@ export default function RoomsView() {
   const openNewBookingModal = (prefillRoomId = '', prefillDate?: string) => {
     setBookingError('');
     setBookingFormData({
-      ...createDynamicBookingState(prefillRoomId),
+      ...createDynamicBookingState(prefillRoomId, policies.maxSlotDurationHours),
       ...(prefillDate ? { date: prefillDate } : {}),
     });
     setShowBookingModal(true);
@@ -808,6 +836,7 @@ export default function RoomsView() {
                   formData={bookingFormData}
                   setFormData={setBookingFormData}
                   rooms={rooms}
+                  policies={policies}
                   isAdmin={
                     currentUser?.role === 'admin' || currentUser?.role === 'super_admin'
                   }

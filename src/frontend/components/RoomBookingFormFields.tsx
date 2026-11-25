@@ -2,6 +2,11 @@
 
 import React from 'react';
 import { Clock } from 'lucide-react';
+import {
+  DEFAULT_SYSTEM_POLICIES,
+  SystemPolicyData,
+  formatTime12h,
+} from '@/lib/policyUtils';
 
 export const ROOM_PURPOSE_CHECKLIST = [
   'Thesis Preparation',
@@ -64,10 +69,13 @@ export function getDurationLabel(startTime: string, endTime: string): string | n
   return `${mins} mins`;
 }
 
-export function createDynamicBookingState(roomId = ''): RoomBookingFormState {
+export function createDynamicBookingState(
+  roomId = '',
+  defaultHours = DEFAULT_SYSTEM_POLICIES.maxSlotDurationHours
+): RoomBookingFormState {
   const now = new Date();
   const startTime = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-  const endTime = addMinutesToTime(startTime, 120);
+  const endTime = addMinutesToTime(startTime, Math.max(30, Math.round(defaultHours * 60)));
   return {
     roomId,
     borrowerName: '',
@@ -118,6 +126,7 @@ interface RoomBookingFormFieldsProps {
   setFormData: React.Dispatch<React.SetStateAction<RoomBookingFormState>>;
   rooms?: RoomOption[];
   isAdmin: boolean;
+  policies?: SystemPolicyData;
 }
 
 export default function RoomBookingFormFields({
@@ -125,8 +134,27 @@ export default function RoomBookingFormFields({
   setFormData,
   rooms,
   isAdmin,
+  policies,
 }: RoomBookingFormFieldsProps) {
+  const activePolicies = policies || DEFAULT_SYSTEM_POLICIES;
+  const defaultDurationMins = Math.max(30, Math.round(activePolicies.maxSlotDurationHours * 60));
   const durationLabel = getDurationLabel(formData.startTime, formData.endTime);
+
+  const durationPresets = [
+    { label: '+1h', mins: 60 },
+    { label: '+1.5h', mins: 90 },
+    { label: '+2h', mins: 120 },
+    ...(activePolicies.maxSlotDurationHours > 2
+      ? [
+          {
+            label: `+${activePolicies.maxSlotDurationHours}h`,
+            mins: Math.round(activePolicies.maxSlotDurationHours * 60),
+          },
+        ]
+      : []),
+  ].filter(
+    (p) => p.mins <= Math.round(activePolicies.maxSlotDurationHours * 60) || p.mins === 60
+  );
 
   const togglePurpose = (item: string) => {
     setFormData((prev) => {
@@ -149,7 +177,7 @@ export default function RoomBookingFormFields({
       ...prev,
       date: getLocalDateString(now),
       startTime,
-      endTime: addMinutesToTime(startTime, 120),
+      endTime: addMinutesToTime(startTime, defaultDurationMins),
     }));
   };
 
@@ -233,7 +261,9 @@ export default function RoomBookingFormFields({
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="font-semibold text-slate-700">No. of Users *</label>
-                <span className="text-[10px] text-slate-400">3–15 policy</span>
+                <span className="text-[10px] text-slate-400">
+                  {activePolicies.minRoomCapacity}–{activePolicies.maxRoomCapacity} policy
+                </span>
               </div>
               <input
                 type="text"
@@ -305,7 +335,9 @@ export default function RoomBookingFormFields({
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="font-semibold text-slate-700">No. of Users *</label>
-              <span className="text-[10px] text-slate-400">3–15 policy</span>
+              <span className="text-[10px] text-slate-400">
+                {activePolicies.minRoomCapacity}–{activePolicies.maxRoomCapacity} policy
+              </span>
             </div>
             <input
               type="text"
@@ -346,11 +378,7 @@ export default function RoomBookingFormFields({
             >
               Now
             </button>
-            {[
-              { label: '+1h', mins: 60 },
-              { label: '+1.5h', mins: 90 },
-              { label: '+2h', mins: 120 },
-            ].map((preset) => (
+            {durationPresets.map((preset) => (
               <button
                 key={preset.label}
                 type="button"
@@ -370,7 +398,9 @@ export default function RoomBookingFormFields({
 
         <div className="grid grid-cols-2 gap-2.5">
           <div>
-            <span className="block text-[10px] font-semibold text-slate-500 mb-0.5">Start Time</span>
+            <span className="block text-[10px] font-semibold text-slate-500 mb-0.5">
+              Start Time (Opens {formatTime12h(activePolicies.operatingHoursStart)})
+            </span>
             <input
               type="time"
               required
@@ -380,14 +410,16 @@ export default function RoomBookingFormFields({
                 setFormData((prev) => ({
                   ...prev,
                   startTime: nextStart,
-                  endTime: addMinutesToTime(nextStart, 120),
+                  endTime: addMinutesToTime(nextStart, defaultDurationMins),
                 }));
               }}
               className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 focus:ring-1 focus:ring-[#8B1515] outline-none"
             />
           </div>
           <div>
-            <span className="block text-[10px] font-semibold text-slate-500 mb-0.5">End Time</span>
+            <span className="block text-[10px] font-semibold text-slate-500 mb-0.5">
+              End Time (Max {activePolicies.maxSlotDurationHours}h • Closes {formatTime12h(activePolicies.operatingHoursEnd)})
+            </span>
             <input
               type="time"
               required
@@ -458,7 +490,9 @@ export default function RoomBookingFormFields({
               }
               className="w-3.5 h-3.5 rounded text-[#8B1515] focus:ring-[#8B1515]"
             />
-            <span>Administrative Override: Bypass 3 to 15 Student Rule</span>
+            <span>
+              Administrative Override: Bypass Capacity ({activePolicies.minRoomCapacity}–{activePolicies.maxRoomCapacity}), Hours & {activePolicies.maxSlotDurationHours}h Limit
+            </span>
           </label>
         </div>
       )}

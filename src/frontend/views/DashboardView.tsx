@@ -7,6 +7,7 @@ import RoomBookingFormFields, {
   createDynamicBookingState,
   buildBookingPurpose,
 } from '@/frontend/components/RoomBookingFormFields';
+import { DEFAULT_SYSTEM_POLICIES, SystemPolicyData } from '@/lib/policyUtils';
 import {
   LayoutDashboard,
   DoorOpen,
@@ -79,6 +80,7 @@ export default function DashboardView() {
   const [laptops, setLaptops] = useState<LaptopItem[]>([]);
   const [recentRooms, setRecentRooms] = useState<any[]>([]);
   const [recentLaptops, setRecentLaptops] = useState<any[]>([]);
+  const [policies, setPolicies] = useState<SystemPolicyData>(DEFAULT_SYSTEM_POLICIES);
   const [loading, setLoading] = useState(true);
   const [showWelcomeAlert, setShowWelcomeAlert] = useState(true);
 
@@ -119,10 +121,11 @@ export default function DashboardView() {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, roomsRes, laptopsRes] = await Promise.all([
+      const [statsRes, roomsRes, laptopsRes, settingsRes] = await Promise.all([
         fetch('/api/dashboard/stats'),
         fetch('/api/rooms'),
         fetch('/api/laptops'),
+        fetch('/api/admin/settings'),
       ]);
 
       if (statsRes.ok) {
@@ -140,6 +143,34 @@ export default function DashboardView() {
       if (laptopsRes.ok) {
         const laptopsData = await laptopsRes.json();
         setLaptops(laptopsData.laptops || []);
+      }
+
+      if (settingsRes.ok) {
+        const settingsData = await settingsRes.json();
+        if (settingsData?.setting) {
+          const nextPolicies: SystemPolicyData = {
+            minRoomCapacity:
+              settingsData.setting.minRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.minRoomCapacity,
+            maxRoomCapacity:
+              settingsData.setting.maxRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.maxRoomCapacity,
+            maxSlotDurationHours:
+              settingsData.setting.maxSlotDurationHours ??
+              DEFAULT_SYSTEM_POLICIES.maxSlotDurationHours,
+            operatingHoursStart:
+              settingsData.setting.operatingHoursStart ||
+              DEFAULT_SYSTEM_POLICIES.operatingHoursStart,
+            operatingHoursEnd:
+              settingsData.setting.operatingHoursEnd || DEFAULT_SYSTEM_POLICIES.operatingHoursEnd,
+            overdueGraceMinutes:
+              settingsData.setting.overdueGraceMinutes ??
+              DEFAULT_SYSTEM_POLICIES.overdueGraceMinutes,
+          };
+          setPolicies(nextPolicies);
+          setCheckoutFormData((prev) => ({
+            ...prev,
+            dueTime: nextPolicies.operatingHoursEnd,
+          }));
+        }
       }
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
@@ -159,7 +190,7 @@ export default function DashboardView() {
   const handleOpenBookModal = (room: Room) => {
     setSelectedRoomForBooking(room);
     setBookingError('');
-    setBookingFormData(createDynamicBookingState(room._id));
+    setBookingFormData(createDynamicBookingState(room._id, policies.maxSlotDurationHours));
     setShowBookModal(true);
   };
 
@@ -220,6 +251,10 @@ export default function DashboardView() {
 
   const handleOpenCheckoutModal = (laptop: LaptopItem) => {
     setSelectedLaptopForCheckout(laptop);
+    setCheckoutFormData((prev) => ({
+      ...prev,
+      dueTime: policies.operatingHoursEnd,
+    }));
     setShowCheckoutModal(true);
   };
 
@@ -787,6 +822,7 @@ export default function DashboardView() {
               <RoomBookingFormFields
                 formData={bookingFormData}
                 setFormData={setBookingFormData}
+                policies={policies}
                 isAdmin={
                   currentUser?.role === 'admin' || currentUser?.role === 'super_admin'
                 }

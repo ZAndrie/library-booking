@@ -4,6 +4,11 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
+  DEFAULT_SYSTEM_POLICIES,
+  SystemPolicyData,
+  formatTime12h,
+} from '@/lib/policyUtils';
+import {
   DoorOpen,
   Laptop,
   LayoutDashboard,
@@ -38,6 +43,7 @@ export default function PortalGatewayView() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [counts, setCounts] = useState<AvailabilityCounts | null>(null);
+  const [policies, setPolicies] = useState<SystemPolicyData>(DEFAULT_SYSTEM_POLICIES);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectingPortal, setSelectingPortal] = useState<'rooms' | 'laptops' | null>(null);
 
@@ -63,6 +69,28 @@ export default function PortalGatewayView() {
           const availData = await availRes.json();
           if (availData.success && availData.data?.counts) {
             setCounts(availData.data.counts);
+          }
+          if (availData.success && availData.data?.settings) {
+            setPolicies({
+              minRoomCapacity:
+                availData.data.settings.minRoomCapacity ??
+                DEFAULT_SYSTEM_POLICIES.minRoomCapacity,
+              maxRoomCapacity:
+                availData.data.settings.maxRoomCapacity ??
+                DEFAULT_SYSTEM_POLICIES.maxRoomCapacity,
+              maxSlotDurationHours:
+                availData.data.settings.maxSlotDurationHours ??
+                DEFAULT_SYSTEM_POLICIES.maxSlotDurationHours,
+              operatingHoursStart:
+                availData.data.settings.operatingHoursStart ||
+                DEFAULT_SYSTEM_POLICIES.operatingHoursStart,
+              operatingHoursEnd:
+                availData.data.settings.operatingHoursEnd ||
+                DEFAULT_SYSTEM_POLICIES.operatingHoursEnd,
+              overdueGraceMinutes:
+                availData.data.settings.overdueGraceMinutes ??
+                DEFAULT_SYSTEM_POLICIES.overdueGraceMinutes,
+            });
           }
         }
       } catch (err) {
@@ -212,7 +240,10 @@ export default function PortalGatewayView() {
             </div>
             <div className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-full self-start sm:self-auto">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>Mon–Fri 8:00 AM – 5:00 PM</span>
+              <span>
+                Mon–Fri {formatTime12h(policies.operatingHoursStart)} –{' '}
+                {formatTime12h(policies.operatingHoursEnd)}
+              </span>
             </div>
           </div>
 
