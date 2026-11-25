@@ -15,6 +15,7 @@ import {
   Send,
   Check,
   Trash2,
+  Edit2,
 } from 'lucide-react';
 
 interface LaptopItem {
@@ -110,8 +111,9 @@ export default function LaptopsView() {
   const [returnSubmitting, setReturnSubmitting] = useState(false);
   const [returnError, setReturnError] = useState('');
 
-  // Add Laptop Modal State
+  // Add / Edit Laptop Modal State
   const [showAddLaptopModal, setShowAddLaptopModal] = useState(false);
+  const [editingLaptopId, setEditingLaptopId] = useState<string | null>(null);
   const [newLaptopData, setNewLaptopData] = useState({
     assetTag: '',
     serialNumber: '',
@@ -119,12 +121,49 @@ export default function LaptopsView() {
     model: '',
     specs: '',
     condition: 'excellent' as 'excellent' | 'good' | 'fair' | 'damaged',
+    status: 'available' as 'available' | 'borrowed' | 'under_maintenance' | 'decommissioned',
     location: 'Counter Desk Shelf A',
     accessories: 'Charger, Padded Sleeve',
     notes: '',
   });
   const [addLaptopError, setAddLaptopError] = useState('');
   const [addLaptopSubmitting, setAddLaptopSubmitting] = useState(false);
+
+  const openAddLaptopModal = () => {
+    setEditingLaptopId(null);
+    setAddLaptopError('');
+    setNewLaptopData({
+      assetTag: '',
+      serialNumber: '',
+      brand: 'Lenovo',
+      model: '',
+      specs: '',
+      condition: 'excellent',
+      status: 'available',
+      location: 'Counter Desk Shelf A',
+      accessories: 'Charger, Padded Sleeve',
+      notes: '',
+    });
+    setShowAddLaptopModal(true);
+  };
+
+  const openEditLaptopModal = (item: LaptopItem) => {
+    setEditingLaptopId(item._id);
+    setAddLaptopError('');
+    setNewLaptopData({
+      assetTag: item.assetTag || '',
+      serialNumber: item.serialNumber || '',
+      brand: item.brand || '',
+      model: item.model || '',
+      specs: item.specs || '',
+      condition: item.condition || 'excellent',
+      status: item.status || 'available',
+      location: item.location || 'Counter Desk Shelf A',
+      accessories: Array.isArray(item.accessoriesIncluded) ? item.accessoriesIncluded.join(', ') : '',
+      notes: item.notes || '',
+    });
+    setShowAddLaptopModal(true);
+  };
 
   const fetchLaptops = async () => {
     try {
@@ -289,20 +328,32 @@ export default function LaptopsView() {
         ? newLaptopData.accessories.split(',').map((s) => s.trim()).filter(Boolean)
         : [];
 
-      const res = await fetch('/api/laptops', {
-        method: 'POST',
+      const endpoint = editingLaptopId ? `/api/laptops/${editingLaptopId}` : '/api/laptops';
+      const method = editingLaptopId ? 'PATCH' : 'POST';
+
+      const res = await fetch(endpoint, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...newLaptopData,
+          assetTag: newLaptopData.assetTag,
+          serialNumber: newLaptopData.serialNumber,
+          brand: newLaptopData.brand,
+          model: newLaptopData.model,
+          specs: newLaptopData.specs,
+          condition: newLaptopData.condition,
+          ...(editingLaptopId ? { status: newLaptopData.status } : {}),
+          location: newLaptopData.location,
           accessoriesIncluded: accessories,
+          notes: newLaptopData.notes,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        setAddLaptopError(data.error || 'Failed to add laptop');
+        setAddLaptopError(data.error || `Failed to ${editingLaptopId ? 'update' : 'add'} laptop`);
       } else {
         setShowAddLaptopModal(false);
+        setEditingLaptopId(null);
         setNewLaptopData({
           assetTag: '',
           serialNumber: '',
@@ -310,6 +361,7 @@ export default function LaptopsView() {
           model: '',
           specs: '',
           condition: 'excellent',
+          status: 'available',
           location: 'Counter Desk Shelf A',
           accessories: 'Charger, Padded Sleeve',
           notes: '',
@@ -317,7 +369,7 @@ export default function LaptopsView() {
         fetchLaptops();
       }
     } catch (err: any) {
-      setAddLaptopError(err.message || 'Error adding laptop');
+      setAddLaptopError(err.message || `Error ${editingLaptopId ? 'updating' : 'adding'} laptop`);
     } finally {
       setAddLaptopSubmitting(false);
     }
@@ -356,8 +408,8 @@ export default function LaptopsView() {
             </button>
             {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
               <button
-                onClick={() => setShowAddLaptopModal(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-all shadow-sm"
+                onClick={openAddLaptopModal}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-all shadow-sm cursor-pointer"
               >
                 <Plus className="w-4 h-4 text-slate-500" />
                 Add Laptop to Inventory
@@ -665,7 +717,7 @@ export default function LaptopsView() {
                   </p>
                   {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
                     <button
-                      onClick={() => setShowAddLaptopModal(true)}
+                      onClick={openAddLaptopModal}
                       className="mt-4 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-sm text-xs transition-colors cursor-pointer"
                     >
                       + Add Laptop to Inventory
@@ -701,44 +753,65 @@ export default function LaptopsView() {
                           <strong className="text-slate-700">Specs:</strong> {item.specs}
                         </p>
                         <p>
+                          <strong className="text-slate-700">Serial No:</strong> <span className="font-mono">{item.serialNumber}</span>
+                        </p>
+                        <p>
                           <strong className="text-slate-700">Shelf Location:</strong> {item.location}
                         </p>
                         <p>
                           <strong className="text-slate-700">Condition:</strong>{' '}
                           <span className="capitalize font-semibold text-emerald-700">{item.condition}</span>
                         </p>
+                        {item.accessoriesIncluded && item.accessoriesIncluded.length > 0 && (
+                          <p>
+                            <strong className="text-slate-700">Accessories:</strong> {item.accessoriesIncluded.join(', ')}
+                          </p>
+                        )}
                         {item.notes && (
                           <p className="text-slate-500 italic text-[11px]">{item.notes}</p>
                         )}
                       </div>
                     </div>
 
-                    <div className="p-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs bg-slate-50/50">
+                    <div className="p-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs bg-slate-50/50">
                       {item.status === 'available' ? (
                         <button
                           onClick={() => {
                             setCheckoutData({ ...checkoutData, laptopId: item._id });
                             setShowCheckoutModal(true);
                           }}
-                          className="px-3 py-1.5 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
+                          className="px-3 py-1.5 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer"
                         >
                           Direct Checkout
                         </button>
                       ) : (
                         <span className="text-[11px] text-slate-500 font-medium">
-                          {item.status === 'borrowed' ? 'Out on active loan' : 'In repair'}
+                          {item.status === 'borrowed' ? 'Out on active loan' : item.status === 'decommissioned' ? 'Decommissioned' : 'In repair'}
                         </span>
                       )}
 
-                      {currentUser?.role === 'super_admin' && (
-                        <button
-                          onClick={() => handleDeleteLaptop(item._id, item.assetTag)}
-                          className="p-1.5 text-rose-500 hover:text-white hover:bg-rose-600 rounded-lg transition-colors ml-2"
-                          title="Permanently Delete Hardware (Super Admin Only)"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
+                          <button
+                            onClick={() => openEditLaptopModal(item)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-[11px] font-semibold transition-colors cursor-pointer"
+                            title="Edit Laptop Details (Admin)"
+                          >
+                            <Edit2 className="w-3.5 h-3.5 text-[#8B1515]" />
+                            <span>Edit</span>
+                          </button>
+                        )}
+
+                        {currentUser?.role === 'super_admin' && (
+                          <button
+                            onClick={() => handleDeleteLaptop(item._id, item.assetTag)}
+                            className="p-1.5 text-rose-500 hover:text-white hover:bg-rose-600 rounded-lg transition-colors cursor-pointer"
+                            title="Permanently Delete Hardware (Super Admin Only)"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))
@@ -993,14 +1066,18 @@ export default function LaptopsView() {
           </div>
         )}
 
-        {/* MODAL: ADD LAPTOP */}
+        {/* MODAL: ADD / EDIT LAPTOP */}
         {showAddLaptopModal && (
           <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl border border-slate-200 space-y-3.5 max-h-[95vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <h3 className="font-serif font-bold text-lg text-slate-900 flex items-center gap-2">
-                  <Boxes className="w-5 h-5 text-emerald-600" />
-                  Add Laptop to Inventory
+                  {editingLaptopId ? (
+                    <Edit2 className="w-5 h-5 text-[#8B1515]" />
+                  ) : (
+                    <Boxes className="w-5 h-5 text-emerald-600" />
+                  )}
+                  {editingLaptopId ? 'Edit Laptop Details' : 'Add Laptop to Inventory'}
                 </h3>
                 <button onClick={() => setShowAddLaptopModal(false)} className="text-slate-400 hover:text-slate-600">
                   <X className="w-5 h-5" />
@@ -1013,8 +1090,8 @@ export default function LaptopsView() {
                 </div>
               )}
 
-              <form onSubmit={handleAddLaptopSubmit} className="space-y-3 text-xs">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <form onSubmit={handleAddLaptopSubmit} className="space-y-2.5 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div>
                     <label className="block font-semibold text-slate-700 mb-1">
                       Asset Tag *
@@ -1027,7 +1104,7 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setNewLaptopData({ ...newLaptopData, assetTag: e.target.value })
                       }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                   <div>
@@ -1042,12 +1119,12 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setNewLaptopData({ ...newLaptopData, serialNumber: e.target.value })
                       }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div>
                     <label className="block font-semibold text-slate-700 mb-1">
                       Brand *
@@ -1060,7 +1137,7 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setNewLaptopData({ ...newLaptopData, brand: e.target.value })
                       }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                   <div>
@@ -1075,7 +1152,7 @@ export default function LaptopsView() {
                       onChange={(e) =>
                         setNewLaptopData({ ...newLaptopData, model: e.target.value })
                       }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
                   </div>
                 </div>
@@ -1092,26 +1169,121 @@ export default function LaptopsView() {
                     onChange={(e) =>
                       setNewLaptopData({ ...newLaptopData, specs: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                   />
                 </div>
 
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Shelf Storage Location
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Counter Desk Shelf A"
-                    value={newLaptopData.location}
-                    onChange={(e) =>
-                      setNewLaptopData({ ...newLaptopData, location: e.target.value })
-                    }
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">
+                      Condition
+                    </label>
+                    <select
+                      value={newLaptopData.condition}
+                      onChange={(e) =>
+                        setNewLaptopData({
+                          ...newLaptopData,
+                          condition: e.target.value as 'excellent' | 'good' | 'fair' | 'damaged',
+                        })
+                      }
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+                    >
+                      <option value="excellent">Excellent</option>
+                      <option value="good">Good</option>
+                      <option value="fair">Fair</option>
+                      <option value="damaged">Damaged</option>
+                    </select>
+                  </div>
+
+                  {editingLaptopId ? (
+                    <div>
+                      <label className="block font-semibold text-slate-700 mb-1">
+                        Availability Status
+                      </label>
+                      <select
+                        value={newLaptopData.status}
+                        disabled={newLaptopData.status === 'borrowed'}
+                        onChange={(e) =>
+                          setNewLaptopData({
+                            ...newLaptopData,
+                            status: e.target.value as 'available' | 'borrowed' | 'under_maintenance' | 'decommissioned',
+                          })
+                        }
+                        className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none disabled:opacity-60"
+                      >
+                        <option value="available">Available</option>
+                        {newLaptopData.status === 'borrowed' && <option value="borrowed">Borrowed (Active Loan)</option>}
+                        <option value="under_maintenance">Under Maintenance</option>
+                        <option value="decommissioned">Decommissioned</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block font-semibold text-slate-700 mb-1">
+                        Shelf Storage Location
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Counter Desk Shelf A"
+                        value={newLaptopData.location}
+                        onChange={(e) =>
+                          setNewLaptopData({ ...newLaptopData, location: e.target.value })
+                        }
+                        className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                {editingLaptopId && (
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">
+                      Shelf Storage Location
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Counter Desk Shelf A"
+                      value={newLaptopData.location}
+                      onChange={(e) =>
+                        setNewLaptopData({ ...newLaptopData, location: e.target.value })
+                      }
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+                    />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">
+                      Included Accessories (comma separated)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Charger, Padded Sleeve"
+                      value={newLaptopData.accessories}
+                      onChange={(e) =>
+                        setNewLaptopData({ ...newLaptopData, accessories: e.target.value })
+                      }
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">
+                      Notes (optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Battery health, stickers, etc."
+                      value={newLaptopData.notes}
+                      onChange={(e) =>
+                        setNewLaptopData({ ...newLaptopData, notes: e.target.value })
+                      }
+                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2.5 border-t border-slate-100 flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setShowAddLaptopModal(false)}
@@ -1122,9 +1294,13 @@ export default function LaptopsView() {
                   <button
                     type="submit"
                     disabled={addLaptopSubmitting}
-                    className="px-4 py-2 rounded-lg bg-[#8B1515] hover:bg-[#721111] text-white font-semibold shadow-sm"
+                    className="px-4 py-2 rounded-lg bg-[#8B1515] hover:bg-[#721111] text-white font-semibold shadow-sm cursor-pointer disabled:opacity-50"
                   >
-                    {addLaptopSubmitting ? 'Registering...' : 'Add Device'}
+                    {addLaptopSubmitting
+                      ? 'Saving...'
+                      : editingLaptopId
+                      ? 'Save Changes'
+                      : 'Add Device'}
                   </button>
                 </div>
               </form>

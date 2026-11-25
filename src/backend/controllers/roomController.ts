@@ -116,7 +116,28 @@ export async function updateRoom(id: string, req: NextRequest) {
 
     await connectToDatabase();
 
-    const room = await Room.findByIdAndUpdate(id, body, {
+    const updatePayload: Record<string, any> = {};
+    if (body.name !== undefined) updatePayload.name = String(body.name).trim();
+    if (body.roomNumber !== undefined) {
+      const normalizedNumber = String(body.roomNumber).toUpperCase().trim();
+      const duplicate = await Room.findOne({ _id: { $ne: id }, roomNumber: normalizedNumber });
+      if (duplicate) {
+        return NextResponse.json(
+          { error: `Room with number ${normalizedNumber} already exists.` },
+          { status: 400 }
+        );
+      }
+      updatePayload.roomNumber = normalizedNumber;
+    }
+    if (body.capacity !== undefined) updatePayload.capacity = Number(body.capacity);
+    if (body.facilities !== undefined) {
+      updatePayload.facilities = Array.isArray(body.facilities) ? body.facilities : [];
+    }
+    if (body.location !== undefined) updatePayload.location = String(body.location).trim();
+    if (body.notes !== undefined) updatePayload.notes = String(body.notes);
+    if (body.status !== undefined) updatePayload.status = body.status;
+
+    const room = await Room.findByIdAndUpdate(id, updatePayload, {
       new: true,
       runValidators: true,
     });

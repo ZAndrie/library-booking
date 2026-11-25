@@ -19,6 +19,7 @@ import {
   Settings2,
   Trash2,
   CalendarPlus,
+  Edit2,
   X,
 } from 'lucide-react';
 
@@ -103,8 +104,9 @@ export default function RoomsView() {
     setShowBookingModal(true);
   };
 
-  // Room Creation Modal
+  // Room Creation / Edit Modal
   const [showRoomModal, setShowRoomModal] = useState(false);
+  const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
   const [roomFormData, setRoomFormData] = useState({
     name: '',
     roomNumber: '',
@@ -116,6 +118,34 @@ export default function RoomsView() {
   const [roomError, setRoomError] = useState('');
   const [roomSubmitting, setRoomSubmitting] = useState(false);
 
+  const openAddRoomModal = () => {
+    setEditingRoomId(null);
+    setRoomError('');
+    setRoomFormData({
+      name: '',
+      roomNumber: '',
+      capacity: '',
+      facilities: '',
+      location: '',
+      notes: '',
+    });
+    setShowRoomModal(true);
+  };
+
+  const openEditRoomModal = (room: Room) => {
+    setEditingRoomId(room._id);
+    setRoomError('');
+    setRoomFormData({
+      name: room.name || '',
+      roomNumber: room.roomNumber || '',
+      capacity: String(room.capacity ?? ''),
+      facilities: Array.isArray(room.facilities) ? room.facilities.join(', ') : '',
+      location: room.location || '',
+      notes: room.notes || '',
+    });
+    setShowRoomModal(true);
+  };
+
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   const fetchRooms = async () => {
@@ -123,7 +153,18 @@ export default function RoomsView() {
       const res = await fetch('/api/rooms');
       if (res.ok) {
         const data = await res.json();
-        setRooms(data.rooms || []);
+        const loadedRooms: Room[] = data.rooms || [];
+        setRooms(loadedRooms);
+        if (typeof window !== 'undefined') {
+          const editId = new URLSearchParams(window.location.search).get('editRoomId');
+          if (editId) {
+            const match = loadedRooms.find((r) => r._id === editId);
+            if (match) {
+              setActiveTab('rooms');
+              openEditRoomModal(match);
+            }
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to load rooms:', err);
@@ -217,7 +258,7 @@ export default function RoomsView() {
     }
   };
 
-  const handleCreateRoom = async (e: React.FormEvent) => {
+  const handleSaveRoom = async (e: React.FormEvent) => {
     e.preventDefault();
     setRoomError('');
 
@@ -234,8 +275,11 @@ export default function RoomsView() {
         ? roomFormData.facilities.split(',').map((f) => f.trim()).filter(Boolean)
         : [];
 
-      const res = await fetch('/api/rooms', {
-        method: 'POST',
+      const endpoint = editingRoomId ? `/api/rooms/${editingRoomId}` : '/api/rooms';
+      const method = editingRoomId ? 'PATCH' : 'POST';
+
+      const res = await fetch(endpoint, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...roomFormData,
@@ -246,9 +290,10 @@ export default function RoomsView() {
 
       const data = await res.json();
       if (!res.ok) {
-        setRoomError(data.error || 'Failed to add room.');
+        setRoomError(data.error || `Failed to ${editingRoomId ? 'update' : 'add'} room.`);
       } else {
         setShowRoomModal(false);
+        setEditingRoomId(null);
         setRoomFormData({
           name: '',
           roomNumber: '',
@@ -260,7 +305,7 @@ export default function RoomsView() {
         fetchRooms();
       }
     } catch (err: any) {
-      setRoomError(err.message || 'Error occurred while creating room.');
+      setRoomError(err.message || `Error occurred while ${editingRoomId ? 'updating' : 'creating'} room.`);
     } finally {
       setRoomSubmitting(false);
     }
@@ -383,8 +428,8 @@ export default function RoomsView() {
             </button>
             {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
               <button
-                onClick={() => setShowRoomModal(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-all shadow-sm"
+                onClick={openAddRoomModal}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-all shadow-sm cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4 text-slate-500" />
                 Add Room
@@ -672,7 +717,7 @@ export default function RoomsView() {
                         </p>
                         <p className="flex items-center gap-1">
                           <Users className="w-3.5 h-3.5 text-slate-500" />
-                          <strong>Capacity:</strong> Min. 3 to Max. 15 students
+                          <strong>Capacity:</strong> {room.capacity} users
                         </p>
                         {room.notes && (
                           <p className="text-slate-500 italic text-[11px]">{room.notes}</p>
@@ -692,7 +737,7 @@ export default function RoomsView() {
                     </div>
                   </div>
 
-                  <div className="p-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs bg-slate-50/50">
+                  <div className="p-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-xs bg-slate-50/50">
                     <button
                       onClick={() =>
                         handleToggleRoomStatus(
@@ -700,20 +745,33 @@ export default function RoomsView() {
                           room.status === 'available' ? 'maintenance' : 'available'
                         )
                       }
-                      className="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-semibold transition-colors"
+                      className="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-semibold transition-colors cursor-pointer"
                     >
                       {room.status === 'available' ? 'Set Maintenance' : 'Set Available'}
                     </button>
 
-                    {currentUser?.role === 'super_admin' && (
-                      <button
-                        onClick={() => handleDeleteRoom(room._id)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded transition-colors"
-                        title="Delete Room Permanently (Super Admin Only)"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
+                        <button
+                          onClick={() => openEditRoomModal(room)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-[11px] font-semibold transition-colors cursor-pointer"
+                          title="Edit Room Details (Admin)"
+                        >
+                          <Edit2 className="w-3.5 h-3.5 text-[#8B1515]" />
+                          <span>Edit</span>
+                        </button>
+                      )}
+
+                      {currentUser?.role === 'super_admin' && (
+                        <button
+                          onClick={() => handleDeleteRoom(room._id)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded transition-colors cursor-pointer"
+                          title="Delete Room Permanently (Super Admin Only)"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
@@ -776,14 +834,18 @@ export default function RoomsView() {
           </div>
         )}
 
-        {/* MODAL: ADD NEW ROOM */}
+        {/* MODAL: ADD / EDIT ROOM */}
         {showRoomModal && (
           <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl border border-slate-200 space-y-3.5 max-h-[95vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <h3 className="font-serif font-bold text-lg text-slate-900 flex items-center gap-2">
-                  <PlusCircle className="w-5 h-5 text-[#8B1515]" />
-                  Add New Discussion Room
+                  {editingRoomId ? (
+                    <Edit2 className="w-5 h-5 text-[#8B1515]" />
+                  ) : (
+                    <PlusCircle className="w-5 h-5 text-[#8B1515]" />
+                  )}
+                  {editingRoomId ? 'Edit Discussion Room' : 'Add New Discussion Room'}
                 </h3>
                 <button onClick={() => setShowRoomModal(false)} className="text-slate-400 hover:text-slate-600">
                   <X className="w-5 h-5" />
@@ -796,7 +858,7 @@ export default function RoomsView() {
                 </div>
               )}
 
-              <form onSubmit={handleCreateRoom} className="space-y-3 text-xs">
+              <form onSubmit={handleSaveRoom} className="space-y-3 text-xs">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">
                     Room Name *
@@ -870,7 +932,7 @@ export default function RoomsView() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Table and Chairs"
+                    placeholder="Table and Chairs, Whiteboard, AC"
                     value={roomFormData.facilities}
                     onChange={(e) =>
                       setRoomFormData({ ...roomFormData, facilities: e.target.value })
@@ -879,7 +941,22 @@ export default function RoomsView() {
                   />
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Notes (optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Room reminders or equipment details"
+                    value={roomFormData.notes}
+                    onChange={(e) =>
+                      setRoomFormData({ ...roomFormData, notes: e.target.value })
+                    }
+                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
+                  />
+                </div>
+
+                <div className="pt-2.5 border-t border-slate-100 flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setShowRoomModal(false)}
@@ -890,9 +967,13 @@ export default function RoomsView() {
                   <button
                     type="submit"
                     disabled={roomSubmitting}
-                    className="px-4 py-2 rounded-lg bg-[#8B1515] hover:bg-[#721111] font-semibold text-white shadow-sm"
+                    className="px-4 py-2 rounded-lg bg-[#8B1515] hover:bg-[#721111] font-semibold text-white shadow-sm cursor-pointer disabled:opacity-50"
                   >
-                    {roomSubmitting ? 'Saving...' : 'Create Room'}
+                    {roomSubmitting
+                      ? 'Saving...'
+                      : editingRoomId
+                      ? 'Save Changes'
+                      : 'Create Room'}
                   </button>
                 </div>
               </form>

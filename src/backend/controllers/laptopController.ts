@@ -155,7 +155,43 @@ export async function updateLaptop(id: string, req: NextRequest) {
 
     await connectToDatabase();
 
-    const laptop = await Laptop.findByIdAndUpdate(id, body, {
+    const updatePayload: Record<string, any> = {};
+    if (body.assetTag !== undefined) {
+      const normalizedTag = String(body.assetTag).toUpperCase().trim();
+      const duplicateTag = await Laptop.findOne({ _id: { $ne: id }, assetTag: normalizedTag });
+      if (duplicateTag) {
+        return NextResponse.json(
+          { error: `A laptop with Asset Tag ${normalizedTag} already exists.` },
+          { status: 400 }
+        );
+      }
+      updatePayload.assetTag = normalizedTag;
+    }
+    if (body.serialNumber !== undefined) {
+      const normalizedSerial = String(body.serialNumber).toUpperCase().trim();
+      const duplicateSerial = await Laptop.findOne({ _id: { $ne: id }, serialNumber: normalizedSerial });
+      if (duplicateSerial) {
+        return NextResponse.json(
+          { error: `A laptop with Serial Number ${normalizedSerial} already exists.` },
+          { status: 400 }
+        );
+      }
+      updatePayload.serialNumber = normalizedSerial;
+    }
+    if (body.brand !== undefined) updatePayload.brand = String(body.brand).trim();
+    if (body.model !== undefined) updatePayload.model = String(body.model).trim();
+    if (body.specs !== undefined) updatePayload.specs = String(body.specs).trim();
+    if (body.condition !== undefined) updatePayload.condition = body.condition;
+    if (body.location !== undefined) updatePayload.location = String(body.location).trim();
+    if (body.accessoriesIncluded !== undefined) {
+      updatePayload.accessoriesIncluded = Array.isArray(body.accessoriesIncluded)
+        ? body.accessoriesIncluded
+        : [];
+    }
+    if (body.notes !== undefined) updatePayload.notes = String(body.notes);
+    if (body.status !== undefined) updatePayload.status = body.status;
+
+    const laptop = await Laptop.findByIdAndUpdate(id, updatePayload, {
       new: true,
       runValidators: true,
     });
