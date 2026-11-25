@@ -20,9 +20,9 @@ export default function AdminSettingsView() {
   const [successMsg, setSuccessMsg] = useState('');
 
   const [formData, setFormData] = useState({
-    minRoomCapacity: 3,
-    maxRoomCapacity: 15,
-    maxSlotDurationHours: 2,
+    minRoomCapacity: '3',
+    maxRoomCapacity: '15',
+    maxSlotDurationHours: '2',
     operatingHoursStart: '08:00',
     operatingHoursEnd: '17:00',
     overdueGraceMinutes: 15,
@@ -41,9 +41,9 @@ export default function AdminSettingsView() {
       if (!res.ok) throw new Error(data.error || 'Failed to fetch policy settings');
       if (data.setting) {
         setFormData({
-          minRoomCapacity: data.setting.minRoomCapacity || 3,
-          maxRoomCapacity: data.setting.maxRoomCapacity || 15,
-          maxSlotDurationHours: data.setting.maxSlotDurationHours || 2,
+          minRoomCapacity: String(data.setting.minRoomCapacity || 3),
+          maxRoomCapacity: String(data.setting.maxRoomCapacity || 15),
+          maxSlotDurationHours: String(data.setting.maxSlotDurationHours || 2),
           operatingHoursStart: data.setting.operatingHoursStart || '08:00',
           operatingHoursEnd: data.setting.operatingHoursEnd || '17:00',
           overdueGraceMinutes: data.setting.overdueGraceMinutes || 15,
@@ -62,10 +62,28 @@ export default function AdminSettingsView() {
       setSaving(true);
       setError('');
       setSuccessMsg('');
+      const minCap = Number(formData.minRoomCapacity);
+      const maxCap = Number(formData.maxRoomCapacity);
+      const maxHours = Number(formData.maxSlotDurationHours);
+      if (
+        !minCap ||
+        !maxCap ||
+        !maxHours ||
+        minCap < 1 ||
+        maxCap <= minCap ||
+        maxHours < 1
+      ) {
+        throw new Error('Please enter valid capacity limits and slot duration hours.');
+      }
       const res = await fetch('/api/admin/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          minRoomCapacity: minCap,
+          maxRoomCapacity: maxCap,
+          maxSlotDurationHours: maxHours,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save settings');
@@ -137,13 +155,15 @@ export default function AdminSettingsView() {
                     Minimum Student Group Size
                   </label>
                   <input
-                    type="number"
-                    min={1}
-                    max={formData.maxRoomCapacity - 1}
+                    type="text"
+                    inputMode="numeric"
                     required
                     value={formData.minRoomCapacity}
                     onChange={(e) =>
-                      setFormData({ ...formData, minRoomCapacity: Number(e.target.value) })
+                      setFormData({
+                        ...formData,
+                        minRoomCapacity: e.target.value.replace(/\D/g, ''),
+                      })
                     }
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515]"
                   />
@@ -155,13 +175,15 @@ export default function AdminSettingsView() {
                     Maximum Room Occupancy Cap
                   </label>
                   <input
-                    type="number"
-                    min={formData.minRoomCapacity + 1}
-                    max={50}
+                    type="text"
+                    inputMode="numeric"
                     required
                     value={formData.maxRoomCapacity}
                     onChange={(e) =>
-                      setFormData({ ...formData, maxRoomCapacity: Number(e.target.value) })
+                      setFormData({
+                        ...formData,
+                        maxRoomCapacity: e.target.value.replace(/\D/g, ''),
+                      })
                     }
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515]"
                   />
@@ -190,13 +212,15 @@ export default function AdminSettingsView() {
                     Standard Slot Limit (Hours)
                   </label>
                   <input
-                    type="number"
-                    min={1}
-                    max={8}
+                    type="text"
+                    inputMode="numeric"
                     required
                     value={formData.maxSlotDurationHours}
                     onChange={(e) =>
-                      setFormData({ ...formData, maxSlotDurationHours: Number(e.target.value) })
+                      setFormData({
+                        ...formData,
+                        maxSlotDurationHours: e.target.value.replace(/\D/g, ''),
+                      })
                     }
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B1515]/20 focus:border-[#8B1515]"
                   />

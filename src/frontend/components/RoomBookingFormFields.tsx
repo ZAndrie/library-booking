@@ -28,7 +28,7 @@ export interface RoomBookingFormState {
   date: string;
   startTime: string;
   endTime: string;
-  attendeesCount: number;
+  attendeesCount: string;
   selectedPurposes: string[];
   otherPurpose: string;
   adminOverride: boolean;
@@ -75,7 +75,7 @@ export function createDynamicBookingState(roomId = ''): RoomBookingFormState {
     date: getLocalDateString(now),
     startTime,
     endTime,
-    attendeesCount: 3,
+    attendeesCount: '',
     selectedPurposes: [],
     otherPurpose: '',
     adminOverride: false,
@@ -236,15 +236,15 @@ export default function RoomBookingFormFields({
                 <span className="text-[10px] text-slate-400">3–15 policy</span>
               </div>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 required
-                min={formData.adminOverride ? 1 : 3}
-                max={formData.adminOverride ? 50 : 15}
+                placeholder="e.g. 5"
                 value={formData.attendeesCount}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    attendeesCount: Number(e.target.value),
+                    attendeesCount: e.target.value.replace(/\D/g, ''),
                   })
                 }
                 className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
@@ -308,15 +308,15 @@ export default function RoomBookingFormFields({
               <span className="text-[10px] text-slate-400">3–15 policy</span>
             </div>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               required
-              min={formData.adminOverride ? 1 : 3}
-              max={formData.adminOverride ? 50 : 15}
+              placeholder="e.g. 5"
               value={formData.attendeesCount}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  attendeesCount: Number(e.target.value),
+                  attendeesCount: e.target.value.replace(/\D/g, ''),
                 })
               }
               className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"

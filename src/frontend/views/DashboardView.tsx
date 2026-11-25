@@ -177,6 +177,12 @@ export default function DashboardView() {
       return;
     }
 
+    const parsedUsers = Number(bookingFormData.attendeesCount);
+    if (!bookingFormData.attendeesCount.trim() || isNaN(parsedUsers) || parsedUsers < 1) {
+      setBookingError('Please enter a valid No. of Users.');
+      return;
+    }
+
     setBookingSubmitting(true);
     try {
       const startDateTime = new Date(`${bookingFormData.date}T${bookingFormData.startTime}:00`);
@@ -193,7 +199,7 @@ export default function DashboardView() {
           endTime: endDateTime.toISOString(),
           purpose: purposeResult.purpose,
           purposes: purposeResult.purposes,
-          attendeesCount: bookingFormData.attendeesCount,
+          attendeesCount: parsedUsers,
           adminOverride: bookingFormData.adminOverride,
         }),
       });

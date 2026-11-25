@@ -108,7 +108,7 @@ export default function RoomsView() {
   const [roomFormData, setRoomFormData] = useState({
     name: '',
     roomNumber: '',
-    capacity: 4,
+    capacity: '',
     facilities: '',
     location: '',
     notes: '',
@@ -171,6 +171,12 @@ export default function RoomsView() {
       return;
     }
 
+    const parsedUsers = Number(bookingFormData.attendeesCount);
+    if (!bookingFormData.attendeesCount.trim() || isNaN(parsedUsers) || parsedUsers < 1) {
+      setBookingError('Please enter a valid No. of Users.');
+      return;
+    }
+
     setBookingSubmitting(true);
 
     try {
@@ -185,7 +191,7 @@ export default function RoomsView() {
         endTime: endDateTime.toISOString(),
         purpose: purposeResult.purpose,
         purposes: purposeResult.purposes,
-        attendeesCount: bookingFormData.attendeesCount,
+        attendeesCount: parsedUsers,
         adminOverride: bookingFormData.adminOverride,
       };
 
@@ -214,6 +220,13 @@ export default function RoomsView() {
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
     setRoomError('');
+
+    const parsedCapacity = Number(roomFormData.capacity);
+    if (!roomFormData.capacity.trim() || isNaN(parsedCapacity) || parsedCapacity < 1) {
+      setRoomError('Please enter a valid room capacity.');
+      return;
+    }
+
     setRoomSubmitting(true);
 
     try {
@@ -226,6 +239,7 @@ export default function RoomsView() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...roomFormData,
+          capacity: parsedCapacity,
           facilities: facArray,
         }),
       });
@@ -238,7 +252,7 @@ export default function RoomsView() {
         setRoomFormData({
           name: '',
           roomNumber: '',
-          capacity: 4,
+          capacity: '',
           facilities: '',
           location: '',
           notes: '',
@@ -818,12 +832,16 @@ export default function RoomsView() {
                       Capacity (Pax) *
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       required
-                      min={1}
+                      placeholder="e.g. 15"
                       value={roomFormData.capacity}
                       onChange={(e) =>
-                        setRoomFormData({ ...roomFormData, capacity: Number(e.target.value) })
+                        setRoomFormData({
+                          ...roomFormData,
+                          capacity: e.target.value.replace(/\D/g, ''),
+                        })
                       }
                       className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
                     />
