@@ -3,6 +3,8 @@ import connectToDatabase from '@/backend/database/db';
 import User, { UserRole } from '@/backend/models/User';
 import RoomBooking from '@/backend/models/RoomBooking';
 import LaptopLoan from '@/backend/models/LaptopLoan';
+import '@/backend/models/Room';
+import '@/backend/models/Laptop';
 import Setting, { invalidateSystemSettingsCache } from '@/backend/models/Setting';
 import { getCurrentUser, hashPassword } from '@/backend/auth/jwt';
 

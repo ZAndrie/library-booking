@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/backend/database/db';
 import RoomBooking from '@/backend/models/RoomBooking';
 import Room from '@/backend/models/Room';
+import '@/backend/models/User';
 import { getCurrentUser, hasPortalAccess } from '@/backend/auth/jwt';
 import { getEffectiveSystemSettings } from '@/backend/models/Setting';
 import { formatTime12h, getManilaDayBounds, getManilaTimeHHMM } from '@/lib/policyUtils';
@@ -55,6 +56,13 @@ export async function getRoomBookings(req: NextRequest) {
 
     return NextResponse.json({ success: true, bookings });
   } catch (error: any) {
+    console.error('getRoomBookings error:', error);
+    if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { error: error.message || 'Failed to load room bookings' },
+        { status: 500 }
+      );
+    }
     console.warn('Bookings notice: MongoDB offline, returning dev store bookings');
     const { getDevBookings } = await import('@/backend/database/devStore');
     return NextResponse.json({ success: true, bookings: getDevBookings(), isDatabaseOffline: true });

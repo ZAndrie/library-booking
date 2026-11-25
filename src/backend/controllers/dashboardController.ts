@@ -4,6 +4,7 @@ import Room from '@/backend/models/Room';
 import RoomBooking from '@/backend/models/RoomBooking';
 import Laptop from '@/backend/models/Laptop';
 import LaptopLoan from '@/backend/models/LaptopLoan';
+import '@/backend/models/User';
 import { getCurrentUser } from '@/backend/auth/jwt';
 import { getEffectiveSystemSettings } from '@/backend/models/Setting';
 import { getManilaDayBounds } from '@/lib/policyUtils';
@@ -97,6 +98,13 @@ export async function getDashboardStats() {
       recentLaptopLoans,
     });
   } catch (error: any) {
+    console.error('getDashboardStats error:', error);
+    if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { error: error.message || 'Failed to load dashboard stats' },
+        { status: 500 }
+      );
+    }
     console.warn('Dashboard notice: MongoDB offline, returning dev store stats');
     const { getDevStats, getDevBookings, getDevLoans } = await import('@/backend/database/devStore');
     const devStats = getDevStats();

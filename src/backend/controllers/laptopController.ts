@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/backend/database/db';
 import Laptop from '@/backend/models/Laptop';
 import LaptopLoan from '@/backend/models/LaptopLoan';
+import '@/backend/models/User';
 import { getCurrentUser } from '@/backend/auth/jwt';
 
 export async function getLaptops(req: NextRequest) {

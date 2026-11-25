@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/backend/database/db';
 import LaptopLoan from '@/backend/models/LaptopLoan';
 import Laptop from '@/backend/models/Laptop';
+import '@/backend/models/User';
 import { getCurrentUser, hasPortalAccess } from '@/backend/auth/jwt';
 import { getEffectiveSystemSettings } from '@/backend/models/Setting';
 
@@ -63,6 +64,13 @@ export async function getLaptopLoans(req: NextRequest) {
 
     return NextResponse.json({ success: true, loans: enrichedLoans });
   } catch (error: any) {
+    console.error('getLaptopLoans error:', error);
+    if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { error: error.message || 'Failed to load laptop loans' },
+        { status: 500 }
+      );
+    }
     console.warn('Laptop loans notice: MongoDB offline, returning dev store loans');
     const { getDevLoans } = await import('@/backend/database/devStore');
     const { searchParams } = new URL(req.url);
