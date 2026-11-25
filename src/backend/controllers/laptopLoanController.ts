@@ -2,10 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/backend/database/db';
 import LaptopLoan from '@/backend/models/LaptopLoan';
 import Laptop from '@/backend/models/Laptop';
-import { getCurrentUser } from '@/backend/auth/jwt';
+import { getCurrentUser, hasPortalAccess } from '@/backend/auth/jwt';
 
 export async function getLaptopLoans(req: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!hasPortalAccess(user, 'laptops')) {
+      return NextResponse.json(
+        { error: 'Access denied: Staff sessions cannot switch desks. Sign out to switch portals.' },
+        { status: 403 }
+      );
+    }
+
     await connectToDatabase();
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
@@ -62,6 +73,12 @@ export async function createLaptopLoan(req: NextRequest) {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!hasPortalAccess(user, 'laptops')) {
+      return NextResponse.json(
+        { error: 'Access denied: Staff sessions cannot switch desks. Sign out to switch portals.' },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();
@@ -176,6 +193,12 @@ export async function returnLaptopLoan(id: string, req: NextRequest) {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!hasPortalAccess(user, 'laptops')) {
+      return NextResponse.json(
+        { error: 'Access denied: Staff sessions cannot switch desks. Sign out to switch portals.' },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();

@@ -37,6 +37,7 @@ interface UserProfile {
   email: string;
   role: 'super_admin' | 'admin' | 'staff';
   employeeId: string;
+  portal?: 'rooms' | 'laptops';
 }
 
 interface NavItem {
@@ -64,6 +65,32 @@ export default function AppShell({ children }: AppShellProps) {
   const isRoomsPortal = pathname.startsWith('/rooms');
   const isLaptopsPortal = pathname.startsWith('/laptops');
   const isAdminPortal = pathname.startsWith('/admin');
+  const isDashboard = pathname.startsWith('/dashboard');
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  const isSuperAdmin = user?.role === 'super_admin';
+  const isStaff = user?.role === 'staff';
+
+  const isUnauthorizedStaffRoute =
+    isStaff &&
+    (isDashboard ||
+      isAdminPortal ||
+      !user?.portal ||
+      (user.portal === 'rooms' && isLaptopsPortal) ||
+      (user.portal === 'laptops' && isRoomsPortal));
+
+  useEffect(() => {
+    if (!isStaff) return;
+    if (isUnauthorizedStaffRoute) {
+      const target =
+        user?.portal === 'rooms'
+          ? '/rooms'
+          : user?.portal === 'laptops'
+          ? '/laptops'
+          : '/portal';
+      router.replace(target);
+    }
+  }, [isStaff, isUnauthorizedStaffRoute, user?.portal, router]);
 
   useEffect(() => {
     // Hydrate from sessionStorage immediately so sidebar never flickers on re-entry
@@ -119,8 +146,25 @@ export default function AppShell({ children }: AppShellProps) {
   };
 
   const getNavSections = (): NavSection[] => {
-    const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
-    const isSuperAdmin = user?.role === 'super_admin';
+    if (!isAdmin) {
+      const assignedPortal = user?.portal || (isLaptopsPortal ? 'laptops' : 'rooms');
+      return [
+        {
+          label: 'SERVICE DESK',
+          items: [
+            assignedPortal === 'laptops'
+              ? { label: 'Laptop Borrowing', href: '/laptops', icon: Laptop }
+              : { label: 'Discussion Rooms', href: '/rooms', icon: DoorOpen },
+          ],
+        },
+        {
+          label: 'ACCOUNT',
+          items: [
+            { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
+          ],
+        },
+      ];
+    }
 
     const sections: NavSection[] = [
       {
@@ -136,10 +180,7 @@ export default function AppShell({ children }: AppShellProps) {
           { label: 'Laptop Borrowing', href: '/laptops', icon: Laptop },
         ],
       },
-    ];
-
-    if (isAdmin) {
-      sections.push({
+      {
         label: 'ADMINISTRATION',
         items: [
           { label: 'Staff Accounts', href: '/admin/users', icon: Users },
@@ -148,22 +189,20 @@ export default function AppShell({ children }: AppShellProps) {
             ? [{ label: 'System Policies', href: '/admin/settings', icon: Sliders }]
             : []),
         ],
-      });
-    }
-
-    sections.push({
-      label: 'PORTAL GATEWAY',
-      items: [
-        { label: 'Switch Counter Desk', href: '/portal', icon: Layers },
-      ],
-    });
-
-    sections.push({
-      label: 'ACCOUNT',
-      items: [
-        { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
-      ],
-    });
+      },
+      {
+        label: 'PORTAL GATEWAY',
+        items: [
+          { label: 'Switch Counter Desk', href: '/portal', icon: Layers },
+        ],
+      },
+      {
+        label: 'ACCOUNT',
+        items: [
+          { label: 'Logout', href: '#logout', icon: LogOut, onClick: handleLogout },
+        ],
+      },
+    ];
 
     return sections;
   };
@@ -378,13 +417,15 @@ export default function AppShell({ children }: AppShellProps) {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
-            <Link
-              href="/portal"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 hover:text-[#8B1515] transition-colors shadow-2xs"
-            >
-              <Layers className="w-3.5 h-3.5 text-[#8B1515]" />
-              <span className="hidden sm:inline">Switch Portal</span>
-            </Link>
+            {isAdmin && (
+              <Link
+                href="/portal"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 hover:text-[#8B1515] transition-colors shadow-2xs"
+              >
+                <Layers className="w-3.5 h-3.5 text-[#8B1515]" />
+                <span className="hidden sm:inline">Switch Portal</span>
+              </Link>
+            )}
 
             <div className="text-right">
               <div className="text-xs font-bold text-slate-800">{user?.name || 'Library Staff'}</div>
@@ -399,7 +440,13 @@ export default function AppShell({ children }: AppShellProps) {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
-          {children}
+          {isUnauthorizedStaffRoute ? (
+            <div className="py-16 text-center text-xs text-slate-500">
+              Redirecting to your assigned service desk...
+            </div>
+          ) : (
+            children
+          )}
         </main>
 
         <footer className="py-4 px-6 border-t border-slate-200 bg-white text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">

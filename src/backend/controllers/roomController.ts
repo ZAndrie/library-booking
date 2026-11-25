@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/backend/database/db';
 import Room from '@/backend/models/Room';
 import RoomBooking from '@/backend/models/RoomBooking';
-import { getCurrentUser } from '@/backend/auth/jwt';
+import { getCurrentUser, hasPortalAccess } from '@/backend/auth/jwt';
 
 export async function getRooms(req: NextRequest) {
   try {
@@ -95,6 +95,12 @@ export async function updateRoom(id: string, req: NextRequest) {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!hasPortalAccess(user, 'rooms')) {
+      return NextResponse.json(
+        { error: 'Access denied: Staff sessions cannot switch desks.' },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();

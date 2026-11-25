@@ -5,12 +5,15 @@ import { UserRole } from '@/backend/models/User';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'library_booking_super_secret_jwt_key_2026';
 
+export type DeskPortal = 'rooms' | 'laptops';
+
 export interface SessionUser {
   id: string;
   name: string;
   email: string;
   role: UserRole;
   employeeId: string;
+  portal?: DeskPortal;
 }
 
 export function signToken(user: SessionUser): string {
@@ -21,10 +24,16 @@ export function signToken(user: SessionUser): string {
       email: user.email,
       role: user.role,
       employeeId: user.employeeId,
+      ...(user.portal ? { portal: user.portal } : {}),
     },
     JWT_SECRET,
     { expiresIn: '7d' }
   );
+}
+
+export function hasPortalAccess(user: SessionUser, requiredPortal: DeskPortal): boolean {
+  if (user.role === 'admin' || user.role === 'super_admin') return true;
+  return user.portal === requiredPortal;
 }
 
 export function verifyToken(token: string): SessionUser | null {

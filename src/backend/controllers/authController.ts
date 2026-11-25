@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/backend/database/db';
 import User, { UserRole } from '@/backend/models/User';
 import { findDevUserByIdentifier } from '@/backend/database/devStore';
-import { comparePassword, signToken, getCurrentUser } from '@/backend/auth/jwt';
+import { comparePassword, signToken, getCurrentUser, DeskPortal, SessionUser } from '@/backend/auth/jwt';
 
 async function tryConnectDb(): Promise<boolean> {
   try {
@@ -19,6 +19,7 @@ export async function handleLogin(req: NextRequest) {
     const body = await req.json();
     const identifier = (body.username || body.email || body.identifier || '').trim();
     const password = body.password;
+    const requestedPortal = body.portal as string | undefined;
 
     if (!identifier || !password) {
       return NextResponse.json(
@@ -28,13 +29,7 @@ export async function handleLogin(req: NextRequest) {
     }
 
     const hasDb = await tryConnectDb();
-    let sessionUser: {
-      id: string;
-      name: string;
-      email: string;
-      role: UserRole;
-      employeeId: string;
-    } | null = null;
+    let sessionUser: SessionUser | null = null;
 
     if (hasDb) {
       const user = await User.findOne({
@@ -112,6 +107,21 @@ export async function handleLogin(req: NextRequest) {
       };
     }
 
+    if (sessionUser.role === 'staff') {
+      if (requestedPortal === 'dashboard') {
+        return NextResponse.json(
+          {
+            error:
+              'Access denied: The Master Operations Dashboard is restricted to Administrators and Super Administrators. Please sign in through a specific service desk.',
+          },
+          { status: 403 }
+        );
+      }
+      if (requestedPortal === 'rooms' || requestedPortal === 'laptops') {
+        sessionUser.portal = requestedPortal as DeskPortal;
+      }
+    }
+
     const token = signToken(sessionUser);
 
     const response = NextResponse.json({
@@ -157,4 +167,56 @@ export async function handleGetCurrentUser() {
   }
 
   return NextResponse.json({ authenticated: true, user });
+}
+
+export async function handleSelectPortal(req: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const portal = body.portal as DeskPortal | undefined;
+    if (portal !== 'rooms' && portal !== 'laptops') {
+      return NextResponse.json(
+        { error: 'Invalid service desk portal selected.' },
+        { status: 400 }
+      );
+    }
+
+    // Admins & Super Admins can switch portals freely without locking
+    if (user.role === 'admin' || user.role === 'super_admin') {
+      return NextResponse.json({ success: true, user });
+    }
+
+    // Staff cannot switch once locked to a desk in the active session
+    if (user.portal && user.portal !== portal) {
+      return NextResponse.json(
+        {
+          error:
+            'Access denied: Staff accounts cannot switch service desks during an active session. Please sign out first.',
+        },
+        { status: 403 }
+      );
+    }
+
+    const updatedUser: SessionUser = { ...user, portal };
+    const token = signToken(updatedUser);
+
+    const response = NextResponse.json({ success: true, user: updatedUser });
+    response.cookies.set('staff_auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    return response;
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || 'Failed to bind service desk portal' },
+      { status: 500 }
+    );
+  }
 }

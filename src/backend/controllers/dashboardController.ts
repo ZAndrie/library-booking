@@ -4,9 +4,21 @@ import Room from '@/backend/models/Room';
 import RoomBooking from '@/backend/models/RoomBooking';
 import Laptop from '@/backend/models/Laptop';
 import LaptopLoan from '@/backend/models/LaptopLoan';
+import { getCurrentUser } from '@/backend/auth/jwt';
 
 export async function getDashboardStats() {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (user.role !== 'admin' && user.role !== 'super_admin') {
+      return NextResponse.json(
+        { error: 'Access denied: Operations Dashboard is restricted to Administrators and Super Administrators.' },
+        { status: 403 }
+      );
+    }
+
     await connectToDatabase();
     const now = new Date();
 

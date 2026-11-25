@@ -111,13 +111,17 @@ export default function LoginView() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, portal }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.error || 'Failed to authenticate');
+      }
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('lirc_desk_user');
       }
 
       if (portal === 'rooms') {

@@ -2,10 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/backend/database/db';
 import RoomBooking from '@/backend/models/RoomBooking';
 import Room from '@/backend/models/Room';
-import { getCurrentUser } from '@/backend/auth/jwt';
+import { getCurrentUser, hasPortalAccess } from '@/backend/auth/jwt';
 
 export async function getRoomBookings(req: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!hasPortalAccess(user, 'rooms')) {
+      return NextResponse.json(
+        { error: 'Access denied: Staff sessions cannot switch desks. Sign out to switch portals.' },
+        { status: 403 }
+      );
+    }
+
     await connectToDatabase();
     const { searchParams } = new URL(req.url);
     const roomId = searchParams.get('roomId');
@@ -56,6 +67,12 @@ export async function createRoomBooking(req: NextRequest) {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!hasPortalAccess(user, 'rooms')) {
+      return NextResponse.json(
+        { error: 'Access denied: Staff sessions cannot switch desks. Sign out to switch portals.' },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();
@@ -170,6 +187,17 @@ export async function createRoomBooking(req: NextRequest) {
 
 export async function getRoomBookingById(id: string) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!hasPortalAccess(user, 'rooms')) {
+      return NextResponse.json(
+        { error: 'Access denied: Staff sessions cannot switch desks.' },
+        { status: 403 }
+      );
+    }
+
     await connectToDatabase();
     const booking = await RoomBooking.findById(id)
       .populate('roomId')
@@ -189,6 +217,12 @@ export async function updateRoomBooking(id: string, req: NextRequest) {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!hasPortalAccess(user, 'rooms')) {
+      return NextResponse.json(
+        { error: 'Access denied: Staff sessions cannot switch desks.' },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();

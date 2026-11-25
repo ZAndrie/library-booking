@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   MapPin,
+  Lock,
 } from 'lucide-react';
 
 interface UserProfile {
@@ -21,6 +22,7 @@ interface UserProfile {
   email: string;
   role: 'super_admin' | 'admin' | 'staff';
   employeeId: string;
+  portal?: 'rooms' | 'laptops';
 }
 
 interface AvailabilityCounts {
@@ -38,6 +40,12 @@ export default function PortalGatewayView() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [counts, setCounts] = useState<AvailabilityCounts | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectingPortal, setSelectingPortal] = useState<'rooms' | 'laptops' | null>(null);
+
+  const isStaff = user?.role === 'staff';
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  const isRoomsLockedForStaff = isStaff && user?.portal === 'laptops';
+  const isLaptopsLockedForStaff = isStaff && user?.portal === 'rooms';
 
   useEffect(() => {
     async function loadData() {
@@ -70,9 +78,32 @@ export default function PortalGatewayView() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       setUser(null);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('lirc_desk_user');
+      }
     } finally {
       router.push('/login');
       router.refresh();
+    }
+  };
+
+  const handleSelectStaffPortal = async (targetPortal: 'rooms' | 'laptops') => {
+    setSelectingPortal(targetPortal);
+    try {
+      const res = await fetch('/api/auth/select-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portal: targetPortal }),
+      });
+      if (res.ok) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('lirc_desk_user');
+        }
+        router.push(targetPortal === 'rooms' ? '/rooms' : '/laptops');
+        router.refresh();
+      }
+    } finally {
+      setSelectingPortal(null);
     }
   };
 
@@ -301,35 +332,61 @@ export default function PortalGatewayView() {
 
               {/* Action Button & Shortcuts */}
               <div className="space-y-3 pt-2">
-                <Link
-                  href={user ? '/rooms' : '/login?portal=rooms'}
-                  className="w-full py-3.5 px-6 bg-[#8B1515] hover:bg-[#721111] text-white font-bold text-sm sm:text-base rounded-xl shadow-md shadow-red-950/20 flex items-center justify-center gap-2.5 transition-all transform group-hover:translate-x-0.5 hover:shadow-lg"
-                >
-                  <span>Enter Discussion Rooms Portal</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-                <div className="flex items-center justify-between text-xs text-slate-500 px-1 pt-1 font-medium">
-                  <Link
-                    href={user ? '/rooms?action=new' : '/login?portal=rooms'}
-                    className="hover:text-[#8B1515] transition-colors"
+                {isRoomsLockedForStaff ? (
+                  <div className="space-y-2.5">
+                    <div className="w-full py-3.5 px-5 bg-slate-100 border border-slate-200 text-slate-500 font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 cursor-not-allowed">
+                      <Lock className="w-4 h-4 text-slate-400" />
+                      <span>Locked — Active Laptop Borrowing Session</span>
+                    </div>
+                    <p className="text-[11px] text-center text-slate-500">
+                      Staff accounts cannot switch service desks. Sign out first to access Discussion Rooms.
+                    </p>
+                  </div>
+                ) : isStaff && !user?.portal ? (
+                  <button
+                    type="button"
+                    disabled={selectingPortal !== null}
+                    onClick={() => handleSelectStaffPortal('rooms')}
+                    className="w-full py-3.5 px-6 bg-[#8B1515] hover:bg-[#721111] text-white font-bold text-sm sm:text-base rounded-xl shadow-md shadow-red-950/20 flex items-center justify-center gap-2.5 transition-all transform group-hover:translate-x-0.5 hover:shadow-lg cursor-pointer disabled:opacity-60"
                   >
-                    + Add Walk-In Booking
-                  </Link>
-                  <span>•</span>
-                  <Link
-                    href={user ? '/rooms?tab=plotter' : '/login?portal=rooms'}
-                    className="hover:text-[#8B1515] transition-colors"
-                  >
-                    Time Plotter
-                  </Link>
-                  <span>•</span>
-                  <Link
-                    href={user ? '/rooms?tab=ledger' : '/login?portal=rooms'}
-                    className="hover:text-[#8B1515] transition-colors"
-                  >
-                    Booking Ledger
-                  </Link>
-                </div>
+                    <span>
+                      {selectingPortal === 'rooms' ? 'Entering Desk...' : 'Enter Discussion Rooms Portal'}
+                    </span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <>
+                    <Link
+                      href={user ? '/rooms' : '/login?portal=rooms'}
+                      className="w-full py-3.5 px-6 bg-[#8B1515] hover:bg-[#721111] text-white font-bold text-sm sm:text-base rounded-xl shadow-md shadow-red-950/20 flex items-center justify-center gap-2.5 transition-all transform group-hover:translate-x-0.5 hover:shadow-lg"
+                    >
+                      <span>Enter Discussion Rooms Portal</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <div className="flex items-center justify-between text-xs text-slate-500 px-1 pt-1 font-medium">
+                      <Link
+                        href={user ? '/rooms?action=new' : '/login?portal=rooms'}
+                        className="hover:text-[#8B1515] transition-colors"
+                      >
+                        + Add Walk-In Booking
+                      </Link>
+                      <span>•</span>
+                      <Link
+                        href={user ? '/rooms?tab=plotter' : '/login?portal=rooms'}
+                        className="hover:text-[#8B1515] transition-colors"
+                      >
+                        Time Plotter
+                      </Link>
+                      <span>•</span>
+                      <Link
+                        href={user ? '/rooms?tab=ledger' : '/login?portal=rooms'}
+                        className="hover:text-[#8B1515] transition-colors"
+                      >
+                        Booking Ledger
+                      </Link>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -391,66 +448,94 @@ export default function PortalGatewayView() {
 
               {/* Action Button & Shortcuts */}
               <div className="space-y-3 pt-2">
-                <Link
-                  href={user ? '/laptops' : '/login?portal=laptops'}
-                  className="w-full py-3.5 px-6 bg-[#8B1515] hover:bg-[#721111] text-white font-bold text-sm sm:text-base rounded-xl shadow-md shadow-red-950/20 flex items-center justify-center gap-2.5 transition-all transform group-hover:translate-x-0.5 hover:shadow-lg"
-                >
-                  <span>Enter Laptop Borrowing Portal</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-                <div className="flex items-center justify-between text-xs text-slate-500 px-1 pt-1 font-medium">
-                  <Link
-                    href={user ? '/laptops' : '/login?portal=laptops'}
-                    className="hover:text-[#8B1515] transition-colors"
+                {isLaptopsLockedForStaff ? (
+                  <div className="space-y-2.5">
+                    <div className="w-full py-3.5 px-5 bg-slate-100 border border-slate-200 text-slate-500 font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 cursor-not-allowed">
+                      <Lock className="w-4 h-4 text-slate-400" />
+                      <span>Locked — Active Discussion Rooms Session</span>
+                    </div>
+                    <p className="text-[11px] text-center text-slate-500">
+                      Staff accounts cannot switch service desks. Sign out first to access Laptop Borrowing.
+                    </p>
+                  </div>
+                ) : isStaff && !user?.portal ? (
+                  <button
+                    type="button"
+                    disabled={selectingPortal !== null}
+                    onClick={() => handleSelectStaffPortal('laptops')}
+                    className="w-full py-3.5 px-6 bg-[#8B1515] hover:bg-[#721111] text-white font-bold text-sm sm:text-base rounded-xl shadow-md shadow-red-950/20 flex items-center justify-center gap-2.5 transition-all transform group-hover:translate-x-0.5 hover:shadow-lg cursor-pointer disabled:opacity-60"
                   >
-                    + Issue Laptop Loan
-                  </Link>
-                  <span>•</span>
-                  <Link
-                    href={user ? '/laptops' : '/login?portal=laptops'}
-                    className="hover:text-[#8B1515] transition-colors"
-                  >
-                    Overdue Tracker
-                  </Link>
-                  <span>•</span>
-                  <Link
-                    href={user ? '/laptops' : '/login?portal=laptops'}
-                    className="hover:text-[#8B1515] transition-colors"
-                  >
-                    Condition Audit
-                  </Link>
-                </div>
+                    <span>
+                      {selectingPortal === 'laptops' ? 'Entering Desk...' : 'Enter Laptop Borrowing Portal'}
+                    </span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <>
+                    <Link
+                      href={user ? '/laptops' : '/login?portal=laptops'}
+                      className="w-full py-3.5 px-6 bg-[#8B1515] hover:bg-[#721111] text-white font-bold text-sm sm:text-base rounded-xl shadow-md shadow-red-950/20 flex items-center justify-center gap-2.5 transition-all transform group-hover:translate-x-0.5 hover:shadow-lg"
+                    >
+                      <span>Enter Laptop Borrowing Portal</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <div className="flex items-center justify-between text-xs text-slate-500 px-1 pt-1 font-medium">
+                      <Link
+                        href={user ? '/laptops' : '/login?portal=laptops'}
+                        className="hover:text-[#8B1515] transition-colors"
+                      >
+                        + Issue Laptop Loan
+                      </Link>
+                      <span>•</span>
+                      <Link
+                        href={user ? '/laptops' : '/login?portal=laptops'}
+                        className="hover:text-[#8B1515] transition-colors"
+                      >
+                        Overdue Tracker
+                      </Link>
+                      <span>•</span>
+                      <Link
+                        href={user ? '/laptops' : '/login?portal=laptops'}
+                        className="hover:text-[#8B1515] transition-colors"
+                      >
+                        Condition Audit
+                      </Link>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Secondary: Unified Operations Dashboard Banner */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row items-center justify-between gap-5">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-red-50 border border-red-200 text-[#8B1515] flex items-center justify-center shrink-0 shadow-inner">
-                <LayoutDashboard className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="font-serif text-lg font-bold text-slate-900 flex items-center gap-2.5">
-                  Unified Operations Dashboard
-                  <span className="text-[10px] font-sans font-bold bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    Master Hub
-                  </span>
+          {/* Secondary: Unified Operations Dashboard Banner (Admin & Super Admin Only) */}
+          {(!user || isAdmin) && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row items-center justify-between gap-5">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-red-50 border border-red-200 text-[#8B1515] flex items-center justify-center shrink-0 shadow-inner">
+                  <LayoutDashboard className="w-6 h-6" />
                 </div>
-                <p className="text-xs sm:text-sm text-slate-500 mt-0.5 leading-relaxed">
-                  Consolidated supervisory desk for managing discussion spaces and hardware loans side-by-side.
-                </p>
+                <div>
+                  <div className="font-serif text-lg font-bold text-slate-900 flex items-center gap-2.5 flex-wrap">
+                    Unified Operations Dashboard
+                    <span className="text-[10px] font-sans font-bold bg-red-100 text-[#8B1515] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      Admin & Super Admin Only
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5 leading-relaxed">
+                    Consolidated supervisory desk for managing discussion spaces, hardware loans, and switching across portals.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <Link
-              href={user ? '/dashboard' : '/login?portal=dashboard'}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm border border-slate-200 transition-all shrink-0"
-            >
-              <span>Open Master Dashboard</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+              <Link
+                href={user ? '/dashboard' : '/login?portal=dashboard'}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm border border-slate-200 transition-all shrink-0"
+              >
+                <span>Open Master Dashboard</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          )}
         </div>
       </main>
 
