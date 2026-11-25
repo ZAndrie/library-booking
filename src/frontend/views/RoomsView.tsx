@@ -837,6 +837,7 @@ export default function RoomsView() {
                   setFormData={setBookingFormData}
                   rooms={rooms}
                   policies={policies}
+                  existingBookings={bookings}
                   isAdmin={
                     currentUser?.role === 'admin' || currentUser?.role === 'super_admin'
                   }

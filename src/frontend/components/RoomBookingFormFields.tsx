@@ -26,6 +26,14 @@ export interface RoomOption {
   status: string;
 }
 
+export interface ActiveRoomSlot {
+  _id?: string;
+  roomId: string | { _id: string };
+  startTime: string;
+  endTime: string;
+  status: string;
+}
+
 export interface RoomBookingFormState {
   roomId: string;
   borrowerName: string;
@@ -67,6 +75,93 @@ export function getDurationLabel(startTime: string, endTime: string): string | n
   if (hrs > 0 && mins > 0) return `${hrs}h ${mins}m`;
   if (hrs > 0) return `${hrs} hr${hrs > 1 ? 's' : ''}`;
   return `${mins} mins`;
+}
+
+function toMinutes(hhmm: string): number {
+  const [hStr, mStr] = (hhmm || '').split(':');
+  const h = Number(hStr);
+  const m = Number(mStr);
+  if (isNaN(h) || isNaN(m)) return -1;
+  return h * 60 + m;
+}
+
+function minutesToHHMM(totalMins: number): string {
+  const clamped = Math.max(0, Math.min(totalMins, 23 * 60 + 59));
+  return `${pad2(Math.floor(clamped / 60))}:${pad2(clamped % 60)}`;
+}
+
+export function findNextAvailableSlot(
+  bookings: ActiveRoomSlot[],
+  roomId: string,
+  dateStr: string,
+  policies: SystemPolicyData,
+  preferredStartHHMM?: string
+): {
+  startTime: string;
+  endTime: string;
+  adjustedFromConflict: boolean;
+  noSlotsLeftInHours: boolean;
+} {
+  const slotMins = Math.max(30, Math.round(policies.maxSlotDurationHours * 60));
+  const openMins = toMinutes(policies.operatingHoursStart);
+  const closeMins = toMinutes(policies.operatingHoursEnd);
+  const hasValidHours = openMins >= 0 && closeMins > openMins;
+
+  let baseStartMins: number;
+  if (preferredStartHHMM && toMinutes(preferredStartHHMM) >= 0) {
+    baseStartMins = toMinutes(preferredStartHHMM);
+  } else if (dateStr === getLocalDateString()) {
+    const now = new Date();
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    baseStartMins = hasValidHours && nowMins < openMins ? openMins : nowMins;
+  } else {
+    baseStartMins = openMins >= 0 ? openMins : 8 * 60;
+  }
+
+  const dayStartMs = new Date(`${dateStr}T00:00:00`).getTime();
+  const intervals =
+    !roomId || isNaN(dayStartMs)
+      ? []
+      : bookings
+          .filter((b) => {
+            if (b.status !== 'active') return false;
+            const bRoomId = typeof b.roomId === 'string' ? b.roomId : b.roomId?._id;
+            return bRoomId === roomId;
+          })
+          .map((b) => ({
+            startMins: Math.floor((new Date(b.startTime).getTime() - dayStartMs) / 60000),
+            endMins: Math.ceil((new Date(b.endTime).getTime() - dayStartMs) / 60000),
+          }))
+          .filter((b) => !isNaN(b.startMins) && !isNaN(b.endMins) && b.endMins > 0 && b.startMins < 1440)
+          .sort((a, b) => a.startMins - b.startMins || a.endMins - b.endMins);
+
+  let startMins = baseStartMins;
+  let endMins =
+    hasValidHours && startMins < closeMins
+      ? Math.min(startMins + slotMins, closeMins)
+      : startMins + slotMins;
+  if (endMins <= startMins) endMins = startMins + slotMins;
+
+  let adjustedFromConflict = false;
+  for (const b of intervals) {
+    if (b.startMins < endMins && b.endMins > startMins) {
+      startMins = Math.max(startMins, b.endMins);
+      adjustedFromConflict = true;
+      endMins =
+        hasValidHours && startMins < closeMins
+          ? Math.min(startMins + slotMins, closeMins)
+          : startMins + slotMins;
+      if (endMins <= startMins) endMins = startMins + slotMins;
+    }
+  }
+
+  const noSlotsLeftInHours = hasValidHours && startMins >= closeMins;
+  return {
+    startTime: minutesToHHMM(startMins),
+    endTime: minutesToHHMM(endMins),
+    adjustedFromConflict,
+    noSlotsLeftInHours,
+  };
 }
 
 export function createDynamicBookingState(
@@ -127,6 +222,7 @@ interface RoomBookingFormFieldsProps {
   rooms?: RoomOption[];
   isAdmin: boolean;
   policies?: SystemPolicyData;
+  existingBookings?: ActiveRoomSlot[];
 }
 
 export default function RoomBookingFormFields({
@@ -135,10 +231,117 @@ export default function RoomBookingFormFields({
   rooms,
   isAdmin,
   policies,
+  existingBookings,
 }: RoomBookingFormFieldsProps) {
   const activePolicies = policies || DEFAULT_SYSTEM_POLICIES;
   const defaultDurationMins = Math.max(30, Math.round(activePolicies.maxSlotDurationHours * 60));
   const durationLabel = getDurationLabel(formData.startTime, formData.endTime);
+
+  const [fetchedDayBookings, setFetchedDayBookings] = React.useState<ActiveRoomSlot[]>([]);
+  const [slotStatusHint, setSlotStatusHint] = React.useState<{
+    type: 'adjusted' | 'full' | '';
+    text: string;
+  }>({ type: '', text: '' });
+  const manualTimeEditedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!formData.date) return;
+    let cancelled = false;
+    fetch(`/api/room-bookings?date=${encodeURIComponent(formData.date)}&status=active`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled && Array.isArray(d?.bookings)) {
+          setFetchedDayBookings(d.bookings);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.date]);
+
+  const mergedBookings = React.useMemo(() => {
+    const map = new Map<string, ActiveRoomSlot>();
+    for (const b of existingBookings || []) {
+      const key = b._id || `${b.startTime}-${b.endTime}`;
+      map.set(key, b);
+    }
+    for (const b of fetchedDayBookings) {
+      const key = b._id || `${b.startTime}-${b.endTime}`;
+      map.set(key, b);
+    }
+    return Array.from(map.values());
+  }, [existingBookings, fetchedDayBookings]);
+
+  const applyNextAvailableSlot = React.useCallback(
+    (roomId: string, dateStr: string, preferredStartHHMM?: string) => {
+      const next = findNextAvailableSlot(
+        mergedBookings,
+        roomId,
+        dateStr,
+        activePolicies,
+        preferredStartHHMM
+      );
+      setFormData((prev) => ({
+        ...prev,
+        date: dateStr,
+        startTime: next.startTime,
+        endTime: next.endTime,
+      }));
+      if (next.noSlotsLeftInHours && next.adjustedFromConflict) {
+        setSlotStatusHint({
+          type: 'full',
+          text: `Booked until closing (${formatTime12h(activePolicies.operatingHoursEnd)})`,
+        });
+      } else if (next.adjustedFromConflict) {
+        setSlotStatusHint({
+          type: 'adjusted',
+          text: `Auto-set to next free slot: ${formatTime12h(next.startTime)} – ${formatTime12h(next.endTime)}`,
+        });
+      } else {
+        setSlotStatusHint({ type: '', text: '' });
+      }
+    },
+    [mergedBookings, activePolicies, setFormData]
+  );
+
+  React.useEffect(() => {
+    if (!formData.roomId || !formData.date || manualTimeEditedRef.current) {
+      if (!formData.roomId) setSlotStatusHint({ type: '', text: '' });
+      return;
+    }
+    applyNextAvailableSlot(formData.roomId, formData.date);
+  }, [formData.roomId, formData.date, mergedBookings, activePolicies.maxSlotDurationHours, activePolicies.operatingHoursStart, activePolicies.operatingHoursEnd, applyNextAvailableSlot]);
+
+  const manualConflict = React.useMemo(() => {
+    if (!formData.roomId || !formData.date || !formData.startTime || !formData.endTime) return null;
+    const reqStart = new Date(`${formData.date}T${formData.startTime}:00`).getTime();
+    const reqEnd = new Date(`${formData.date}T${formData.endTime}:00`).getTime();
+    if (isNaN(reqStart) || isNaN(reqEnd) || reqStart >= reqEnd) return null;
+
+    const overlapping = mergedBookings.find((b) => {
+      if (b.status !== 'active') return false;
+      const bRoomId = typeof b.roomId === 'string' ? b.roomId : b.roomId?._id;
+      if (bRoomId !== formData.roomId) return false;
+      const bStart = new Date(b.startTime).getTime();
+      const bEnd = new Date(b.endTime).getTime();
+      return bStart < reqEnd && bEnd > reqStart;
+    });
+    if (!overlapping) return null;
+
+    const next = findNextAvailableSlot(
+      mergedBookings,
+      formData.roomId,
+      formData.date,
+      activePolicies,
+      formData.startTime
+    );
+    return {
+      nextStart: next.startTime,
+      nextEnd: next.endTime,
+      nextLabel: formatTime12h(next.startTime),
+    };
+  }, [formData.roomId, formData.date, formData.startTime, formData.endTime, mergedBookings, activePolicies]);
 
   const durationPresets = [
     { label: '+1h', mins: 60 },
@@ -171,14 +374,9 @@ export default function RoomBookingFormFields({
   };
 
   const snapToCurrentTime = () => {
-    const now = new Date();
-    const startTime = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-    setFormData((prev) => ({
-      ...prev,
-      date: getLocalDateString(now),
-      startTime,
-      endTime: addMinutesToTime(startTime, defaultDurationMins),
-    }));
+    manualTimeEditedRef.current = false;
+    const todayStr = getLocalDateString();
+    applyNextAvailableSlot(formData.roomId, todayStr);
   };
 
   return (
@@ -194,7 +392,10 @@ export default function RoomBookingFormFields({
               <select
                 required
                 value={formData.roomId}
-                onChange={(e) => setFormData({ ...formData, roomId: e.target.value })}
+                onChange={(e) => {
+                  manualTimeEditedRef.current = false;
+                  setFormData({ ...formData, roomId: e.target.value });
+                }}
                 className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
               >
                 <option value="">-- Choose an available room --</option>
@@ -243,7 +444,10 @@ export default function RoomBookingFormFields({
                 <label className="font-semibold text-slate-700">Date *</label>
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, date: getLocalDateString() })}
+                  onClick={() => {
+                    manualTimeEditedRef.current = false;
+                    setFormData({ ...formData, date: getLocalDateString() });
+                  }}
                   className="text-[10px] font-bold text-[#8B1515] hover:underline cursor-pointer"
                 >
                   Today
@@ -253,7 +457,10 @@ export default function RoomBookingFormFields({
                 type="date"
                 required
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                onChange={(e) => {
+                  manualTimeEditedRef.current = false;
+                  setFormData({ ...formData, date: e.target.value });
+                }}
                 className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
               />
             </div>
@@ -317,7 +524,10 @@ export default function RoomBookingFormFields({
               <label className="font-semibold text-slate-700">Date *</label>
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, date: getLocalDateString() })}
+                onClick={() => {
+                  manualTimeEditedRef.current = false;
+                  setFormData({ ...formData, date: getLocalDateString() });
+                }}
                 className="text-[10px] font-bold text-[#8B1515] hover:underline cursor-pointer"
               >
                 Today
@@ -327,7 +537,10 @@ export default function RoomBookingFormFields({
               type="date"
               required
               value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              onChange={(e) => {
+                manualTimeEditedRef.current = false;
+                setFormData({ ...formData, date: e.target.value });
+              }}
               className="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
             />
           </div>
@@ -360,13 +573,45 @@ export default function RoomBookingFormFields({
       {/* Time of Use (Dynamic) */}
       <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <label className="font-semibold text-slate-700 flex items-center gap-1.5">
+          <label className="font-semibold text-slate-700 flex items-center gap-1.5 flex-wrap">
             <Clock className="w-3.5 h-3.5 text-[#8B1515]" />
             <span>Time of Use *</span>
             {durationLabel && (
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-[#8B1515]">
                 {durationLabel}
               </span>
+            )}
+            {manualConflict ? (
+              <button
+                type="button"
+                onClick={() => {
+                  manualTimeEditedRef.current = false;
+                  setFormData((prev) => ({
+                    ...prev,
+                    startTime: manualConflict.nextStart,
+                    endTime: manualConflict.nextEnd,
+                  }));
+                  setSlotStatusHint({
+                    type: 'adjusted',
+                    text: `Auto-set to next free slot: ${formatTime12h(manualConflict.nextStart)} – ${formatTime12h(manualConflict.nextEnd)}`,
+                  });
+                }}
+                className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 cursor-pointer"
+              >
+                Conflict • Use {manualConflict.nextLabel}
+              </button>
+            ) : (
+              slotStatusHint.text && (
+                <span
+                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                    slotStatusHint.type === 'full'
+                      ? 'bg-amber-50 text-amber-800 border-amber-200'
+                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  }`}
+                >
+                  {slotStatusHint.text}
+                </span>
+              )
             )}
           </label>
 
@@ -382,12 +627,14 @@ export default function RoomBookingFormFields({
               <button
                 key={preset.label}
                 type="button"
-                onClick={() =>
+                onClick={() => {
+                  manualTimeEditedRef.current = true;
+                  setSlotStatusHint({ type: '', text: '' });
                   setFormData((prev) => ({
                     ...prev,
                     endTime: addMinutesToTime(prev.startTime, preset.mins),
-                  }))
-                }
+                  }));
+                }}
                 className="px-2 py-0.5 rounded bg-white border border-slate-300 hover:border-[#8B1515] text-[10px] font-semibold text-slate-700 hover:text-[#8B1515] cursor-pointer"
               >
                 {preset.label}
@@ -406,6 +653,8 @@ export default function RoomBookingFormFields({
               required
               value={formData.startTime}
               onChange={(e) => {
+                manualTimeEditedRef.current = true;
+                setSlotStatusHint({ type: '', text: '' });
                 const nextStart = e.target.value;
                 setFormData((prev) => ({
                   ...prev,
@@ -424,7 +673,11 @@ export default function RoomBookingFormFields({
               type="time"
               required
               value={formData.endTime}
-              onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+              onChange={(e) => {
+                manualTimeEditedRef.current = true;
+                setSlotStatusHint({ type: '', text: '' });
+                setFormData({ ...formData, endTime: e.target.value });
+              }}
               className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 focus:ring-1 focus:ring-[#8B1515] outline-none"
             />
           </div>
