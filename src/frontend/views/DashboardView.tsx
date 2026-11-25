@@ -7,7 +7,11 @@ import RoomBookingFormFields, {
   createDynamicBookingState,
   buildBookingPurpose,
 } from '@/frontend/components/RoomBookingFormFields';
-import { DEFAULT_SYSTEM_POLICIES, SystemPolicyData } from '@/lib/policyUtils';
+import {
+  DEFAULT_SYSTEM_POLICIES,
+  SystemPolicyData,
+  getRoomBookingDisplayState,
+} from '@/lib/policyUtils';
 import {
   LayoutDashboard,
   DoorOpen,
@@ -715,26 +719,29 @@ export default function DashboardView() {
               </div>
             ) : (
               <div className="space-y-2">
-                {recentRooms.map((rb) => (
-                  <div
-                    key={rb._id}
-                    className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs"
-                  >
-                    <div>
-                      <div className="font-bold text-slate-800">
-                        {rb.roomId?.name || 'Room'} • {rb.borrowerName}
+                {recentRooms.map((rb) => {
+                  const displayState = getRoomBookingDisplayState(rb);
+                  return (
+                    <div
+                      key={rb._id}
+                      className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs"
+                    >
+                      <div>
+                        <div className="font-bold text-slate-800">
+                          {rb.roomId?.name || 'Room'} • {rb.borrowerName}
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          {rb.courseAndYear || (rb.borrowerId ? `ID: ${rb.borrowerId}` : '')} • Purpose: {rb.purpose}
+                        </div>
                       </div>
-                      <div className="text-[11px] text-slate-500">
-                        ID: {rb.borrowerId} • Purpose: {rb.purpose}
+                      <div className="text-right">
+                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${displayState.badgeClass}`}>
+                          {displayState.label}
+                        </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                        {rb.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

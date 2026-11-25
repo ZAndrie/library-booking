@@ -7,7 +7,11 @@ import RoomBookingFormFields, {
   buildBookingPurpose,
   getLocalDateString,
 } from '@/frontend/components/RoomBookingFormFields';
-import { DEFAULT_SYSTEM_POLICIES, SystemPolicyData } from '@/lib/policyUtils';
+import {
+  DEFAULT_SYSTEM_POLICIES,
+  SystemPolicyData,
+  getRoomBookingDisplayState,
+} from '@/lib/policyUtils';
 import {
   DoorOpen,
   Calendar,
@@ -537,7 +541,7 @@ export default function RoomsView() {
                   className="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#8B1515]"
                 >
                   <option value="all">All Statuses</option>
-                  <option value="active">Active Sessions</option>
+                  <option value="active">Active & Reserved</option>
                   <option value="completed">Completed</option>
                   <option value="cancelled">Cancelled</option>
                   <option value="no_show">No Show</option>
@@ -574,10 +578,8 @@ export default function RoomsView() {
                     hour: '2-digit',
                     minute: '2-digit',
                   });
-                  const isCurrentActive =
-                    booking.status === 'active' &&
-                    new Date() >= new Date(booking.startTime) &&
-                    new Date() <= new Date(booking.endTime);
+                  const displayState = getRoomBookingDisplayState(booking);
+                  const isCurrentActive = displayState.kind === 'active_session';
 
                   return (
                     <div
@@ -590,28 +592,17 @@ export default function RoomsView() {
                     >
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-serif font-bold text-base text-slate-900">
                               {booking.roomId?.name || 'Discussion Room'}
                             </span>
                             <span className="text-xs px-2 py-0.5 rounded bg-red-50 text-[#8B1515] font-semibold border border-red-200">
                               {booking.roomId?.roomNumber}
                             </span>
-                            {isCurrentActive && (
-                              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse">
-                                Active Session
-                              </span>
-                            )}
                             <span
-                              className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                                booking.status === 'active'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : booking.status === 'completed'
-                                  ? 'bg-slate-100 text-slate-700'
-                                  : 'bg-rose-100 text-rose-800'
-                              }`}
+                              className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded ${displayState.badgeClass}`}
                             >
-                              {booking.status}
+                              {displayState.label}
                             </span>
                           </div>
 

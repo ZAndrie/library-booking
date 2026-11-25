@@ -53,3 +53,69 @@ export function getManilaDayBounds(dateStr?: string): { startOfDay: Date; endOfD
     endOfDay: new Date(`${targetDate}T23:59:59.999+08:00`),
   };
 }
+
+export interface RoomBookingDisplayState {
+  kind: 'active_session' | 'reserved' | 'pending_checkout' | 'completed' | 'cancelled' | 'no_show';
+  label: string;
+  badgeClass: string;
+}
+
+export function getRoomBookingDisplayState(
+  booking: { status: string; startTime: string; endTime: string },
+  now: Date = new Date()
+): RoomBookingDisplayState {
+  if (booking.status === 'active') {
+    const start = new Date(booking.startTime).getTime();
+    const end = new Date(booking.endTime).getTime();
+    const nowMs = now.getTime();
+    if (!isNaN(start) && !isNaN(end)) {
+      if (nowMs >= start && nowMs <= end) {
+        return {
+          kind: 'active_session',
+          label: 'Active Session',
+          badgeClass:
+            'bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse',
+        };
+      }
+      if (nowMs < start) {
+        return {
+          kind: 'reserved',
+          label: 'Reserved',
+          badgeClass: 'bg-amber-100 text-amber-800 border border-amber-300',
+        };
+      }
+      return {
+        kind: 'pending_checkout',
+        label: 'Pending Check-out',
+        badgeClass: 'bg-orange-100 text-orange-800 border border-orange-300',
+      };
+    }
+    return {
+      kind: 'reserved',
+      label: 'Reserved',
+      badgeClass: 'bg-amber-100 text-amber-800 border border-amber-300',
+    };
+  }
+
+  if (booking.status === 'completed') {
+    return {
+      kind: 'completed',
+      label: 'Completed',
+      badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200',
+    };
+  }
+
+  if (booking.status === 'no_show') {
+    return {
+      kind: 'no_show',
+      label: 'No Show',
+      badgeClass: 'bg-rose-100 text-rose-800 border border-rose-200',
+    };
+  }
+
+  return {
+    kind: 'cancelled',
+    label: 'Cancelled',
+    badgeClass: 'bg-rose-100 text-rose-800 border border-rose-200',
+  };
+}
