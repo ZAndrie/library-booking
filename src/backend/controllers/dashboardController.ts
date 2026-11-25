@@ -25,44 +25,55 @@ export async function getDashboardStats() {
     const now = new Date();
     const { startOfDay, endOfDay } = getManilaDayBounds();
 
-    const totalRooms = await Room.countDocuments();
-    const availableRooms = await Room.countDocuments({ status: 'available' });
-    const maintenanceRooms = await Room.countDocuments({ status: 'maintenance' });
+    const [
+      roomStatuses,
+      currentlyOccupiedRooms,
+      todayBookingsCount,
+      laptopStatuses,
+      settings,
+      activeLoanDueDates,
+      recentRoomBookings,
+      recentLaptopLoans,
+    ] = await Promise.all([
+      Room.find().select('status').lean(),
+      RoomBooking.countDocuments({
+        status: 'active',
+        startTime: { $lte: now },
+        endTime: { $gte: now },
+      }),
+      RoomBooking.countDocuments({
+        startTime: { $gte: startOfDay, $lte: endOfDay },
+      }),
+      Laptop.find().select('status').lean(),
+      getEffectiveSystemSettings(),
+      LaptopLoan.find({ status: 'active' }).select('dueAt').lean(),
+      RoomBooking.find()
+        .populate('roomId', 'name roomNumber')
+        .populate('bookedByStaffId', 'name')
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .lean(),
+      LaptopLoan.find()
+        .populate('laptopId', 'assetTag brand model')
+        .populate('staffIssuerId', 'name')
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .lean(),
+    ]);
 
-    const currentlyOccupiedRooms = await RoomBooking.countDocuments({
-      status: 'active',
-      startTime: { $lte: now },
-      endTime: { $gte: now },
-    });
+    const totalRooms = roomStatuses.length;
+    const availableRooms = roomStatuses.filter((r: any) => r.status === 'available').length;
+    const maintenanceRooms = roomStatuses.filter((r: any) => r.status === 'maintenance').length;
 
-    const todayBookingsCount = await RoomBooking.countDocuments({
-      startTime: { $gte: startOfDay, $lte: endOfDay },
-    });
+    const totalLaptops = laptopStatuses.length;
+    const availableLaptops = laptopStatuses.filter((l: any) => l.status === 'available').length;
+    const borrowedLaptops = laptopStatuses.filter((l: any) => l.status === 'borrowed').length;
+    const maintenanceLaptops = laptopStatuses.filter((l: any) => l.status === 'under_maintenance').length;
 
-    const totalLaptops = await Laptop.countDocuments();
-    const availableLaptops = await Laptop.countDocuments({ status: 'available' });
-    const borrowedLaptops = await Laptop.countDocuments({ status: 'borrowed' });
-    const maintenanceLaptops = await Laptop.countDocuments({ status: 'under_maintenance' });
-
-    const settings = await getEffectiveSystemSettings();
-    const graceCutoff = new Date(now.getTime() - (settings.overdueGraceMinutes ?? 0) * 60 * 1000);
-
-    const overdueLoansCount = await LaptopLoan.countDocuments({
-      status: 'active',
-      dueAt: { $lt: graceCutoff },
-    });
-
-    const recentRoomBookings = await RoomBooking.find()
-      .populate('roomId', 'name roomNumber')
-      .populate('bookedByStaffId', 'name')
-      .sort({ createdAt: -1 })
-      .limit(5);
-
-    const recentLaptopLoans = await LaptopLoan.find()
-      .populate('laptopId', 'assetTag brand model')
-      .populate('staffIssuerId', 'name')
-      .sort({ createdAt: -1 })
-      .limit(5);
+    const graceCutoffMs = now.getTime() - (settings.overdueGraceMinutes ?? 0) * 60 * 1000;
+    const overdueLoansCount = activeLoanDueDates.filter(
+      (loan: any) => new Date(loan.dueAt).getTime() < graceCutoffMs
+    ).length;
 
     return NextResponse.json({
       success: true,

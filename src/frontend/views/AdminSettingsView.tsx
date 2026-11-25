@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { invalidateClientPolicies } from '@/lib/clientDataCache';
 import {
   Sliders,
   Save,
@@ -92,6 +93,7 @@ export default function AdminSettingsView() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save settings');
+      invalidateClientPolicies();
       setSuccessMsg('Desk operating policies saved successfully.');
     } catch (err: any) {
       setError(err.message);

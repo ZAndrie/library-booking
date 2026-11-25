@@ -4,6 +4,12 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  ClientUserProfile,
+  clearClientUserCache,
+  fetchClientUser,
+  getStoredClientUser,
+} from '@/lib/clientDataCache';
+import {
   LayoutDashboard,
   DoorOpen,
   CalendarPlus,
@@ -31,14 +37,7 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
-interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: 'super_admin' | 'admin' | 'staff';
-  employeeId: string;
-  portal?: 'rooms' | 'laptops';
-}
+type UserProfile = ClientUserProfile;
 
 interface NavItem {
   label: string;
@@ -53,13 +52,10 @@ interface NavSection {
   items: NavItem[];
 }
 
-const USER_CACHE_KEY = 'lirc_desk_user';
-let cachedUser: UserProfile | null = null;
-
 export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(cachedUser);
+  const [user, setUser] = useState<UserProfile | null>(() => getStoredClientUser());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isRoomsPortal = pathname.startsWith('/rooms');
@@ -93,42 +89,23 @@ export default function AppShell({ children }: AppShellProps) {
   }, [isStaff, isUnauthorizedStaffRoute, user?.portal, router]);
 
   useEffect(() => {
-    // Hydrate from sessionStorage immediately so sidebar never flickers on re-entry
-    if (!cachedUser && typeof window !== 'undefined') {
-      try {
-        const stored = sessionStorage.getItem(USER_CACHE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored) as UserProfile;
-          cachedUser = parsed;
-          setUser(parsed);
-        }
-      } catch {
-        // Ignore malformed cache
-      }
+    const stored = getStoredClientUser();
+    if (stored) {
+      setUser(stored);
     }
 
-    async function loadUser() {
-      try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) {
-          const data = await res.json();
-          cachedUser = data.user;
-          setUser(data.user);
-          if (typeof window !== 'undefined') {
-            sessionStorage.setItem(USER_CACHE_KEY, JSON.stringify(data.user));
-          }
-        } else {
-          cachedUser = null;
-          if (typeof window !== 'undefined') {
-            sessionStorage.removeItem(USER_CACHE_KEY);
-          }
-          router.push('/login');
-        }
-      } catch {
+    let cancelled = false;
+    fetchClientUser().then((nextUser) => {
+      if (cancelled) return;
+      if (nextUser) {
+        setUser(nextUser);
+      } else {
         router.push('/login');
       }
-    }
-    loadUser();
+    });
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -136,10 +113,7 @@ export default function AppShell({ children }: AppShellProps) {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } finally {
-      cachedUser = null;
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem(USER_CACHE_KEY);
-      }
+      clearClientUserCache();
       router.push('/login');
       router.refresh();
     }

@@ -30,11 +30,23 @@ const SettingSchema = new Schema<ISetting>(
 const Setting: Model<ISetting> =
   mongoose.models.Setting || mongoose.model<ISetting>('Setting', SettingSchema);
 
+const SETTINGS_CACHE_TTL_MS = 15_000;
+let cachedPolicies: SystemPolicyData | null = null;
+let cacheExpiresAt = 0;
+
+export function invalidateSystemSettingsCache() {
+  cachedPolicies = null;
+  cacheExpiresAt = 0;
+}
+
 export async function getEffectiveSystemSettings(): Promise<SystemPolicyData> {
+  if (cachedPolicies && Date.now() < cacheExpiresAt) {
+    return { ...cachedPolicies };
+  }
   try {
     const doc = await Setting.findOne().lean();
     if (!doc) return { ...DEFAULT_SYSTEM_POLICIES };
-    return {
+    const resolved: SystemPolicyData = {
       minRoomCapacity: Number(doc.minRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.minRoomCapacity),
       maxRoomCapacity: Number(doc.maxRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.maxRoomCapacity),
       maxSlotDurationHours: Number(doc.maxSlotDurationHours ?? DEFAULT_SYSTEM_POLICIES.maxSlotDurationHours),
@@ -42,6 +54,9 @@ export async function getEffectiveSystemSettings(): Promise<SystemPolicyData> {
       operatingHoursEnd: doc.operatingHoursEnd || DEFAULT_SYSTEM_POLICIES.operatingHoursEnd,
       overdueGraceMinutes: Number(doc.overdueGraceMinutes ?? DEFAULT_SYSTEM_POLICIES.overdueGraceMinutes),
     };
+    cachedPolicies = resolved;
+    cacheExpiresAt = Date.now() + SETTINGS_CACHE_TTL_MS;
+    return { ...resolved };
   } catch {
     return { ...DEFAULT_SYSTEM_POLICIES };
   }

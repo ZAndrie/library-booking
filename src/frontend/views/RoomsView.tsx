@@ -13,6 +13,11 @@ import {
   getRoomBookingDisplayState,
 } from '@/lib/policyUtils';
 import {
+  fetchClientPolicies,
+  fetchClientUser,
+  getStoredClientUser,
+} from '@/lib/clientDataCache';
+import {
   DoorOpen,
   Calendar,
   Clock,
@@ -57,7 +62,7 @@ interface RoomBooking {
 }
 
 export default function RoomsView() {
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(() => getStoredClientUser());
   const [activeTab, setActiveTab] = useState<'schedule' | 'rooms'>('schedule');
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<RoomBooking[]>([]);
@@ -65,9 +70,8 @@ export default function RoomsView() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then((r) => r.json())
-      .then((d) => d.user && setCurrentUser(d.user))
+    fetchClientUser()
+      .then((u) => u && setCurrentUser(u))
       .catch(console.error);
 
     let actionNew = false;
@@ -89,26 +93,11 @@ export default function RoomsView() {
       }
     }
 
-    fetch('/api/admin/settings')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (d?.setting) {
-          const nextPolicies: SystemPolicyData = {
-            minRoomCapacity: d.setting.minRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.minRoomCapacity,
-            maxRoomCapacity: d.setting.maxRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.maxRoomCapacity,
-            maxSlotDurationHours:
-              d.setting.maxSlotDurationHours ?? DEFAULT_SYSTEM_POLICIES.maxSlotDurationHours,
-            operatingHoursStart:
-              d.setting.operatingHoursStart || DEFAULT_SYSTEM_POLICIES.operatingHoursStart,
-            operatingHoursEnd:
-              d.setting.operatingHoursEnd || DEFAULT_SYSTEM_POLICIES.operatingHoursEnd,
-            overdueGraceMinutes:
-              d.setting.overdueGraceMinutes ?? DEFAULT_SYSTEM_POLICIES.overdueGraceMinutes,
-          };
-          setPolicies(nextPolicies);
-          if (actionNew) {
-            setBookingFormData(createDynamicBookingState('', nextPolicies.maxSlotDurationHours));
-          }
+    fetchClientPolicies()
+      .then((nextPolicies) => {
+        setPolicies(nextPolicies);
+        if (actionNew) {
+          setBookingFormData(createDynamicBookingState('', nextPolicies.maxSlotDurationHours));
         }
       })
       .catch(console.error);

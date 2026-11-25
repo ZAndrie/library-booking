@@ -13,17 +13,18 @@ export async function GET() {
     await connectToDatabase();
 
     const now = new Date();
-    const settings = await getEffectiveSystemSettings();
-
-    // Query all rooms
-    const rooms = await Room.find().sort({ roomNumber: 1 }).lean();
-
-    // Query active bookings right now
-    const activeBookings = await RoomBooking.find({
-      status: 'active',
-      startTime: { $lte: now },
-      endTime: { $gte: now },
-    }).lean();
+    const [settings, rooms, activeBookings, laptops] = await Promise.all([
+      getEffectiveSystemSettings(),
+      Room.find().sort({ roomNumber: 1 }).lean(),
+      RoomBooking.find({
+        status: 'active',
+        startTime: { $lte: now },
+        endTime: { $gte: now },
+      })
+        .select('roomId')
+        .lean(),
+      Laptop.find().sort({ assetTag: 1 }).lean(),
+    ]);
 
     const activeRoomIdSet = new Set(
       activeBookings.map((b: any) => b.roomId?.toString())
@@ -71,9 +72,6 @@ export async function GET() {
         statusLabel,
       };
     });
-
-    // Query all laptops
-    const laptops = await Laptop.find().sort({ assetTag: 1 }).lean();
 
     const mappedLaptops = laptops.map((laptop: any) => {
       const isAvailable = laptop.status === 'available';

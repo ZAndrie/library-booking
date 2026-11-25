@@ -50,7 +50,8 @@ export async function getRoomBookings(req: NextRequest) {
     const bookings = await RoomBooking.find(filter)
       .populate('roomId', 'name roomNumber capacity facilities status location')
       .populate('bookedByStaffId', 'name employeeId')
-      .sort({ startTime: 1 });
+      .sort({ startTime: 1 })
+      .lean();
 
     return NextResponse.json({ success: true, bookings });
   } catch (error: any) {
@@ -115,7 +116,10 @@ export async function createRoomBooking(req: NextRequest) {
 
     await connectToDatabase();
 
-    const room = await Room.findById(roomId);
+    const [room, settings] = await Promise.all([
+      Room.findById(roomId).lean(),
+      getEffectiveSystemSettings(),
+    ]);
     if (!room) {
       return NextResponse.json({ error: 'Selected room was not found.' }, { status: 404 });
     }
@@ -126,8 +130,6 @@ export async function createRoomBooking(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const settings = await getEffectiveSystemSettings();
 
     const parsedAttendees =
       attendeesCount !== undefined && attendeesCount !== null && String(attendeesCount).trim() !== ''

@@ -31,7 +31,7 @@ export async function getLaptops(req: NextRequest) {
       ];
     }
 
-    const laptops = await Laptop.find(filter).sort({ assetTag: 1 });
+    const laptops = await Laptop.find(filter).sort({ assetTag: 1 }).lean();
     return NextResponse.json({ success: true, laptops });
   } catch (error: any) {
     console.warn('Laptops notice: MongoDB offline, returning dev store laptops');

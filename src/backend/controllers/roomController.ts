@@ -15,7 +15,7 @@ export async function getRooms(req: NextRequest) {
       filter.status = status;
     }
 
-    const rooms = await Room.find(filter).sort({ roomNumber: 1 });
+    const rooms = await Room.find(filter).sort({ roomNumber: 1 }).lean();
     return NextResponse.json({ success: true, rooms });
   } catch (error: any) {
     console.warn('Rooms notice: MongoDB offline, returning dev store rooms');

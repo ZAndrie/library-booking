@@ -49,13 +49,14 @@ export async function getLaptopLoans(req: NextRequest) {
       .populate('laptopId', 'assetTag brand model serialNumber condition location')
       .populate('staffIssuerId', 'name employeeId')
       .populate('staffReceiverId', 'name employeeId')
-      .sort({ borrowedAt: -1 });
+      .sort({ borrowedAt: -1 })
+      .lean();
 
-    const enrichedLoans = loans.map((loan) => {
+    const enrichedLoans = loans.map((loan: any) => {
       const isOverdue =
         loan.status === 'active' && new Date(loan.dueAt).getTime() + graceMs < now.getTime();
       return {
-        ...loan.toObject(),
+        ...loan,
         isOverdue,
       };
     });

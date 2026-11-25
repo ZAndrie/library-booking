@@ -3,7 +3,7 @@ import connectToDatabase from '@/backend/database/db';
 import User, { UserRole } from '@/backend/models/User';
 import RoomBooking from '@/backend/models/RoomBooking';
 import LaptopLoan from '@/backend/models/LaptopLoan';
-import Setting from '@/backend/models/Setting';
+import Setting, { invalidateSystemSettingsCache } from '@/backend/models/Setting';
 import { getCurrentUser, hashPassword } from '@/backend/auth/jwt';
 
 /**
@@ -18,7 +18,7 @@ export async function getStaffUsers() {
     }
 
     await connectToDatabase();
-    const users = await User.find({}, '-passwordHash').sort({ createdAt: -1 });
+    const users = await User.find({}, '-passwordHash').sort({ createdAt: -1 }).lean();
     return NextResponse.json({ success: true, users });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Failed to fetch staff directory' }, { status: 500 });
@@ -253,13 +253,15 @@ export async function getAuditLogs(req: NextRequest) {
         .populate('roomId', 'name roomNumber location')
         .populate('bookedByStaffId', 'name employeeId')
         .sort({ createdAt: -1 })
-        .limit(limit),
+        .limit(limit)
+        .lean(),
       LaptopLoan.find()
         .populate('laptopId', 'assetTag brand model condition')
         .populate('staffIssuerId', 'name employeeId')
         .populate('staffReceiverId', 'name employeeId')
         .sort({ createdAt: -1 })
-        .limit(limit),
+        .limit(limit)
+        .lean(),
     ]);
 
     // Format into unified event objects
@@ -359,6 +361,7 @@ export async function updateSystemSettings(req: NextRequest) {
 
     setting.updatedByStaffId = currentUser.id as any;
     await setting.save();
+    invalidateSystemSettingsCache();
 
     return NextResponse.json({ success: true, message: 'Settings updated successfully.', setting });
   } catch (error: any) {

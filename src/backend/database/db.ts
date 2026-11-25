@@ -19,7 +19,7 @@ if (!cached) {
 }
 
 export async function connectToDatabase(): Promise<typeof mongoose> {
-  if (cached!.conn) {
+  if (cached!.conn && mongoose.connection.readyState === 1) {
     return cached!.conn;
   }
 
@@ -27,6 +27,10 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
     const isLocalhost = MONGODB_URI.includes('localhost') || MONGODB_URI.includes('127.0.0.1');
     const opts = {
       bufferCommands: false,
+      maxPoolSize: 10,
+      minPoolSize: 1,
+      connectTimeoutMS: 5000,
+      socketTimeoutMS: 20000,
       serverSelectionTimeoutMS: isLocalhost ? 1500 : 8000,
     };
 

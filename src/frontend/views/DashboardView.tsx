@@ -13,6 +13,11 @@ import {
   getRoomBookingDisplayState,
 } from '@/lib/policyUtils';
 import {
+  fetchClientPolicies,
+  fetchClientUser,
+  getStoredClientUser,
+} from '@/lib/clientDataCache';
+import {
   LayoutDashboard,
   DoorOpen,
   Laptop,
@@ -125,11 +130,11 @@ export default function DashboardView() {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, roomsRes, laptopsRes, settingsRes] = await Promise.all([
+      const [statsRes, roomsRes, laptopsRes, nextPolicies] = await Promise.all([
         fetch('/api/dashboard/stats'),
         fetch('/api/rooms'),
         fetch('/api/laptops'),
-        fetch('/api/admin/settings'),
+        fetchClientPolicies(),
       ]);
 
       if (statsRes.ok) {
@@ -149,33 +154,11 @@ export default function DashboardView() {
         setLaptops(laptopsData.laptops || []);
       }
 
-      if (settingsRes.ok) {
-        const settingsData = await settingsRes.json();
-        if (settingsData?.setting) {
-          const nextPolicies: SystemPolicyData = {
-            minRoomCapacity:
-              settingsData.setting.minRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.minRoomCapacity,
-            maxRoomCapacity:
-              settingsData.setting.maxRoomCapacity ?? DEFAULT_SYSTEM_POLICIES.maxRoomCapacity,
-            maxSlotDurationHours:
-              settingsData.setting.maxSlotDurationHours ??
-              DEFAULT_SYSTEM_POLICIES.maxSlotDurationHours,
-            operatingHoursStart:
-              settingsData.setting.operatingHoursStart ||
-              DEFAULT_SYSTEM_POLICIES.operatingHoursStart,
-            operatingHoursEnd:
-              settingsData.setting.operatingHoursEnd || DEFAULT_SYSTEM_POLICIES.operatingHoursEnd,
-            overdueGraceMinutes:
-              settingsData.setting.overdueGraceMinutes ??
-              DEFAULT_SYSTEM_POLICIES.overdueGraceMinutes,
-          };
-          setPolicies(nextPolicies);
-          setCheckoutFormData((prev) => ({
-            ...prev,
-            dueTime: nextPolicies.operatingHoursEnd,
-          }));
-        }
-      }
+      setPolicies(nextPolicies);
+      setCheckoutFormData((prev) => ({
+        ...prev,
+        dueTime: nextPolicies.operatingHoursEnd,
+      }));
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {
@@ -184,9 +167,10 @@ export default function DashboardView() {
   };
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then((r) => r.json())
-      .then((d) => d.user && setCurrentUser(d.user))
+    const stored = getStoredClientUser();
+    if (stored) setCurrentUser(stored);
+    fetchClientUser()
+      .then((u) => u && setCurrentUser(u))
       .catch(console.error);
     fetchDashboardData();
   }, []);
