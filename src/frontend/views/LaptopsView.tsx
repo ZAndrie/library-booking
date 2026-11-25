@@ -846,6 +846,7 @@ export default function LaptopsView() {
             </div>
           </div>
         )}
+      </div>
 
         {/* MODAL: CHECKOUT LAPTOP */}
         {showCheckoutModal && (
@@ -1334,7 +1335,6 @@ export default function LaptopsView() {
             </div>
           </div>
         )}
-      </div>
     </>
   );
 }

@@ -806,6 +806,7 @@ export default function RoomsView() {
             )}
           </div>
         )}
+      </div>
 
         {/* MODAL: NEW ROOM BOOKING */}
         {showBookingModal && (
@@ -1010,7 +1011,6 @@ export default function RoomsView() {
             </div>
           </div>
         )}
-      </div>
     </>
   );
 }

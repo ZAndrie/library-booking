@@ -481,6 +481,7 @@ export default function AdminUsersView() {
             </div>
           )}
         </div>
+      </div>
 
         {/* Modal 1: Reset Password */}
         {resetTargetUser && (
@@ -728,7 +729,6 @@ export default function AdminUsersView() {
             </div>
           </div>
         )}
-      </div>
     </>
   );
 }
