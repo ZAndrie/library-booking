@@ -1,6 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import RoomBookingFormFields, {
+  RoomBookingFormState,
+  createDynamicBookingState,
+  buildBookingPurpose,
+  getLocalDateString,
+} from '@/frontend/components/RoomBookingFormFields';
 import {
   DoorOpen,
   Calendar,
@@ -31,7 +37,8 @@ interface RoomBooking {
   _id: string;
   roomId: Room;
   borrowerName: string;
-  borrowerId: string;
+  borrowerId?: string;
+  courseAndYear?: string;
   borrowerEmail?: string;
   borrowerContact?: string;
   startTime: string;
@@ -68,36 +75,33 @@ export default function RoomsView() {
       }
 
       if (actionParam === 'new') {
+        setBookingFormData(createDynamicBookingState());
         setShowBookingModal(true);
       }
     }
   }, []);
 
   // Filters
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
+  const [selectedDate, setSelectedDate] = useState<string>(() => getLocalDateString());
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [roomFilter, setRoomFilter] = useState<string>('all');
 
   // Booking Modal
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [bookingFormData, setBookingFormData] = useState({
-    roomId: '',
-    borrowerName: '',
-    borrowerId: '',
-    borrowerEmail: '',
-    borrowerContact: '',
-    date: new Date().toISOString().split('T')[0],
-    startTime: '10:00',
-    endTime: '12:00',
-    purpose: '',
-    attendeesCount: 3,
-    notes: '',
-    adminOverride: false,
-  });
+  const [bookingFormData, setBookingFormData] = useState<RoomBookingFormState>(() =>
+    createDynamicBookingState()
+  );
   const [bookingError, setBookingError] = useState('');
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
+
+  const openNewBookingModal = (prefillRoomId = '', prefillDate?: string) => {
+    setBookingError('');
+    setBookingFormData({
+      ...createDynamicBookingState(prefillRoomId),
+      ...(prefillDate ? { date: prefillDate } : {}),
+    });
+    setShowBookingModal(true);
+  };
 
   // Room Creation Modal
   const [showRoomModal, setShowRoomModal] = useState(false);
@@ -157,6 +161,16 @@ export default function RoomsView() {
   const handleCreateBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     setBookingError('');
+
+    const purposeResult = buildBookingPurpose(
+      bookingFormData.selectedPurposes,
+      bookingFormData.otherPurpose
+    );
+    if (purposeResult.error) {
+      setBookingError(purposeResult.error);
+      return;
+    }
+
     setBookingSubmitting(true);
 
     try {
@@ -166,14 +180,13 @@ export default function RoomsView() {
       const payload = {
         roomId: bookingFormData.roomId,
         borrowerName: bookingFormData.borrowerName,
-        borrowerId: bookingFormData.borrowerId,
-        borrowerEmail: bookingFormData.borrowerEmail || undefined,
-        borrowerContact: bookingFormData.borrowerContact || undefined,
+        courseAndYear: bookingFormData.courseAndYear,
         startTime: startDateTime.toISOString(),
         endTime: endDateTime.toISOString(),
-        purpose: bookingFormData.purpose,
+        purpose: purposeResult.purpose,
+        purposes: purposeResult.purposes,
         attendeesCount: bookingFormData.attendeesCount,
-        notes: bookingFormData.notes || undefined,
+        adminOverride: bookingFormData.adminOverride,
       };
 
       const res = await fetch('/api/room-bookings', {
@@ -188,20 +201,7 @@ export default function RoomsView() {
         setBookingError(data.error || 'Failed to create booking reservation.');
       } else {
         setShowBookingModal(false);
-        setBookingFormData({
-          roomId: '',
-          borrowerName: '',
-          borrowerId: '',
-          borrowerEmail: '',
-          borrowerContact: '',
-          date: new Date().toISOString().split('T')[0],
-          startTime: '10:00',
-          endTime: '12:00',
-          purpose: '',
-          attendeesCount: 2,
-          notes: '',
-          adminOverride: false,
-        });
+        setBookingFormData(createDynamicBookingState());
         fetchBookings();
       }
     } catch (err: any) {
@@ -361,7 +361,7 @@ export default function RoomsView() {
 
           <div className="flex items-center gap-2.5">
             <button
-              onClick={() => setShowBookingModal(true)}
+              onClick={() => openNewBookingModal()}
               className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
             >
               <Plus className="w-4 h-4" />
@@ -469,7 +469,7 @@ export default function RoomsView() {
                 No reservations scheduled for {selectedDate}.
                 <div className="mt-3">
                   <button
-                    onClick={() => setShowBookingModal(true)}
+                    onClick={() => openNewBookingModal('', selectedDate)}
                     className="text-[#8B1515] hover:underline font-semibold"
                   >
                     + Book a room for this date
@@ -528,27 +528,29 @@ export default function RoomsView() {
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-4 text-xs text-slate-600">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
                             <span className="flex items-center gap-1.5 font-semibold text-slate-800">
                               <Clock className="w-3.5 h-3.5 text-[#8B1515]" />
                               {startTimeStr} - {endTimeStr}
                             </span>
                             <span>•</span>
                             <span>
-                              Borrower: <strong className="text-slate-900">{booking.borrowerName}</strong> (ID:{' '}
-                              {booking.borrowerId})
+                              Name: <strong className="text-slate-900">{booking.borrowerName}</strong>
+                              {booking.courseAndYear
+                                ? ` (${booking.courseAndYear})`
+                                : booking.borrowerId
+                                ? ` (ID: ${booking.borrowerId})`
+                                : ''}
                             </span>
-                            {booking.borrowerContact && (
-                              <>
-                                <span>•</span>
-                                <span>{booking.borrowerContact}</span>
-                              </>
-                            )}
+                            <span>•</span>
+                            <span>
+                              No. of Users: <strong className="text-slate-800">{booking.attendeesCount}</strong>
+                            </span>
                           </div>
 
                           <div className="text-xs text-slate-600 mt-1">
                             <span className="font-semibold text-slate-700">Purpose: </span>
-                            {booking.purpose} ({booking.attendeesCount} attendees)
+                            {booking.purpose}
                           </div>
                           {booking.notes && (
                             <div className="text-[11px] text-amber-700 italic">
@@ -729,207 +731,15 @@ export default function RoomsView() {
                 </div>
               )}
 
-              <form onSubmit={handleCreateBooking} className="space-y-3.5 text-xs">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Select Room *
-                  </label>
-                  <select
-                    required
-                    value={bookingFormData.roomId}
-                    onChange={(e) =>
-                      setBookingFormData({ ...bookingFormData, roomId: e.target.value })
-                    }
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                  >
-                    <option value="">-- Choose Discussion Room --</option>
-                    {rooms
-                      .filter((r) => r.status === 'available')
-                      .map((r) => (
-                        <option key={r._id} value={r._id}>
-                          {r.name} ({r.roomNumber}) - Cap: {r.capacity} pax
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      Borrower Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Sarah Jenkins"
-                      value={bookingFormData.borrowerName}
-                      onChange={(e) =>
-                        setBookingFormData({ ...bookingFormData, borrowerName: e.target.value })
-                      }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      Student / Staff ID *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. STU-8821"
-                      value={bookingFormData.borrowerId}
-                      onChange={(e) =>
-                        setBookingFormData({ ...bookingFormData, borrowerId: e.target.value })
-                      }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      Contact Phone
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="+1 555-0192"
-                      value={bookingFormData.borrowerContact}
-                      onChange={(e) =>
-                        setBookingFormData({ ...bookingFormData, borrowerContact: e.target.value })
-                      }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      Borrower Email
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="borrower@student.edu"
-                      value={bookingFormData.borrowerEmail}
-                      onChange={(e) =>
-                        setBookingFormData({ ...bookingFormData, borrowerEmail: e.target.value })
-                      }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      Date *
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      value={bookingFormData.date}
-                      onChange={(e) =>
-                        setBookingFormData({ ...bookingFormData, date: e.target.value })
-                      }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      Start Time *
-                    </label>
-                    <input
-                      type="time"
-                      required
-                      value={bookingFormData.startTime}
-                      onChange={(e) =>
-                        setBookingFormData({ ...bookingFormData, startTime: e.target.value })
-                      }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      End Time *
-                    </label>
-                    <input
-                      type="time"
-                      required
-                      value={bookingFormData.endTime}
-                      onChange={(e) =>
-                        setBookingFormData({ ...bookingFormData, endTime: e.target.value })
-                      }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-2">
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      Purpose of Booking *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Software Engineering Group Study"
-                      value={bookingFormData.purpose}
-                      onChange={(e) =>
-                        setBookingFormData({ ...bookingFormData, purpose: e.target.value })
-                      }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
-                      Attendees Pax
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={bookingFormData.attendeesCount}
-                      onChange={(e) =>
-                        setBookingFormData({
-                          ...bookingFormData,
-                          attendeesCount: Number(e.target.value),
-                        })
-                      }
-                      className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Staff Desk Notes
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Borrowed HDMI cable from counter"
-                    value={bookingFormData.notes}
-                    onChange={(e) =>
-                      setBookingFormData({ ...bookingFormData, notes: e.target.value })
-                    }
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                  />
-                </div>
-
-                {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
-                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs">
-                    <label className="flex items-center gap-2 cursor-pointer font-bold text-amber-900">
-                      <input
-                        type="checkbox"
-                        checked={bookingFormData.adminOverride}
-                        onChange={(e) =>
-                          setBookingFormData({ ...bookingFormData, adminOverride: e.target.checked })
-                        }
-                        className="w-4 h-4 rounded text-[#8B1515] focus:ring-[#8B1515]"
-                      />
-                      <span>Administrative Override: Bypass 3 to 15 Student Rule</span>
-                    </label>
-                    <p className="text-[10px] text-amber-700 mt-1 ml-6">
-                      Bypasses student capacity threshold for faculty sessions, individual research, or thesis exams.
-                    </p>
-                  </div>
-                )}
+              <form onSubmit={handleCreateBooking} className="space-y-4 text-xs">
+                <RoomBookingFormFields
+                  formData={bookingFormData}
+                  setFormData={setBookingFormData}
+                  rooms={rooms}
+                  isAdmin={
+                    currentUser?.role === 'admin' || currentUser?.role === 'super_admin'
+                  }
+                />
 
                 <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
                   <button
@@ -942,7 +752,7 @@ export default function RoomsView() {
                   <button
                     type="submit"
                     disabled={bookingSubmitting}
-                    className="px-4 py-2 rounded-lg bg-[#8B1515] hover:bg-[#721111] font-semibold text-white disabled:opacity-50 shadow-sm"
+                    className="px-4 py-2 rounded-lg bg-[#8B1515] hover:bg-[#721111] font-semibold text-white disabled:opacity-50 shadow-sm cursor-pointer"
                   >
                     {bookingSubmitting ? 'Verifying Availability...' : 'Confirm Reservation'}
                   </button>

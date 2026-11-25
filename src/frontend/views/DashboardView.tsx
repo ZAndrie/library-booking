@@ -2,6 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import RoomBookingFormFields, {
+  RoomBookingFormState,
+  createDynamicBookingState,
+  buildBookingPurpose,
+} from '@/frontend/components/RoomBookingFormFields';
 import {
   LayoutDashboard,
   DoorOpen,
@@ -68,6 +73,7 @@ interface StatsData {
 }
 
 export default function DashboardView() {
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [laptops, setLaptops] = useState<LaptopItem[]>([]);
@@ -79,16 +85,10 @@ export default function DashboardView() {
   // Quick Action Modals
   const [showBookModal, setShowBookModal] = useState(false);
   const [selectedRoomForBooking, setSelectedRoomForBooking] = useState<Room | null>(null);
-  const [bookingFormData, setBookingFormData] = useState({
-    borrowerName: '',
-    borrowerId: '',
-    date: new Date().toISOString().split('T')[0],
-    startTime: '09:00',
-    endTime: '11:00',
-    purpose: 'Group Study & Research',
-    attendeesCount: 3,
-    notes: '',
-  });
+  const [bookingFormData, setBookingFormData] = useState<RoomBookingFormState>(() =>
+    createDynamicBookingState()
+  );
+  const [bookingError, setBookingError] = useState('');
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
 
   // Quick Laptop Checkout Modal
@@ -149,21 +149,34 @@ export default function DashboardView() {
   };
 
   useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => d.user && setCurrentUser(d.user))
+      .catch(console.error);
     fetchDashboardData();
   }, []);
 
   const handleOpenBookModal = (room: Room) => {
     setSelectedRoomForBooking(room);
-    setBookingFormData((prev) => ({
-      ...prev,
-      attendeesCount: 3,
-    }));
+    setBookingError('');
+    setBookingFormData(createDynamicBookingState(room._id));
     setShowBookModal(true);
   };
 
   const handleQuickBookSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedRoomForBooking) return;
+    setBookingError('');
+
+    const purposeResult = buildBookingPurpose(
+      bookingFormData.selectedPurposes,
+      bookingFormData.otherPurpose
+    );
+    if (purposeResult.error) {
+      setBookingError(purposeResult.error);
+      return;
+    }
+
     setBookingSubmitting(true);
     try {
       const startDateTime = new Date(`${bookingFormData.date}T${bookingFormData.startTime}:00`);
@@ -175,24 +188,25 @@ export default function DashboardView() {
         body: JSON.stringify({
           roomId: selectedRoomForBooking._id,
           borrowerName: bookingFormData.borrowerName,
-          borrowerId: bookingFormData.borrowerId,
+          courseAndYear: bookingFormData.courseAndYear,
           startTime: startDateTime.toISOString(),
           endTime: endDateTime.toISOString(),
-          purpose: bookingFormData.purpose,
+          purpose: purposeResult.purpose,
+          purposes: purposeResult.purposes,
           attendeesCount: bookingFormData.attendeesCount,
-          notes: bookingFormData.notes,
+          adminOverride: bookingFormData.adminOverride,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Failed to create reservation');
+        setBookingError(data.error || 'Failed to create reservation');
       } else {
         setShowBookModal(false);
         fetchDashboardData();
       }
     } catch (err: any) {
-      alert(err.message);
+      setBookingError(err.message);
     } finally {
       setBookingSubmitting(false);
     }
@@ -734,7 +748,7 @@ export default function DashboardView() {
       {/* QUICK BOOKING MODAL */}
       {showBookModal && selectedRoomForBooking && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-5">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-red-100 text-[#8B1515] flex items-center justify-center">
@@ -745,7 +759,7 @@ export default function DashboardView() {
                     Book {selectedRoomForBooking.name}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Room {selectedRoomForBooking.roomNumber} • Capacity: {selectedRoomForBooking.capacity} persons
+                    Room {selectedRoomForBooking.roomNumber} • Capacity: {selectedRoomForBooking.capacity} users
                   </p>
                 </div>
               </div>
@@ -757,105 +771,20 @@ export default function DashboardView() {
               </button>
             </div>
 
+            {bookingError && (
+              <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs">
+                {bookingError}
+              </div>
+            )}
+
             <form onSubmit={handleQuickBookSubmit} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Borrower / Student Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={bookingFormData.borrowerName}
-                    onChange={(e) => setBookingFormData({ ...bookingFormData, borrowerName: e.target.value })}
-                    placeholder="e.g. John Doe"
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">ID Number *</label>
-                  <input
-                    type="text"
-                    required
-                    value={bookingFormData.borrowerId}
-                    onChange={(e) => setBookingFormData({ ...bookingFormData, borrowerId: e.target.value })}
-                    placeholder="e.g. 2026-10492"
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={bookingFormData.date}
-                    onChange={(e) => setBookingFormData({ ...bookingFormData, date: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Start Time</label>
-                  <input
-                    type="time"
-                    required
-                    value={bookingFormData.startTime}
-                    onChange={(e) => setBookingFormData({ ...bookingFormData, startTime: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">End Time</label>
-                  <input
-                    type="time"
-                    required
-                    value={bookingFormData.endTime}
-                    onChange={(e) => setBookingFormData({ ...bookingFormData, endTime: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Purpose of Session</label>
-                  <input
-                    type="text"
-                    required
-                    value={bookingFormData.purpose}
-                    onChange={(e) => setBookingFormData({ ...bookingFormData, purpose: e.target.value })}
-                    placeholder="e.g. Group Thesis Work"
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Expected Attendees (3 – 15 students)
-                  </label>
-                  <input
-                    type="number"
-                    min="3"
-                    max="15"
-                    value={bookingFormData.attendeesCount}
-                    onChange={(e) => setBookingFormData({ ...bookingFormData, attendeesCount: parseInt(e.target.value) || 3 })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                  />
-                  <span className="text-[10px] text-slate-500 mt-1 block">
-                    Policy: Minimum 3 students, maximum 15 students.
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Notes (Optional)</label>
-                <textarea
-                  rows={2}
-                  value={bookingFormData.notes}
-                  onChange={(e) => setBookingFormData({ ...bookingFormData, notes: e.target.value })}
-                  placeholder="Additional equipment requested or special instructions..."
-                  className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:bg-white focus:ring-1 focus:ring-[#8B1515] outline-none"
-                />
-              </div>
+              <RoomBookingFormFields
+                formData={bookingFormData}
+                setFormData={setBookingFormData}
+                isAdmin={
+                  currentUser?.role === 'admin' || currentUser?.role === 'super_admin'
+                }
+              />
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
@@ -868,7 +797,7 @@ export default function DashboardView() {
                 <button
                   type="submit"
                   disabled={bookingSubmitting}
-                  className="px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg font-semibold shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+                  className="px-4 py-2 bg-[#8B1515] hover:bg-[#721111] text-white rounded-lg font-semibold shadow-sm flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
                 >
                   {bookingSubmitting ? 'Reserving...' : 'Confirm Room Reservation'}
                 </button>

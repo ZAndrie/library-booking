@@ -3,12 +3,14 @@ import mongoose, { Schema, Model } from 'mongoose';
 export interface IRoomBooking {
   roomId: mongoose.Types.ObjectId;
   borrowerName: string;
-  borrowerId: string;
+  borrowerId?: string;
+  courseAndYear?: string;
   borrowerEmail?: string;
   borrowerContact?: string;
   startTime: Date;
   endTime: Date;
   purpose: string;
+  purposes?: string[];
   attendeesCount: number;
   status: 'active' | 'completed' | 'cancelled' | 'no_show';
   bookedByStaffId?: mongoose.Types.ObjectId;
@@ -21,12 +23,14 @@ const RoomBookingSchema = new Schema<IRoomBooking>(
   {
     roomId: { type: Schema.Types.ObjectId, ref: 'Room', required: true, index: true },
     borrowerName: { type: String, required: true, trim: true },
-    borrowerId: { type: String, required: true, trim: true, uppercase: true },
+    borrowerId: { type: String, trim: true, uppercase: true, default: '' },
+    courseAndYear: { type: String, trim: true, default: '' },
     borrowerEmail: { type: String, trim: true, lowercase: true },
     borrowerContact: { type: String, trim: true },
     startTime: { type: Date, required: true, index: true },
     endTime: { type: Date, required: true, index: true },
     purpose: { type: String, required: true, trim: true },
+    purposes: [{ type: String, trim: true }],
     attendeesCount: { type: Number, default: 1, min: 1 },
     status: {
       type: String,

@@ -268,7 +268,7 @@ export async function getAuditLogs(req: NextRequest) {
       category: 'Discussion Room',
       action: b.status === 'cancelled' ? 'Booking Cancelled' : b.status === 'completed' ? 'Session Concluded' : 'Room Reserved',
       target: b.roomId ? `${b.roomId.roomNumber} (${b.roomId.name})` : 'Room',
-      borrower: `${b.borrowerName} (${b.borrowerId})`,
+      borrower: `${b.borrowerName}${b.courseAndYear ? ` (${b.courseAndYear})` : b.borrowerId ? ` (${b.borrowerId})` : ''}`,
       attendees: b.attendeesCount,
       purpose: b.purpose,
       staff: b.bookedByStaffId ? `${b.bookedByStaffId.name} [${b.bookedByStaffId.employeeId}]` : 'Front Desk Staff',

@@ -80,18 +80,26 @@ export async function createRoomBooking(req: NextRequest) {
       roomId,
       borrowerName,
       borrowerId,
+      courseAndYear,
       borrowerEmail,
       borrowerContact,
       startTime,
       endTime,
       purpose,
+      purposes,
       attendeesCount,
       notes,
     } = body;
 
-    if (!roomId || !borrowerName || !borrowerId || !startTime || !endTime || !purpose) {
+    const normalizedPurposes = Array.isArray(purposes)
+      ? purposes.map((p: any) => String(p).trim()).filter(Boolean)
+      : [];
+    const resolvedPurpose =
+      (purpose && String(purpose).trim()) || normalizedPurposes.join(', ');
+
+    if (!roomId || !borrowerName || !startTime || !endTime || !resolvedPurpose || (!courseAndYear && !borrowerId)) {
       return NextResponse.json(
-        { error: 'Room, Borrower Name, Borrower ID, Start Time, End Time, and Purpose are required.' },
+        { error: 'Room, Name, Course and Year, Date, Time of Use, and Purpose are required.' },
         { status: 400 }
       );
     }
@@ -146,9 +154,10 @@ export async function createRoomBooking(req: NextRequest) {
     if (conflict) {
       const conflictStart = new Date(conflict.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const conflictEnd = new Date(conflict.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const conflictAffiliation = conflict.courseAndYear || conflict.borrowerId;
       return NextResponse.json(
         {
-          error: `Time conflict! Room is already booked from ${conflictStart} to ${conflictEnd} by ${conflict.borrowerName} (${conflict.borrowerId}).`,
+          error: `Time conflict! Room is already booked from ${conflictStart} to ${conflictEnd} by ${conflict.borrowerName}${conflictAffiliation ? ` (${conflictAffiliation})` : ''}.`,
         },
         { status: 409 }
       );
@@ -157,12 +166,14 @@ export async function createRoomBooking(req: NextRequest) {
     const booking = await RoomBooking.create({
       roomId: room._id,
       borrowerName: borrowerName.trim(),
-      borrowerId: borrowerId.toUpperCase().trim(),
+      borrowerId: borrowerId ? String(borrowerId).toUpperCase().trim() : '',
+      courseAndYear: courseAndYear ? String(courseAndYear).trim() : '',
       borrowerEmail: borrowerEmail ? borrowerEmail.trim() : '',
       borrowerContact: borrowerContact ? borrowerContact.trim() : '',
       startTime: start,
       endTime: end,
-      purpose: purpose.trim(),
+      purpose: resolvedPurpose,
+      purposes: normalizedPurposes,
       attendeesCount: attendeesCount ? Number(attendeesCount) : 3,
       bookedByStaffId: user.id,
       notes: isCapacityOverridden
