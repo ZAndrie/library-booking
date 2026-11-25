@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import AppShell from '@/frontend/components/AppShell';
 import {
   LayoutDashboard,
   DoorOpen,
@@ -241,7 +240,7 @@ export default function DashboardView() {
   };
 
   return (
-    <AppShell>
+    <>
       <div className="space-y-6">
         {/* Dismissible Welcome Banner */}
         {showWelcomeAlert && (
@@ -985,6 +984,6 @@ export default function DashboardView() {
           </div>
         </div>
       )}
-    </AppShell>
+    </>
   );
 }

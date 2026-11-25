@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import AppShell from '@/frontend/components/AppShell';
 import {
   DoorOpen,
   Calendar,
@@ -342,7 +341,7 @@ export default function RoomsView() {
   };
 
   return (
-    <AppShell>
+    <>
       <div className="space-y-6">
         {/* Header with Crimson Serif Title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
@@ -1073,6 +1072,6 @@ export default function RoomsView() {
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

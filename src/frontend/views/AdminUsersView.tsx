@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import AppShell from '@/frontend/components/AppShell';
 import {
   Users,
   ShieldCheck,
@@ -186,7 +185,7 @@ export default function AdminUsersView() {
   const activeCount = users.filter((u) => u.isActive).length;
 
   return (
-    <AppShell>
+    <>
       <div className="space-y-6">
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
@@ -527,6 +526,6 @@ export default function AdminUsersView() {
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

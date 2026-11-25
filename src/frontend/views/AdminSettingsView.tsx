@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import AppShell from '@/frontend/components/AppShell';
 import {
   Sliders,
   Save,
@@ -79,7 +78,7 @@ export default function AdminSettingsView() {
   };
 
   return (
-    <AppShell>
+    <>
       <div className="max-w-4xl space-y-6">
         {/* Top Header */}
         <div className="pb-4 border-b border-slate-200">
@@ -252,6 +251,6 @@ export default function AdminSettingsView() {
           </form>
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

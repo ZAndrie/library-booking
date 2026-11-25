@@ -52,10 +52,13 @@ interface NavSection {
   items: NavItem[];
 }
 
+const USER_CACHE_KEY = 'lirc_desk_user';
+let cachedUser: UserProfile | null = null;
+
 export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(cachedUser);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isRoomsPortal = pathname.startsWith('/rooms');
@@ -63,13 +66,35 @@ export default function AppShell({ children }: AppShellProps) {
   const isAdminPortal = pathname.startsWith('/admin');
 
   useEffect(() => {
+    // Hydrate from sessionStorage immediately so sidebar never flickers on re-entry
+    if (!cachedUser && typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem(USER_CACHE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored) as UserProfile;
+          cachedUser = parsed;
+          setUser(parsed);
+        }
+      } catch {
+        // Ignore malformed cache
+      }
+    }
+
     async function loadUser() {
       try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
+          cachedUser = data.user;
           setUser(data.user);
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem(USER_CACHE_KEY, JSON.stringify(data.user));
+          }
         } else {
+          cachedUser = null;
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem(USER_CACHE_KEY);
+          }
           router.push('/login');
         }
       } catch {
@@ -77,12 +102,17 @@ export default function AppShell({ children }: AppShellProps) {
       }
     }
     loadUser();
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } finally {
+      cachedUser = null;
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(USER_CACHE_KEY);
+      }
       router.push('/login');
       router.refresh();
     }
@@ -248,6 +278,7 @@ export default function AppShell({ children }: AppShellProps) {
                       <Link
                         key={item.label}
                         href={item.href}
+                        prefetch={true}
                         onClick={() => setMobileMenuOpen(false)}
                         className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors border-l-4 group ${
                           isCurrent
