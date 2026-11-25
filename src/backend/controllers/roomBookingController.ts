@@ -237,7 +237,8 @@ export async function updateRoomBooking(id: string, req: NextRequest) {
     }
 
     const body = await req.json();
-    const { status, extendMinutes, notes } = body;
+    const { status, notes } = body;
+    const extendMinutes = body.extendMinutes ?? body.extensionMinutes;
 
     await connectToDatabase();
     const booking = await RoomBooking.findById(id);

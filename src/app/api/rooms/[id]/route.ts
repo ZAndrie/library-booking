@@ -15,6 +15,10 @@ export async function PUT(req: NextRequest, { params }: Params) {
   return updateRoom(params.id, req);
 }
 
+export async function PATCH(req: NextRequest, { params }: Params) {
+  return updateRoom(params.id, req);
+}
+
 export async function DELETE(req: NextRequest, { params }: Params) {
   return deleteRoom(params.id);
 }
