@@ -69,7 +69,13 @@ export default function RoomsView() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<RoomBooking[]>([]);
   const [policies, setPolicies] = useState<SystemPolicyData>(DEFAULT_SYSTEM_POLICIES);
+  const [nowTick, setNowTick] = useState<Date>(() => new Date());
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const ticker = setInterval(() => setNowTick(new Date()), 20_000);
+    return () => clearInterval(ticker);
+  }, []);
 
   useEffect(() => {
     fetchClientUser()
@@ -206,6 +212,9 @@ export default function RoomsView() {
       if (res.ok) {
         const data = await res.json();
         setBookings(data.bookings || []);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('lirc-monitor-refresh'));
+        }
       }
     } catch (err) {
       console.error('Failed to load bookings:', err);
@@ -596,7 +605,7 @@ export default function RoomsView() {
                     hour: '2-digit',
                     minute: '2-digit',
                   });
-                  const displayState = getRoomBookingDisplayState(booking);
+                  const displayState = getRoomBookingDisplayState(booking, nowTick);
                   const isCurrentActive = displayState.kind === 'active_session';
 
                   return (

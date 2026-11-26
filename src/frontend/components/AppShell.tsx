@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   ClientUserProfile,
   clearClientUserCache,
+  fetchClientPolicies,
   fetchClientUser,
   getStoredClientUser,
 } from '@/lib/clientDataCache';
+import { formatTime12h, getManilaTimeHHMM } from '@/lib/policyUtils';
 import { useToast } from '@/frontend/components/ToastProvider';
 import {
   LayoutDashboard,
@@ -58,6 +60,9 @@ export default function AppShell({ children }: AppShellProps) {
   const { toast } = useToast();
   const [user, setUser] = useState<UserProfile | null>(() => getStoredClientUser());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [expiredRoomsCount, setExpiredRoomsCount] = useState(0);
+  const [overdueLaptopsCount, setOverdueLaptopsCount] = useState(0);
+  const alertedEventKeysRef = useRef<Set<string>>(new Set());
 
   const isRoomsPortal = pathname.startsWith('/rooms');
   const isLaptopsPortal = pathname.startsWith('/laptops');
@@ -109,6 +114,165 @@ export default function AppShell({ children }: AppShellProps) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Live monitor: alert staff/admin when booked room sessions or laptop loans pass allotted time
+  useEffect(() => {
+    if (!user) return;
+
+    const canMonitorRooms =
+      user.role === 'admin' || user.role === 'super_admin' || user.portal === 'rooms';
+    const canMonitorLaptops =
+      user.role === 'admin' || user.role === 'super_admin' || user.portal === 'laptops';
+    if (!canMonitorRooms && !canMonitorLaptops) return;
+
+    const ALERT_STORAGE_KEY = 'lirc_time_alerts_v1';
+    if (alertedEventKeysRef.current.size === 0 && typeof window !== 'undefined') {
+      try {
+        const raw = sessionStorage.getItem(ALERT_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((k) => alertedEventKeysRef.current.add(String(k)));
+          }
+        }
+      } catch {
+        // Ignore malformed storage
+      }
+    }
+
+    const rememberAlert = (key: string) => {
+      alertedEventKeysRef.current.add(key);
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem(
+            ALERT_STORAGE_KEY,
+            JSON.stringify(Array.from(alertedEventKeysRef.current).slice(-100))
+          );
+        } catch {
+          // Ignore storage quota errors
+        }
+      }
+    };
+
+    let cachedActiveBookings: any[] = [];
+    let cachedActiveLoans: any[] = [];
+    let graceMinutes = 15;
+    let cancelled = false;
+
+    const evaluateTimers = () => {
+      if (cancelled) return;
+      const nowMs = Date.now();
+      const graceMs = graceMinutes * 60 * 1000;
+
+      if (canMonitorRooms) {
+        const expired = cachedActiveBookings.filter((b) => {
+          if (b.status !== 'active') return false;
+          const endMs = new Date(b.endTime).getTime();
+          return !isNaN(endMs) && nowMs > endMs;
+        });
+        setExpiredRoomsCount(expired.length);
+
+        expired.forEach((b) => {
+          const key = `room-ended:${b._id}:${b.endTime}`;
+          if (!alertedEventKeysRef.current.has(key)) {
+            rememberAlert(key);
+            const roomLabel = b.roomId?.name
+              ? `${b.roomId.name}${b.roomId.roomNumber ? ` (${b.roomId.roomNumber})` : ''}`
+              : 'Discussion Room';
+            const endStr = formatTime12h(getManilaTimeHHMM(new Date(b.endTime)));
+            toast.warning(
+              `${roomLabel} (${b.borrowerName}) passed allotted time at ${endStr}. Ready for check-out.`,
+              'Room Time Ended'
+            );
+          }
+        });
+      }
+
+      if (canMonitorLaptops) {
+        const pastDue = cachedActiveLoans.filter((l) => {
+          if (l.status !== 'active') return false;
+          const dueMs = new Date(l.dueAt).getTime();
+          return !isNaN(dueMs) && nowMs > dueMs;
+        });
+        const overdue = pastDue.filter(
+          (l) => nowMs > new Date(l.dueAt).getTime() + graceMs
+        );
+        setOverdueLaptopsCount(overdue.length);
+
+        pastDue.forEach((l) => {
+          const dueDate = new Date(l.dueAt);
+          const dueMs = dueDate.getTime();
+          const dueStr = formatTime12h(getManilaTimeHHMM(dueDate));
+          const unitLabel = l.laptopId?.assetTag || 'Laptop';
+
+          if (nowMs > dueMs + graceMs) {
+            const overdueKey = `loan-overdue:${l._id}:${l.dueAt}`;
+            if (!alertedEventKeysRef.current.has(overdueKey)) {
+              rememberAlert(overdueKey);
+              toast.error(
+                `${unitLabel} (${l.borrowerName}) is overdue — return was due at ${dueStr}.`,
+                'Laptop Overdue'
+              );
+            }
+          } else if (graceMinutes > 0) {
+            const dueKey = `loan-due:${l._id}:${l.dueAt}`;
+            if (!alertedEventKeysRef.current.has(dueKey)) {
+              rememberAlert(dueKey);
+              toast.warning(
+                `${unitLabel} (${l.borrowerName}) reached due time at ${dueStr} (${graceMinutes}m grace window active).`,
+                'Laptop Due Now'
+              );
+            }
+          }
+        });
+      }
+    };
+
+    const pollActiveRecords = async () => {
+      try {
+        const [policies, bookingsData, loansData] = await Promise.all([
+          fetchClientPolicies(),
+          canMonitorRooms
+            ? fetch('/api/room-bookings?status=active').then((r) => (r.ok ? r.json() : null))
+            : Promise.resolve(null),
+          canMonitorLaptops
+            ? fetch('/api/laptop-loans?status=active').then((r) => (r.ok ? r.json() : null))
+            : Promise.resolve(null),
+        ]);
+        if (cancelled) return;
+        graceMinutes = policies.overdueGraceMinutes ?? 15;
+        if (Array.isArray(bookingsData?.bookings)) {
+          cachedActiveBookings = bookingsData.bookings;
+        }
+        if (Array.isArray(loansData?.loans)) {
+          cachedActiveLoans = loansData.loans;
+        }
+        evaluateTimers();
+      } catch {
+        // Ignore transient network errors during background poll
+      }
+    };
+
+    pollActiveRecords();
+    const handleRefreshEvent = () => {
+      pollActiveRecords();
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('lirc-monitor-refresh', handleRefreshEvent);
+    }
+    const pollInterval = setInterval(pollActiveRecords, 60_000);
+    const tickInterval = setInterval(evaluateTimers, 20_000);
+
+    return () => {
+      cancelled = true;
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('lirc-monitor-refresh', handleRefreshEvent);
+      }
+      clearInterval(pollInterval);
+      clearInterval(tickInterval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, user?.role, user?.portal]);
 
   const handleLogout = async () => {
     try {
@@ -384,7 +548,33 @@ export default function AppShell({ children }: AppShellProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-3.5">
+            {expiredRoomsCount > 0 && (
+              <Link
+                href="/rooms"
+                title="View room sessions past allotted time"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-100 hover:bg-orange-200 border border-orange-300 text-[11px] font-bold text-orange-900 animate-pulse transition-colors"
+              >
+                <AlertTriangle className="w-3.5 h-3.5 text-orange-700 shrink-0" />
+                <span>
+                  {expiredRoomsCount} Room{expiredRoomsCount > 1 ? 's' : ''} Time Ended
+                </span>
+              </Link>
+            )}
+
+            {overdueLaptopsCount > 0 && (
+              <Link
+                href="/laptops?tab=overdue"
+                title="View overdue laptop loans"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-100 hover:bg-rose-200 border border-rose-300 text-[11px] font-bold text-rose-900 animate-pulse transition-colors"
+              >
+                <AlertTriangle className="w-3.5 h-3.5 text-[#8B1515] shrink-0" />
+                <span>
+                  {overdueLaptopsCount} Laptop{overdueLaptopsCount > 1 ? 's' : ''} Overdue
+                </span>
+              </Link>
+            )}
+
             {isStaff && user?.portal && (
               <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-[11px] font-bold text-[#8B1515]">
                 Shift: {user.portal === 'rooms' ? 'Discussion Rooms' : 'Laptop Borrowing'}

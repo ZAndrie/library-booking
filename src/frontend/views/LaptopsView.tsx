@@ -66,7 +66,13 @@ export default function LaptopsView() {
   const [laptops, setLaptops] = useState<LaptopItem[]>([]);
   const [loans, setLoans] = useState<LaptopLoan[]>([]);
   const [policies, setPolicies] = useState<SystemPolicyData>(DEFAULT_SYSTEM_POLICIES);
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const ticker = setInterval(() => setNowMs(Date.now()), 20_000);
+    return () => clearInterval(ticker);
+  }, []);
 
   useEffect(() => {
     fetchClientUser()
@@ -202,6 +208,9 @@ export default function LaptopsView() {
       if (res.ok) {
         const data = await res.json();
         setLoans(data.loans || []);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('lirc-monitor-refresh'));
+        }
       }
     } catch (err) {
       console.error('Failed to load loans:', err);
@@ -237,10 +246,11 @@ export default function LaptopsView() {
     fetchLoans();
   }, []);
 
+  const graceMs = (policies.overdueGraceMinutes ?? 0) * 60 * 1000;
   const availableLaptops = laptops.filter((l) => l.status === 'available');
   const activeLoans = loans.filter((l) => l.status === 'active');
   const overdueLoans = loans.filter(
-    (l) => l.status === 'active' && new Date(l.dueAt) < new Date()
+    (l) => l.status === 'active' && new Date(l.dueAt).getTime() + graceMs < nowMs
   );
 
   const filteredInventory = laptops.filter((item) => {
@@ -518,7 +528,9 @@ export default function LaptopsView() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {activeLoans.map((loan) => {
-                  const isOverdue = new Date(loan.dueAt) < new Date();
+                  const dueTimeMs = new Date(loan.dueAt).getTime();
+                  const isOverdue = dueTimeMs + graceMs < nowMs;
+                  const isInGraceWindow = !isOverdue && dueTimeMs < nowMs;
                   const borrowedTime = new Date(loan.borrowedAt).toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -555,6 +567,10 @@ export default function LaptopsView() {
                           {isOverdue ? (
                             <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
                               OVERDUE
+                            </span>
+                          ) : isInGraceWindow ? (
+                            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
+                              DUE (GRACE)
                             </span>
                           ) : (
                             <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">
