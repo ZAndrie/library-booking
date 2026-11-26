@@ -17,10 +17,12 @@ import {
   KeyRound,
 } from 'lucide-react';
 import { clearClientUserCache } from '@/lib/clientDataCache';
+import { useToast } from '@/frontend/components/ToastProvider';
 
 export default function LoginView() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
   const portalParam = searchParams.get('portal'); // optional redirect hint: 'rooms' | 'laptops' | 'dashboard'
   const [selectedDesk, setSelectedDesk] = useState<'rooms' | 'laptops'>(
     portalParam === 'laptops' ? 'laptops' : 'rooms'
@@ -79,6 +81,8 @@ export default function LoginView() {
 
       clearClientUserCache();
 
+      toast.success(`Signed in as ${data.user?.name || email}.`, 'Welcome Back');
+
       const role = data.user?.role;
       if (role === 'admin' || role === 'super_admin') {
         if (portalParam === 'rooms' || portalParam === 'laptops') {
@@ -92,6 +96,7 @@ export default function LoginView() {
       router.refresh();
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || 'Sign in failed', 'Authentication Failed');
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useToast } from '@/frontend/components/ToastProvider';
 import {
   Users,
   ShieldCheck,
@@ -31,6 +32,7 @@ interface StaffUser {
 }
 
 export default function AdminUsersView() {
+  const { toast } = useToast();
   const [users, setUsers] = useState<StaffUser[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -96,8 +98,9 @@ export default function AdminUsersView() {
     }
   };
 
-  const showNotification = (msg: string) => {
+  const showNotification = (msg: string, title = 'Saved') => {
     setSuccessMsg(msg);
+    toast.success(msg, title);
     setTimeout(() => setSuccessMsg(''), 4000);
   };
 
@@ -123,10 +126,11 @@ export default function AdminUsersView() {
         role: 'staff',
       });
       setShowCreatePassword(false);
-      showNotification(`Account created for ${data.user?.name || 'new staff member'}.`);
+      showNotification(`Account created for ${data.user?.name || 'new staff member'}.`, 'Account Created');
       fetchUsers();
     } catch (err: any) {
       setCreateError(err.message);
+      toast.error(err.message || 'Failed to create account');
     } finally {
       setCreateLoading(false);
     }
@@ -146,6 +150,7 @@ export default function AdminUsersView() {
       fetchUsers();
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || 'Failed to update user role');
     }
   };
 
@@ -160,11 +165,13 @@ export default function AdminUsersView() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to update account status');
       showNotification(
-        !currentStatus ? 'Account activated successfully.' : 'Account deactivated.'
+        !currentStatus ? 'Account activated successfully.' : 'Account deactivated.',
+        'Account Updated'
       );
       fetchUsers();
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || 'Failed to update account status');
     }
   };
 
@@ -182,11 +189,12 @@ export default function AdminUsersView() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to reset password');
 
-      showNotification(`Password for ${resetTargetUser.name} reset successfully.`);
+      showNotification(`Password for ${resetTargetUser.name} reset successfully.`, 'Password Reset');
       setResetTargetUser(null);
       setNewPassword('');
     } catch (err: any) {
       setResetError(err.message);
+      toast.error(err.message || 'Failed to reset password');
     } finally {
       setResetLoading(false);
     }
@@ -203,11 +211,12 @@ export default function AdminUsersView() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to delete user account');
 
-      showNotification(`Account for ${deleteTargetUser.name} deleted permanently.`);
+      showNotification(`Account for ${deleteTargetUser.name} deleted permanently.`, 'Account Deleted');
       setDeleteTargetUser(null);
       fetchUsers();
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || 'Failed to delete account');
     } finally {
       setDeleteLoading(false);
     }

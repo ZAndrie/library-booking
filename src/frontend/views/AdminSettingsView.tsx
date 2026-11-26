@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { invalidateClientPolicies } from '@/lib/clientDataCache';
+import { useToast } from '@/frontend/components/ToastProvider';
 import {
   Sliders,
   Save,
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function AdminSettingsView() {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -95,8 +97,10 @@ export default function AdminSettingsView() {
       if (!res.ok) throw new Error(data.error || 'Failed to save settings');
       invalidateClientPolicies();
       setSuccessMsg('Desk operating policies saved successfully.');
+      toast.success('Desk operating policies updated and active system-wide.', 'Policies Saved');
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || 'Failed to save settings');
     } finally {
       setSaving(false);
     }

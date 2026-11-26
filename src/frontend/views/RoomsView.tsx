@@ -17,6 +17,7 @@ import {
   fetchClientUser,
   getStoredClientUser,
 } from '@/lib/clientDataCache';
+import { useToast } from '@/frontend/components/ToastProvider';
 import {
   DoorOpen,
   Calendar,
@@ -62,6 +63,7 @@ interface RoomBooking {
 }
 
 export default function RoomsView() {
+  const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState<any>(() => getStoredClientUser());
   const [activeTab, setActiveTab] = useState<'schedule' | 'rooms'>('schedule');
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -266,14 +268,22 @@ export default function RoomsView() {
       const data = await res.json();
 
       if (!res.ok) {
-        setBookingError(data.error || 'Failed to create booking reservation.');
+        const msg = data.error || 'Failed to create booking reservation.';
+        setBookingError(msg);
+        toast.error(msg, 'Reservation Failed');
       } else {
+        toast.success(
+          `Reserved for ${bookingFormData.borrowerName} (${bookingFormData.startTime} – ${bookingFormData.endTime}).`,
+          'Reservation Created'
+        );
         setShowBookingModal(false);
         setBookingFormData(createDynamicBookingState());
         fetchBookings();
       }
     } catch (err: any) {
-      setBookingError(err.message || 'Error occurred while saving reservation.');
+      const msg = err.message || 'Error occurred while saving reservation.';
+      setBookingError(msg);
+      toast.error(msg, 'Reservation Failed');
     } finally {
       setBookingSubmitting(false);
     }
@@ -311,8 +321,14 @@ export default function RoomsView() {
 
       const data = await res.json();
       if (!res.ok) {
-        setRoomError(data.error || `Failed to ${editingRoomId ? 'update' : 'add'} room.`);
+        const msg = data.error || `Failed to ${editingRoomId ? 'update' : 'add'} room.`;
+        setRoomError(msg);
+        toast.error(msg, editingRoomId ? 'Update Failed' : 'Creation Failed');
       } else {
+        toast.success(
+          `${roomFormData.name} (${roomFormData.roomNumber.toUpperCase()}) ${editingRoomId ? 'changes saved' : 'created'}.`,
+          editingRoomId ? 'Room Updated' : 'Room Created'
+        );
         setShowRoomModal(false);
         setEditingRoomId(null);
         setRoomFormData({
@@ -326,7 +342,9 @@ export default function RoomsView() {
         fetchRooms();
       }
     } catch (err: any) {
-      setRoomError(err.message || `Error occurred while ${editingRoomId ? 'updating' : 'creating'} room.`);
+      const msg = err.message || `Error occurred while ${editingRoomId ? 'updating' : 'creating'} room.`;
+      setRoomError(msg);
+      toast.error(msg);
     } finally {
       setRoomSubmitting(false);
     }
@@ -346,12 +364,20 @@ export default function RoomsView() {
 
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Failed to update booking');
+        toast.error(data.error || 'Failed to update booking');
       } else {
+        toast.success(
+          newStatus === 'completed'
+            ? 'Room checked out and marked completed.'
+            : newStatus === 'cancelled'
+            ? 'Reservation cancelled.'
+            : 'Booking marked as no-show.',
+          newStatus === 'completed' ? 'Session Completed' : 'Booking Updated'
+        );
         fetchBookings();
       }
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message || 'Failed to update booking');
     } finally {
       setActionLoadingId(null);
     }
@@ -368,12 +394,13 @@ export default function RoomsView() {
 
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Failed to extend session');
+        toast.error(data.error || 'Failed to extend session', 'Extension Blocked');
       } else {
+        toast.success(`Session extended by +${extensionMinutes} minutes.`, 'Session Extended');
         fetchBookings();
       }
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message || 'Failed to extend session');
     } finally {
       setActionLoadingId(null);
     }
@@ -392,12 +419,13 @@ export default function RoomsView() {
 
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Failed to update room');
+        toast.error(data.error || 'Failed to update room');
       } else {
+        toast.success(`Room status set to ${newStatus}.`, 'Room Status Saved');
         fetchRooms();
       }
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message || 'Failed to update room');
     }
   };
 
@@ -411,12 +439,13 @@ export default function RoomsView() {
 
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Failed to delete room');
+        toast.error(data.error || 'Failed to delete room');
       } else {
+        toast.success('Discussion room permanently removed.', 'Room Deleted');
         fetchRooms();
       }
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message || 'Failed to delete room');
     }
   };
 

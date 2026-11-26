@@ -9,6 +9,7 @@ import {
   fetchClientUser,
   getStoredClientUser,
 } from '@/lib/clientDataCache';
+import { useToast } from '@/frontend/components/ToastProvider';
 import {
   LayoutDashboard,
   DoorOpen,
@@ -54,6 +55,7 @@ interface NavSection {
 export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { toast } = useToast();
   const [user, setUser] = useState<UserProfile | null>(() => getStoredClientUser());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -113,6 +115,7 @@ export default function AppShell({ children }: AppShellProps) {
       await fetch('/api/auth/logout', { method: 'POST' });
     } finally {
       clearClientUserCache();
+      toast.info('Your desk session has ended.', 'Signed Out');
       router.push('/login');
       router.refresh();
     }

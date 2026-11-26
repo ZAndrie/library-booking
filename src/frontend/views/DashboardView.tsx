@@ -17,6 +17,7 @@ import {
   fetchClientUser,
   getStoredClientUser,
 } from '@/lib/clientDataCache';
+import { useToast } from '@/frontend/components/ToastProvider';
 import {
   LayoutDashboard,
   DoorOpen,
@@ -83,6 +84,7 @@ interface StatsData {
 }
 
 export default function DashboardView() {
+  const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -225,13 +227,20 @@ export default function DashboardView() {
 
       const data = await res.json();
       if (!res.ok) {
-        setBookingError(data.error || 'Failed to create reservation');
+        const msg = data.error || 'Failed to create reservation';
+        setBookingError(msg);
+        toast.error(msg, 'Reservation Failed');
       } else {
+        toast.success(
+          `Reserved ${selectedRoomForBooking.name} for ${bookingFormData.borrowerName}.`,
+          'Reservation Created'
+        );
         setShowBookModal(false);
         fetchDashboardData();
       }
     } catch (err: any) {
       setBookingError(err.message);
+      toast.error(err.message || 'Failed to create reservation');
     } finally {
       setBookingSubmitting(false);
     }
@@ -270,13 +279,17 @@ export default function DashboardView() {
 
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Failed to checkout laptop');
+        toast.error(data.error || 'Failed to checkout laptop', 'Checkout Failed');
       } else {
+        toast.success(
+          `Laptop ${selectedLaptopForCheckout.assetTag} checked out to ${checkoutFormData.borrowerName}.`,
+          'Laptop Checked Out'
+        );
         setShowCheckoutModal(false);
         fetchDashboardData();
       }
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message || 'Failed to checkout laptop', 'Checkout Failed');
     } finally {
       setCheckoutSubmitting(false);
     }

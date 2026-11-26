@@ -7,6 +7,7 @@ import {
   fetchClientUser,
   getStoredClientUser,
 } from '@/lib/clientDataCache';
+import { useToast } from '@/frontend/components/ToastProvider';
 import {
   Laptop,
   Search,
@@ -59,6 +60,7 @@ interface LaptopLoan {
 }
 
 export default function LaptopsView() {
+  const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState<any>(() => getStoredClientUser());
   const [activeTab, setActiveTab] = useState<'desk' | 'overdue' | 'inventory'>('desk');
   const [laptops, setLaptops] = useState<LaptopItem[]>([]);
@@ -220,12 +222,13 @@ export default function LaptopsView() {
       const res = await fetch(`/api/laptops/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Failed to delete laptop');
+        toast.error(data.error || 'Failed to delete laptop');
         return;
       }
+      toast.success(`Laptop ${assetTag} removed from inventory.`, 'Laptop Deleted');
       await fetchLaptops();
     } catch (err: any) {
-      alert(err.message || 'Error deleting laptop');
+      toast.error(err.message || 'Error deleting laptop');
     }
   };
 
@@ -278,8 +281,11 @@ export default function LaptopsView() {
 
       const data = await res.json();
       if (!res.ok) {
-        setCheckoutError(data.error || 'Failed to checkout laptop');
+        const msg = data.error || 'Failed to checkout laptop';
+        setCheckoutError(msg);
+        toast.error(msg, 'Checkout Failed');
       } else {
+        toast.success(`Laptop issued to ${checkoutData.borrowerName}.`, 'Laptop Checked Out');
         setShowCheckoutModal(false);
         setCheckoutData({
           laptopId: '',
@@ -296,7 +302,9 @@ export default function LaptopsView() {
         fetchLoans();
       }
     } catch (err: any) {
-      setCheckoutError(err.message || 'Error occurred while checking out');
+      const msg = err.message || 'Error occurred while checking out';
+      setCheckoutError(msg);
+      toast.error(msg, 'Checkout Failed');
     } finally {
       setCheckoutSubmitting(false);
     }
@@ -321,14 +329,22 @@ export default function LaptopsView() {
 
       const data = await res.json();
       if (!res.ok) {
-        setReturnError(data.error || 'Failed to return laptop');
+        const msg = data.error || 'Failed to return laptop';
+        setReturnError(msg);
+        toast.error(msg, 'Return Failed');
       } else {
+        toast.success(
+          `Returned by ${returningLoan.borrowerName} (${returnCondition} condition).`,
+          'Laptop Returned'
+        );
         setReturningLoan(null);
         fetchLaptops();
         fetchLoans();
       }
     } catch (err: any) {
-      setReturnError(err.message || 'Error during return');
+      const msg = err.message || 'Error during return';
+      setReturnError(msg);
+      toast.error(msg, 'Return Failed');
     } finally {
       setReturnSubmitting(false);
     }
@@ -366,8 +382,14 @@ export default function LaptopsView() {
 
       const data = await res.json();
       if (!res.ok) {
-        setAddLaptopError(data.error || `Failed to ${editingLaptopId ? 'update' : 'add'} laptop`);
+        const msg = data.error || `Failed to ${editingLaptopId ? 'update' : 'add'} laptop`;
+        setAddLaptopError(msg);
+        toast.error(msg, editingLaptopId ? 'Update Failed' : 'Creation Failed');
       } else {
+        toast.success(
+          `${newLaptopData.assetTag.toUpperCase()} (${newLaptopData.brand} ${newLaptopData.model}) ${editingLaptopId ? 'changes saved' : 'added'}.`,
+          editingLaptopId ? 'Laptop Updated' : 'Laptop Created'
+        );
         setShowAddLaptopModal(false);
         setEditingLaptopId(null);
         setNewLaptopData({
@@ -385,7 +407,9 @@ export default function LaptopsView() {
         fetchLaptops();
       }
     } catch (err: any) {
-      setAddLaptopError(err.message || `Error ${editingLaptopId ? 'updating' : 'adding'} laptop`);
+      const msg = err.message || `Error ${editingLaptopId ? 'updating' : 'adding'} laptop`;
+      setAddLaptopError(msg);
+      toast.error(msg);
     } finally {
       setAddLaptopSubmitting(false);
     }
