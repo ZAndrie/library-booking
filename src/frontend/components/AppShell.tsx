@@ -27,7 +27,6 @@ import {
   X,
   User,
   ShieldCheck,
-  Layers,
   Users,
   FileText,
   Sliders,
@@ -83,7 +82,7 @@ export default function AppShell({ children }: AppShellProps) {
           ? '/rooms'
           : user?.portal === 'laptops'
           ? '/laptops'
-          : '/portal';
+          : '/login';
       router.replace(target);
     }
   }, [isStaff, isUnauthorizedStaffRoute, user?.portal, router]);
@@ -162,12 +161,6 @@ export default function AppShell({ children }: AppShellProps) {
           ...(isSuperAdmin
             ? [{ label: 'System Policies', href: '/admin/settings', icon: Sliders }]
             : []),
-        ],
-      },
-      {
-        label: 'PORTAL GATEWAY',
-        items: [
-          { label: 'Switch Counter Desk', href: '/portal', icon: Layers },
         ],
       },
       {
@@ -259,8 +252,6 @@ export default function AppShell({ children }: AppShellProps) {
                     let isCurrent = false;
                     if (item.href === '#logout') {
                       isCurrent = false;
-                    } else if (item.href === '/portal') {
-                      isCurrent = pathname === '/portal';
                     } else if (item.href === '/dashboard') {
                       isCurrent = pathname === '/dashboard';
                     } else if (item.href === '/rooms') {
@@ -391,14 +382,10 @@ export default function AppShell({ children }: AppShellProps) {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
-            {isAdmin && (
-              <Link
-                href="/portal"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 hover:text-[#8B1515] transition-colors shadow-2xs"
-              >
-                <Layers className="w-3.5 h-3.5 text-[#8B1515]" />
-                <span className="hidden sm:inline">Switch Portal</span>
-              </Link>
+            {isStaff && user?.portal && (
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-[11px] font-bold text-[#8B1515]">
+                Shift: {user.portal === 'rooms' ? 'Discussion Rooms' : 'Laptop Borrowing'}
+              </span>
             )}
 
             <div className="text-right">

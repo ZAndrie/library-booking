@@ -1,11 +1,22 @@
-import { Metadata } from 'next';
-import PortalGatewayView from '@/frontend/views/PortalGatewayView';
+import { redirect } from 'next/navigation';
+import { getCurrentUser } from '@/backend/auth/jwt';
 
-export const metadata: Metadata = {
-  title: 'Operations Portal Gateway | Cor Jesu College LIRC',
-  description: 'Select your operational counter desk: Discussion Rooms or Laptop Borrowing Services.',
-};
+export const dynamic = 'force-dynamic';
 
-export default function PortalPage() {
-  return <PortalGatewayView />;
+export default async function PortalPage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  if (user.role === 'admin' || user.role === 'super_admin') {
+    redirect('/dashboard');
+  }
+
+  if (user.portal === 'rooms' || user.portal === 'laptops') {
+    redirect(`/${user.portal}`);
+  }
+
+  redirect('/login');
 }

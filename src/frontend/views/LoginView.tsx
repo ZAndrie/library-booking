@@ -14,14 +14,17 @@ import {
   EyeOff,
   Loader2,
   AlertCircle,
-  Building2,
   KeyRound,
 } from 'lucide-react';
+import { clearClientUserCache } from '@/lib/clientDataCache';
 
 export default function LoginView() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const portal = searchParams.get('portal'); // 'rooms' | 'laptops' | 'dashboard'
+  const portalParam = searchParams.get('portal'); // optional redirect hint: 'rooms' | 'laptops' | 'dashboard'
+  const [selectedDesk, setSelectedDesk] = useState<'rooms' | 'laptops'>(
+    portalParam === 'laptops' ? 'laptops' : 'rooms'
+  );
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,32 +35,25 @@ export default function LoginView() {
 
   // Portal metadata helper
   const getPortalDetails = () => {
-    switch (portal) {
-      case 'rooms':
-        return {
-          name: 'Discussion Rooms Portal',
-          subtitle: 'Collaborative Space Reservations',
-          icon: DoorOpen,
-        };
-      case 'laptops':
-        return {
-          name: 'Laptop Borrowing Services',
-          subtitle: 'Circulation & Hardware Custody Desk',
-          icon: Laptop,
-        };
-      case 'dashboard':
-        return {
-          name: 'Unified Operations Dashboard',
-          subtitle: 'Administrative Operations Hub',
-          icon: LayoutDashboard,
-        };
-      default:
-        return {
-          name: 'Staff Portal',
-          subtitle: 'Learning Information & Resource Center',
-          icon: Building2,
-        };
+    if (portalParam === 'dashboard') {
+      return {
+        name: 'Operations Dashboard',
+        subtitle: 'Administrative Operations Hub',
+        icon: LayoutDashboard,
+      };
     }
+    if (selectedDesk === 'laptops') {
+      return {
+        name: 'Laptop Borrowing Desk',
+        subtitle: 'Circulation & Hardware Custody Desk',
+        icon: Laptop,
+      };
+    }
+    return {
+      name: 'Discussion Rooms Desk',
+      subtitle: 'Collaborative Space Reservations',
+      icon: DoorOpen,
+    };
   };
 
   const portalDetails = getPortalDetails();
@@ -72,7 +68,7 @@ export default function LoginView() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, portal }),
+        body: JSON.stringify({ email, password, portal: selectedDesk }),
       });
 
       const data = await res.json();
@@ -81,18 +77,17 @@ export default function LoginView() {
         throw new Error(data.error || 'Failed to authenticate');
       }
 
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('lirc_desk_user');
-      }
+      clearClientUserCache();
 
-      if (portal === 'rooms') {
-        router.push('/rooms');
-      } else if (portal === 'laptops') {
-        router.push('/laptops');
-      } else if (portal === 'dashboard') {
-        router.push('/dashboard');
+      const role = data.user?.role;
+      if (role === 'admin' || role === 'super_admin') {
+        if (portalParam === 'rooms' || portalParam === 'laptops') {
+          router.push(`/${portalParam}`);
+        } else {
+          router.push('/dashboard');
+        }
       } else {
-        router.push('/portal');
+        router.push(`/${selectedDesk}`);
       }
       router.refresh();
     } catch (err: any) {
@@ -241,14 +236,14 @@ export default function LoginView() {
       {/* RIGHT PANE: Clean Pure White Background Sign In Console       */}
       {/* ============================================================== */}
       <div className="flex-1 lg:w-1/2 xl:w-5/12 bg-white flex flex-col justify-between p-5 sm:p-8 lg:p-8 xl:p-12 shadow-2xl relative z-10 lg:min-h-screen overflow-y-auto">
-        {/* Top Bar: Return to Portal Selection */}
+        {/* Top Bar: Return to Public Home */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
           <Link
-            href="/portal"
+            href="/"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-[#8B1515] transition-colors group px-2.5 py-1 rounded-lg hover:bg-slate-50"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1 text-[#8B1515]" />
-            <span>Back to Portal</span>
+            <span>Public Home</span>
           </Link>
         </div>
 
@@ -277,6 +272,42 @@ export default function LoginView() {
 
           {/* Form with Clean White Input Fields */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* SHIFT COUNTER DESK SELECTOR */}
+            <div>
+              <label className="block text-xs font-bold tracking-wider text-slate-700 uppercase mb-1.5">
+                Shift Counter Desk
+              </label>
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDesk('rooms')}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    selectedDesk === 'rooms'
+                      ? 'bg-white text-[#8B1515] shadow-xs border border-red-200'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <DoorOpen className="w-3.5 h-3.5" />
+                  <span>Discussion Rooms</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDesk('laptops')}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    selectedDesk === 'laptops'
+                      ? 'bg-white text-[#8B1515] shadow-xs border border-red-200'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Laptop className="w-3.5 h-3.5" />
+                  <span>Laptop Borrowing</span>
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">
+                Staff enter their chosen shift desk; Admins land on Operations Dashboard.
+              </p>
+            </div>
+
             {/* EMAIL ADDRESS */}
             <div>
               <label className="block text-xs font-bold tracking-wider text-slate-700 uppercase mb-1.5">

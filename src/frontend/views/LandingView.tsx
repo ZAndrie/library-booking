@@ -104,8 +104,6 @@ export default function LandingView() {
 
   // Discreet Staff Hotkey: Press Alt + S or Ctrl + Shift + L from anywhere on the page
   useEffect(() => {
-    // Prefetch portal and login routes for instant transition
-    router.prefetch('/portal');
     router.prefetch('/login');
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -114,7 +112,7 @@ export default function LandingView() {
         (e.ctrlKey && e.shiftKey && (e.key === 'l' || e.key === 'L'))
       ) {
         e.preventDefault();
-        router.push('/portal');
+        router.push('/login');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -175,10 +173,10 @@ export default function LandingView() {
       {/* Sticky Institutional Top Navigation */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
-          {/* Logo & School Branding (Discreet, instant Staff Portal access on click) */}
+          {/* Logo & School Branding (Discreet, instant Staff Login access on click) */}
           <div className="flex items-center gap-3 shrink-0">
             <Link
-              href="/portal"
+              href="/login"
               prefetch={true}
               title="Cor Jesu College LIRC"
               className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white p-1 border border-slate-200 shadow-xs flex items-center justify-center shrink-0 cursor-pointer select-none hover:border-[#8B1515]/40 hover:shadow-md active:scale-95 transition-all group"
@@ -193,7 +191,7 @@ export default function LandingView() {
             </Link>
             <div className="min-w-0">
               <Link
-                href="/portal"
+                href="/login"
                 prefetch={true}
                 className="font-serif font-bold text-base sm:text-lg text-[#8B1515] tracking-tight leading-tight flex items-center gap-2 whitespace-nowrap hover:opacity-90 transition-opacity"
               >
@@ -219,15 +217,15 @@ export default function LandingView() {
             <a href="#guidelines" className="hover:text-[#8B1515] transition-colors py-1">Operating Guidelines</a>
           </nav>
 
-          {/* Right Header Action: Redesigned Sleek Staff Portal Pill + Mobile Menu Toggle */}
+          {/* Right Header Action: Staff Login Pill + Mobile Menu Toggle */}
           <div className="flex items-center gap-2.5 shrink-0">
             <Link
-              href="/portal"
+              href="/login"
               prefetch={true}
               className="hidden sm:inline-flex items-center gap-2.5 px-4 py-2.5 bg-gradient-to-r from-[#8B1515] to-[#6E1010] hover:from-[#721111] hover:to-[#590C0C] text-white rounded-full text-xs font-bold tracking-wide shadow-sm shadow-red-950/20 ring-1 ring-[#8B1515]/20 hover:shadow-md active:scale-95 transition-all whitespace-nowrap group"
             >
               <ShieldCheck className="w-4 h-4 text-rose-200 shrink-0" />
-              <span>Staff Portal</span>
+              <span>Staff Login</span>
               <ArrowRight className="w-3.5 h-3.5 text-rose-200 shrink-0 transition-transform group-hover:translate-x-0.5" />
             </Link>
 
@@ -281,13 +279,13 @@ export default function LandingView() {
             </div>
             <div className="pt-2 sm:hidden">
               <Link
-                href="/portal"
+                href="/login"
                 prefetch={true}
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-[#8B1515] to-[#6E1010] hover:from-[#721111] hover:to-[#590C0C] text-white text-xs font-bold rounded-full shadow-sm transition-all"
               >
                 <ShieldCheck className="w-4 h-4 text-rose-200" />
-                <span>Staff Portal</span>
+                <span>Staff Login</span>
                 <ArrowRight className="w-3.5 h-3.5 text-rose-200" />
               </Link>
             </div>
@@ -791,12 +789,12 @@ export default function LandingView() {
               <span>Digos City, Davao del Sur</span>
               {/* Discreet Staff Desk Access: Subtle, low-contrast link in bottom bar */}
               <Link
-                href="/portal"
+                href="/login"
                 title="LIRC Staff Operations Console"
                 className="text-slate-600 hover:text-slate-400 transition-colors inline-flex items-center gap-1 text-[11px]"
               >
                 <Lock className="w-3 h-3" />
-                <span>Staff Desk</span>
+                <span>Staff Login</span>
               </Link>
             </div>
           </div>
